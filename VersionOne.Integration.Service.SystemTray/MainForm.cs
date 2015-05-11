@@ -20,8 +20,6 @@ namespace VersionOne.Integration.Service.SystemTray
 
         private void startServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
-
         }
 
         private void stopServiceToolStripMenuItem_Click(object sender, EventArgs e)

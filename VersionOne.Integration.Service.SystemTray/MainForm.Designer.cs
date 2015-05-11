@@ -54,6 +54,8 @@
             // 
             // contextMenuStrip1
             // 
+            this.contextMenuStrip1.AutoSize = false;
+            this.contextMenuStrip1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.v1logoToolStripMenuItem,
             this.viewActivityToolStripMenuItem,
@@ -67,7 +69,7 @@
             this.exitServiceToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.contextMenuStrip1.Size = new System.Drawing.Size(230, 214);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 195);
             // 
             // v1logoToolStripMenuItem
             // 
@@ -77,6 +79,7 @@
             this.v1logoToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.v1logoToolStripMenuItem.Enabled = false;
             this.v1logoToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
+            this.v1logoToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.v1logoToolStripMenuItem.Name = "v1logoToolStripMenuItem";
             this.v1logoToolStripMenuItem.ShowShortcutKeys = false;
             this.v1logoToolStripMenuItem.Size = new System.Drawing.Size(236, 22);
@@ -85,9 +88,11 @@
             // viewActivityToolStripMenuItem
             // 
             this.viewActivityToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.viewActivityToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.viewActivityToolStripMenuItem.Name = "viewActivityToolStripMenuItem";
             this.viewActivityToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
             this.viewActivityToolStripMenuItem.Text = "View Activity...";
+            this.viewActivityToolStripMenuItem.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             // 
             // configureServiceToolStripMenuItem
             // 
@@ -98,7 +103,7 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(226, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(186, 6);
             // 
             // startServiceToolStripMenuItem
             // 
@@ -129,7 +134,7 @@
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(226, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(186, 6);
             // 
             // exitServiceToolStripMenuItem
             // 

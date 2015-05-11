@@ -14,7 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{
 		Resources\InstallUtil.exe = Resources\InstallUtil.exe
 		Resources\v1-icon-48x48.ico = Resources\v1-icon-48x48.ico
 		Resources\versionone-logo-noTagline.png = Resources\versionone-logo-noTagline.png
-		Resources\versionone-logo-wTagline.png = Resources\versionone-logo-wTagline.png
 	EndProjectSection
 EndProject
 Global
