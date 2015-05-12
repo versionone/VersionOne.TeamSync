@@ -53,7 +53,7 @@ namespace VersionOne.Integration.Service.Core.VersionOne
 				new[] { "Name", "Number" },
 				new[]
 				{
-					"Category.Name='Feature'",
+					"Category.Name=\"Feature\"",
 					"Scope='Scope:1003'"
 				},
 				element => new Epic(element));

@@ -12,11 +12,18 @@ using VersionOne.Integration.Service.Core.VersionOne.Xml;
 
 namespace VersionOne.Integration.Service.Core.VersionOne
 {
+	public class InstanceInfo
+	{
+		public string Host { get; private set; }
+		public string Instance { get; private set; }
+	}
+
 	public class VersionOneApi
 	{
 		private string _base64;
 		private DebugHttpClientHandler _debugHttp;
 		private const string host = "http://localhost";
+		private const string instance = "VersionOne";
 		public VersionOneApi()
 		{
 			var nom = Encoding.UTF8.GetBytes("admin:admin");
@@ -43,7 +50,7 @@ namespace VersionOne.Integration.Service.Core.VersionOne
 
 		}
 
-		internal async Task<List<T>> Query<T>(string asset, string[] properties, string[] wheres, Func<XElement, T> returnObject)
+		public async Task<List<T>> Query<T>(string asset, string[] properties, string[] wheres, Func<XElement, T> returnObject)
 		{
 			var result = new List<T>();
 
@@ -63,7 +70,7 @@ namespace VersionOne.Integration.Service.Core.VersionOne
 			return result;
 		}
 
-		internal async Task<List<T>> Query<T>(string asset, string[] properties, Func<XElement, T> returnObject)
+		public async Task<List<T>> Query<T>(string asset, string[] properties, Func<XElement, T> returnObject)
 		{
 			var result = new List<T>();
 

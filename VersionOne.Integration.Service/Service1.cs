@@ -9,13 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using VersionOne.Integration.Service.Core;
+using VersionOne.Integration.Service.Core.VersionOne;
+using VersionOne.Integration.Service.Worker;
 
 namespace VersionOne.Integration.Service
 {
     public partial class Service1 : ServiceBase
     {
-        private Timer timer = null;
-
+	    private Timer _timer;
+	    private int _secondsToWait = 10;
+	    private static readonly VersionOneToJiraWorker _worker = new VersionOneToJiraWorker();
         public Service1()
         {
             InitializeComponent();
@@ -28,22 +31,24 @@ namespace VersionOne.Integration.Service
 
         protected override void OnStart(string[] args)
         {
-            timer = new Timer();
-            timer.Interval = 5000; //Every 5 seconds.
-            timer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-            timer.Enabled = true;
+	        _timer = new Timer {Interval = _secondsToWait * 1000};
+	        _timer.Elapsed += OnTimedEvent;
+            _timer.Enabled = true;
             SimpleLogger.WriteLogMessage("VersionOne.Integration.Service started");
         }
 
         protected override void OnStop()
         {
-            timer.Enabled = false;
+            _timer.Enabled = false;
             SimpleLogger.WriteLogMessage("VersionOne.Integration.Service stopped");
         }
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             SimpleLogger.WriteLogMessage("The service event was raised at " + e.SignalTime);
+			_worker.DoWork();
+			SimpleLogger.WriteLogMessage("Finished at " + e.SignalTime);
+
         }
     }
 }
