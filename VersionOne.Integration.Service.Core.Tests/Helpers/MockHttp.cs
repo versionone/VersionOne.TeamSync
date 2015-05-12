@@ -23,14 +23,24 @@ namespace VersionOne.Integration.Service.Worker.Tests.Helpers
 			ResponseMessage.Add(url, response);
 		}
 
-		public void AddJsonResponse(string url, string json)
+		public void AddExpectedUrlAndSetJsonResponse(string expectedUrl, string jsonResponse)
 		{
 			var response = new HttpResponseMessage(HttpStatusCode.OK)
 			{
-				Content = new StringContent(json, Encoding.UTF8, "application/json")
+				Content = new StringContent(jsonResponse, Encoding.UTF8, "application/json")
 			};
 
-			ResponseMessage.Add(url, response);
+			ResponseMessage.Add(expectedUrl, response);
+		}
+
+		public void AddExpectedUrlAndSetXmlResponse(string expectedUrl, string xmlResponse, HttpStatusCode httpStatusCode)
+		{
+			var response = new HttpResponseMessage(httpStatusCode)
+			{
+				Content = new StringContent(xmlResponse, Encoding.UTF8, "application/xml")
+			};
+
+			ResponseMessage.Add(expectedUrl, response);
 		}
 
 

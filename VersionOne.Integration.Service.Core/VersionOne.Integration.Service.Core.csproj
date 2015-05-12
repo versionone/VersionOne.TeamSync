@@ -43,17 +43,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleLogger.cs" />
-    <Compile Include="VersionOne\DictionaryExtensions.cs" />
-    <Compile Include="VersionOne\Epic.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="VersionOne\Interfaces\IV1Asset.cs" />
-    <Compile Include="VersionOne\Story.cs" />
-    <Compile Include="VersionOne\VersionOneApi.cs" />
-    <Compile Include="VersionOne\Xml\XDocumentExtensions.cs" />
-    <Compile Include="VersionOne\Xml\IV1ApiXmlNode.cs" />
-    <Compile Include="VersionOne\Xml\V1SetNode.cs" />
-    <Compile Include="VersionOne\Xml\V1SetRelationNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

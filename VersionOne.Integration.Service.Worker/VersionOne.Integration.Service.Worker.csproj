@@ -38,6 +38,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="VersionOne.SDK.APIClient">
+      <HintPath>..\v1sdk\VersionOne.SDK.APIClient.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VersionOneToJiraWorker.cs" />

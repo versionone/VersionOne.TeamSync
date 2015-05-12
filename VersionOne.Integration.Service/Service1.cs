@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using VersionOne.Integration.Service.Core;
-using VersionOne.Integration.Service.Core.VersionOne;
 using VersionOne.Integration.Service.Worker;
 
 namespace VersionOne.Integration.Service

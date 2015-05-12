@@ -16,5 +16,18 @@ namespace VersionOne.Integration.Service.Worker.Tests.Helpers
 				get { return File.ReadAllText("ContentResponses\\FullIssue.txt"); }
 			}
 		}
+
+		public static class VersionOne
+		{
+			public static string BasicV1QueryResponse
+			{
+				get { return File.ReadAllText("ContentResponses\\VersionOne\\BasicV1QueryResponse.xml"); }
+			}
+			public static string BadAttributeResponse
+			{
+				get { return File.ReadAllText("ContentResponses\\VersionOne\\BadAttributeResponse.xml"); }
+			}
+
+		}
 	}
 }
