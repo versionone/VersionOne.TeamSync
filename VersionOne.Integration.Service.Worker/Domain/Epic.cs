@@ -21,6 +21,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 		public string Number { get; set; }
 		public string Name { get; set; }
 		public string Description { get; set; }
+		public string AssetState { get; set; }
 
 		public static Epic FromQuery(XElement asset)
 		{
@@ -29,7 +30,8 @@ namespace VersionOne.Integration.Service.Worker.Domain
 			{
 				ID = asset.GetAssetID(),
 				Number = attributes.GetValueOrDefault("ID.Number"),
-				Name = attributes.GetValueOrDefault("Name")
+				Name = attributes.GetValueOrDefault("Name"),
+				AssetState = attributes.GetValueOrDefault("AssetState")
 			};
 		}
 

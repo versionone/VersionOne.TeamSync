@@ -27,5 +27,10 @@ namespace VersionOne.Integration.Service.Worker.Domain
 			epic.Description = DateTime.Now.ToString(CultureInfo.InvariantCulture);
 			await _connector.Post(epic, epic.UpdateDescriptionXml());
 		}
+
+		internal async Task<List<Epic>> GetClosedTrackedEpics()
+		{
+			return await _connector.Query("Epic", new []{"Name", "AssetState"}, new[]{ "Reference!=\"\"", "AssetState='Closed'" }, Epic.FromQuery);
+		}
 	}
 }
