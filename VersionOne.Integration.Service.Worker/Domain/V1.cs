@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,13 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
 		public async Task<List<Epic>> GetEpicsWithoutReference()
 		{
-			return await _connector.Query("Epic", new[] {"ID.Number", "Name"}, new[]{ "Reference=\"\"" }, Epic.FromQuery);
+			return await _connector.Query("Epic", new[] { "ID.Number", "Name" }, new[] { "Reference=\"\"", "AssetState='Active'" }, Epic.FromQuery);
+		}
+
+		internal async void UpdateEpic(Epic epic)
+		{
+			epic.Description = DateTime.Now.ToString(CultureInfo.InvariantCulture);
+			await _connector.Post(epic, epic.UpdateDescriptionXml());
 		}
 	}
 }

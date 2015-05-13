@@ -25,9 +25,9 @@ namespace VersionOne.Integration.Service.Worker
 		public async void DoWork()
 		{
 			var unassignedEpics = await _v1.GetEpicsWithoutReference();
-
+			if (unassignedEpics.Count > 0)
+				_v1.UpdateEpic(unassignedEpics[0]);
 		}
-
     }
 
 }
