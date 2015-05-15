@@ -33,13 +33,13 @@ namespace VersionOne.Integration.Service
 	        _timer = new Timer {Interval = _secondsToWait * 1000};
 	        _timer.Elapsed += OnTimedEvent;
             _timer.Enabled = true;
-            SimpleLogger.WriteLogMessage("VersionOne.Integration.Service started");
+            SimpleLogger.WriteLogMessage(startMessage());
         }
 
         protected override void OnStop()
         {
             _timer.Enabled = false;
-            SimpleLogger.WriteLogMessage("VersionOne.Integration.Service stopped");
+            SimpleLogger.WriteLogMessage(stopMessage());
         }
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
@@ -48,6 +48,23 @@ namespace VersionOne.Integration.Service
 			_worker.DoWork();
 			SimpleLogger.WriteLogMessage("Finished at " + e.SignalTime);
 
+        }
+
+        private static string startMessage() 
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("************************************************************");
+            sb.AppendLine("* VersionOne.Integration.Service");
+            sb.AppendLine("************************************************************");
+            sb.AppendLine("Service started...");
+            return sb.ToString();
+        }
+
+        private static string stopMessage()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Service stopped...");
+            return sb.ToString();
         }
     }
 }
