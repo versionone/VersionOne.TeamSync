@@ -100,12 +100,6 @@
     <Compile Include="Exceptions\JiraLoginException.cs" />
     <Compile Include="Exceptions\JiraPermissionException.cs" />
     <Compile Include="Exceptions\JiraValidationException.cs" />
-    <Compile Include="IJiraConnector.cs" />
-    <Compile Include="Issue.cs" />
-    <Compile Include="Item.cs" />
-    <Compile Include="JiraConnectorFactory.cs" />
-    <Compile Include="JiraConnectorType.cs" />
-    <Compile Include="Rest\JiraRestProxy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
