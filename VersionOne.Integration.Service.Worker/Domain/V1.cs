@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VersionOne.Integration.Service.Worker.Extensions;
 using VersionOne.SDK.APIClient;
 
 namespace VersionOne.Integration.Service.Worker.Domain
@@ -19,7 +20,8 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
 		public async Task<List<Epic>> GetEpicsWithoutReference()
 		{
-			return await _connector.Query("Epic", new[] { "ID.Number", "Name" }, new[] { "Reference=\"\"", "AssetState='Active'" }, Epic.FromQuery);
+		    var aDayAgo = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-dd");
+			return await _connector.Query("Epic", new[] { "ID.Number", "Name" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + aDayAgo.InQuotes() }, Epic.FromQuery);
 		}
 
 		internal async void UpdateEpic(Epic epic)

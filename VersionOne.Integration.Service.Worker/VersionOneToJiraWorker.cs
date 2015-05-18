@@ -25,10 +25,17 @@ namespace VersionOne.Integration.Service.Worker
         public async void DoWork()
         {
             var unassignedEpics = await _v1.GetEpicsWithoutReference();
-            if (unassignedEpics.Count > 0)
-                _v1.UpdateEpic(unassignedEpics[0]);
 
-            var closedTrackedEpics = await _v1.GetClosedTrackedEpics();
+            unassignedEpics.ForEach(epic =>
+            {
+                _jira.CreateEpic(epic);
+            });
+
+
+            //if (unassignedEpics.Count > 0)
+            //    _v1.UpdateEpic(unassignedEpics[0]);
+
+            //var closedTrackedEpics = await _v1.GetClosedTrackedEpics();
         }
     }
 }

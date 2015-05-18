@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using VersionOne.Integration.Service.Worker.Extensions;
 using VersionOne.SDK.Jira.Connector;
 using VersionOne.SDK.Jira.Entities;
 
@@ -20,7 +22,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         internal async void CreateEpic(Epic epic) // TODO: async
         {
-            //_connector.Post(JiraResource.Issue, epic.toJiraIssue());
+           _connector.Post(JiraResource.Issue.Value, epic.ToJiraEpic("OPC"), HttpStatusCode.Created);
         }
 
         internal async void UpdateEpic(Epic epic) // TODO: async

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using RestSharp;
+using VersionOne.SDK.Jira.Entities;
 using VersionOne.SDK.Jira.Exceptions;
 
 namespace VersionOne.SDK.Jira.Connector
@@ -31,6 +32,18 @@ namespace VersionOne.SDK.Jira.Connector
 
             if (response.StatusCode.Equals(responseStatusCode))
                 return;
+            if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
+                throw new JiraLoginException();
+            throw new JiraException(response.StatusDescription, new Exception(response.Content));
+
+        }
+
+        private ItemBase ExecuteWithReturn(RestRequest request, HttpStatusCode responseStatusCode)
+        {
+            var response = _client.Execute(request); // TODO: ExecuteAsync?
+
+            if (response.StatusCode.Equals(responseStatusCode))
+                return new ItemBase();//TODO: send back the basic info
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 throw new JiraLoginException();
             throw new JiraException(response.StatusDescription, new Exception(response.Content));
