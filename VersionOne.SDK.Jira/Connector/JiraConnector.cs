@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using RestSharp;
 using RestSharp.Serializers;
 using VersionOne.SDK.Jira.Entities;
@@ -37,14 +39,13 @@ namespace VersionOne.SDK.Jira.Connector
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 throw new JiraLoginException();
             throw new JiraException(response.StatusDescription, new Exception(response.Content));
-
         }
 
-        private ItemBase ExecuteWithReturn(RestRequest request, HttpStatusCode responseStatusCode)
+        private T ExecuteWithReturn<T>(RestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
             if (response.StatusCode.Equals(responseStatusCode))
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<ItemBase>(response.Content);//TODO: send back the basic info
+                return returnBuilder(response.Content);
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 throw new JiraLoginException();
             throw new JiraException(response.StatusDescription, new Exception(response.Content));
@@ -71,7 +72,7 @@ namespace VersionOne.SDK.Jira.Connector
 
             request.AddBody(data);
 
-            return ExecuteWithReturn(request, responseStatusCode);
+            return ExecuteWithReturn(request, responseStatusCode, Newtonsoft.Json.JsonConvert.DeserializeObject<ItemBase>);
         }
 
         public void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
@@ -113,6 +114,20 @@ namespace VersionOne.SDK.Jira.Connector
                 request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
 
             Execute(request, responseStatusCode);
+        }
+
+        public SearchResult GetSearchResults(IDictionary<string, string> query, IEnumerable<string> properties) //not entirely convinced this belongs here
+        {
+            var request = new RestRequest(Method.GET)
+            {
+                Resource = "search",
+            };
+
+            var queryString = string.Join(" AND ", query.Select(item => item.Key + "=" + item.Value));
+            request.AddUrlSegment("jql", queryString);
+            request.AddUrlSegment("fields", string.Join(",", properties));
+
+            return ExecuteWithReturn(request, HttpStatusCode.OK, Newtonsoft.Json.JsonConvert.DeserializeObject<SearchResult>);
         }
     }
 }

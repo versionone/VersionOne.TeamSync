@@ -33,7 +33,9 @@ namespace VersionOne.Integration.Service.Worker.Domain
 				Number = attributes.GetValueOrDefault("ID.Number"),
                 Description = attributes.GetValueOrDefault("Description"),
 				Name = attributes.GetValueOrDefault("Name"),
-				AssetState = attributes.GetValueOrDefault("AssetState")
+				AssetState = attributes.GetValueOrDefault("AssetState"),
+
+                Reference = attributes.GetValueOrDefault("Reference")
 			};
 		}
         public XDocument UpdateReferenceXml()

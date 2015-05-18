@@ -10,7 +10,7 @@ namespace VersionOne.Integration.Service.Worker.Extensions
 {
     public static class EpicExtensions
     {
-        public static Issue ToJiraEpic(this Epic epic, string projectKey)
+        public static Issue CreateJiraEpic(this Epic epic, string projectKey)
         {
             return new Issue()
             {
@@ -21,6 +21,19 @@ namespace VersionOne.Integration.Service.Worker.Extensions
                     Name = epic.Name,
                     IssueType = new IssueType() {Name = "Epic"},
                     Project = new Project() {Key = projectKey}
+                }
+            };
+        }
+
+        public static Issue UpdateJiraEpic(this Epic epic)
+        {
+            return new Issue()
+            {
+                Fields = new EpicFields()
+                {
+                    Description = epic.Description ?? "-",
+                    Summary = epic.Description ?? "-",
+                    Name = epic.Name,
                 }
             };
         }

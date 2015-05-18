@@ -53,7 +53,7 @@ namespace VersionOne.Integration.Service
 
         private static string startMessage() 
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("************************************************************");
             sb.AppendLine("* VersionOne.Integration.Service");
             sb.AppendLine("************************************************************");
@@ -63,7 +63,7 @@ namespace VersionOne.Integration.Service
 
         private static string stopMessage()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("Service stopped...");
             return sb.ToString();
         }

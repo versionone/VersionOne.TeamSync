@@ -20,13 +20,14 @@ namespace VersionOne.Integration.Service.Worker.Domain
             _connector = connector;
         }
 
-        internal ItemBase CreateEpic(Epic epic) // TODO: async
+        internal ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
-            return _connector.Post(JiraResource.Issue.Value, epic.ToJiraEpic("OPC"), HttpStatusCode.Created);
+            return _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey), HttpStatusCode.Created);
         }
 
-        internal async void UpdateEpic(Epic epic) // TODO: async
+        internal void UpdateEpic(Epic epic, string issueKey) // TODO: async
         {
+            _connector.Put("issue/" + issueKey, epic.UpdateJiraEpic(), HttpStatusCode.NoContent);
         }
 
         internal async void ResolveEpic(Epic epic) // TODO: async
@@ -35,6 +36,17 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         internal async void DeleteEpic(Epic epic) // TODO: async
         {
+        }
+
+        internal SearchResult GetEpicsInProject(string projectKey)
+        {
+            return _connector.GetSearchResults(new Dictionary<string, string>
+                {
+                    {"project", projectKey},
+                    {"issuetype", "Epic"}
+                },
+                    new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
+                );
         }
     }
 }
