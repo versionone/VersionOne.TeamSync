@@ -20,9 +20,9 @@ namespace VersionOne.Integration.Service.Worker.Domain
             _connector = connector;
         }
 
-        internal async void CreateEpic(Epic epic) // TODO: async
+        internal ItemBase CreateEpic(Epic epic) // TODO: async
         {
-            var result = _connector.Post(JiraResource.Issue.Value, epic.ToJiraEpic("OPC"), HttpStatusCode.Created);
+            return _connector.Post(JiraResource.Issue.Value, epic.ToJiraEpic("OPC"), HttpStatusCode.Created);
         }
 
         internal async void UpdateEpic(Epic epic) // TODO: async

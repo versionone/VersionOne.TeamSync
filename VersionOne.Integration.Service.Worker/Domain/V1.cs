@@ -24,11 +24,10 @@ namespace VersionOne.Integration.Service.Worker.Domain
 			return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + aDayAgo.InQuotes() }, Epic.FromQuery);
 		}
 
-		internal async void UpdateEpic(Epic epic)
-		{
-			epic.Description = DateTime.Now.ToString(CultureInfo.InvariantCulture);
-			await _connector.Post(epic, epic.UpdateDescriptionXml());
-		}
+        internal async void UpdateEpicReference(Epic epic)
+        {
+            await _connector.Post(epic, epic.UpdateReferenceXml());
+        }
 
 		internal async Task<List<Epic>> GetClosedTrackedEpics()
 		{

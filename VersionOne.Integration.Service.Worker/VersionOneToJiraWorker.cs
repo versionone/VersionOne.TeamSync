@@ -28,7 +28,9 @@ namespace VersionOne.Integration.Service.Worker
 
             unassignedEpics.ForEach(epic =>
             {
-                _jira.CreateEpic(epic);
+                var jiraData = _jira.CreateEpic(epic);
+                epic.Reference = jiraData.Key;
+                _v1.UpdateEpicReference(epic);
             });
 
 
