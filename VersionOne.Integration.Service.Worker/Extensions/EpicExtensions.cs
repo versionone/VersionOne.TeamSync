@@ -16,8 +16,9 @@ namespace VersionOne.Integration.Service.Worker.Extensions
             {
                 Fields = new EpicFields()
                 {
-                    Description = epic.Description,
-                    Summary = epic.Name,
+                    Description = epic.Description ?? "",
+                    Summary = epic.Description ?? "",
+                    Name = epic.Name,
                     IssueType = new IssueType() {Name = "Epic"},
                     Project = new Project() {Key = projectKey}
                 }

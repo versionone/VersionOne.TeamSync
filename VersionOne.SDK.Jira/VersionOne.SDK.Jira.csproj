@@ -94,6 +94,7 @@
   <ItemGroup>
     <Compile Include="Connector\JiraConnector.cs" />
     <Compile Include="Connector\JiraResource.cs" />
+    <Compile Include="Connector\JiraSerializer.cs" />
     <Compile Include="Entities\Issue.cs" />
     <Compile Include="Entities\Item.cs" />
     <Compile Include="Exceptions\JiraException.cs" />

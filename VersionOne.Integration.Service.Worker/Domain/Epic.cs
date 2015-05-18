@@ -30,6 +30,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 			{
 				ID = asset.GetAssetID(),
 				Number = attributes.GetValueOrDefault("ID.Number"),
+                Description = attributes.GetValueOrDefault("Description"),
 				Name = attributes.GetValueOrDefault("Name"),
 				AssetState = attributes.GetValueOrDefault("AssetState")
 			};

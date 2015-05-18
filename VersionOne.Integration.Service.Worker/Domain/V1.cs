@@ -21,7 +21,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 		public async Task<List<Epic>> GetEpicsWithoutReference()
 		{
 		    var aDayAgo = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-dd");
-			return await _connector.Query("Epic", new[] { "ID.Number", "Name" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + aDayAgo.InQuotes() }, Epic.FromQuery);
+			return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + aDayAgo.InQuotes() }, Epic.FromQuery);
 		}
 
 		internal async void UpdateEpic(Epic epic)

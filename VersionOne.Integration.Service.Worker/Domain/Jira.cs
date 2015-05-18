@@ -22,7 +22,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         internal async void CreateEpic(Epic epic) // TODO: async
         {
-           _connector.Post(JiraResource.Issue.Value, epic.ToJiraEpic("OPC"), HttpStatusCode.Created);
+            var result = _connector.Post(JiraResource.Issue.Value, epic.ToJiraEpic("OPC"), HttpStatusCode.Created);
         }
 
         internal async void UpdateEpic(Epic epic) // TODO: async

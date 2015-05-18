@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using RestSharp;
+using RestSharp.Serializers;
 using VersionOne.SDK.Jira.Entities;
 using VersionOne.SDK.Jira.Exceptions;
 
@@ -10,6 +11,7 @@ namespace VersionOne.SDK.Jira.Connector
     public class JiraConnector
     {
         private readonly RestClient _client;
+        private ISerializer _serializer = new JiraSerializer();
 
         public JiraConnector(string baseUrl)
             : this(baseUrl, string.Empty, string.Empty)
@@ -41,27 +43,27 @@ namespace VersionOne.SDK.Jira.Connector
         private ItemBase ExecuteWithReturn(RestRequest request, HttpStatusCode responseStatusCode)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
-
             if (response.StatusCode.Equals(responseStatusCode))
-                return new ItemBase();//TODO: send back the basic info
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<ItemBase>(response.Content);//TODO: send back the basic info
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 throw new JiraLoginException();
             throw new JiraException(response.StatusDescription, new Exception(response.Content));
         }
 
-        public void Post<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
+        public ItemBase Post<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
         {
             if (string.IsNullOrEmpty(path))
-                return; // TODO: Exception?
+                return null; // TODO: Exception?
 
             if (data == null)
-                return; // TODO: Exception?
+                return null; // TODO: Exception?
 
             var request = new RestRequest
             {
                 Method = Method.POST,
                 Resource = path,
                 RequestFormat = DataFormat.Json,
+                JsonSerializer = _serializer
             };
 
             if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
@@ -69,7 +71,7 @@ namespace VersionOne.SDK.Jira.Connector
 
             request.AddBody(data);
 
-            Execute(request, responseStatusCode);
+            return ExecuteWithReturn(request, responseStatusCode);
         }
 
         public void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
@@ -85,6 +87,7 @@ namespace VersionOne.SDK.Jira.Connector
                 Method = Method.PUT,
                 Resource = path,
                 RequestFormat = DataFormat.Json,
+                JsonSerializer = _serializer
             };
 
             if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
