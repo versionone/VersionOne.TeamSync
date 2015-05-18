@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\Epic.cs" />
+    <Compile Include="Domain\Jira.cs" />
     <Compile Include="Domain\V1.cs" />
     <Compile Include="Domain\Xml\IV1ApiXmlNode.cs" />
     <Compile Include="Domain\Xml\V1SetNode.cs" />
@@ -58,9 +59,9 @@
       <Project>{59dc969b-6c21-4e8a-af90-e7b6cd4f5a1f}</Project>
       <Name>VersionOne.Integration.Service.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VersionOne.JiraConnector\VersionOne.JiraConnector.csproj">
+    <ProjectReference Include="..\VersionOne.SDK.Jira\VersionOne.SDK.Jira.csproj">
       <Project>{57f712ae-9e25-4578-bb06-71afe3121deb}</Project>
-      <Name>VersionOne.JiraConnector</Name>
+      <Name>VersionOne.SDK.Jira</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

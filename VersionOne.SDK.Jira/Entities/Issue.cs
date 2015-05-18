@@ -1,5 +1,5 @@
 /*(c) Copyright 2012, VersionOne, Inc. All rights reserved. (c)*/
-namespace VersionOne.JiraConnector {
+namespace VersionOne.SDK.Jira.Entities {
     public class Issue {
         public string Id { get; set; }
         public string Key { get; set; }

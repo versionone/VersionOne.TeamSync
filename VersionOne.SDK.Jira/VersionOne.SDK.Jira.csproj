@@ -9,8 +9,8 @@
     <ProjectGuid>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VersionOne.JiraConnector</RootNamespace>
-    <AssemblyName>VersionOne.JiraConnector</AssemblyName>
+    <RootNamespace>VersionOne.SDK.Jira</RootNamespace>
+    <AssemblyName>VersionOne.SDK.Jira</AssemblyName>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
@@ -88,11 +88,14 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Connector\JiraConnector.cs" />
+    <Compile Include="Connector\JiraResource.cs" />
+    <Compile Include="Entities\Issue.cs" />
+    <Compile Include="Entities\Item.cs" />
     <Compile Include="Exceptions\JiraException.cs" />
     <Compile Include="Exceptions\JiraLoginException.cs" />
     <Compile Include="Exceptions\JiraPermissionException.cs" />
@@ -129,6 +132,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
