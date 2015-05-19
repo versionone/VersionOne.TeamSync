@@ -20,7 +20,6 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
 		public async Task<List<Epic>> GetEpicsWithoutReference()
 		{
-		    var aDayAgo = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-dd");
             return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _aDayAgo }, Epic.FromQuery);
 		}
 
