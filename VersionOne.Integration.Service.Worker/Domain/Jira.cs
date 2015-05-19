@@ -48,5 +48,42 @@ namespace VersionOne.Integration.Service.Worker.Domain
                     new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
                 );
         }
+
+        internal SearchResult GetEpicByKey(string reference)
+        {
+            return _connector.GetSearchResults(new Dictionary<string, string>
+            {
+                {"key", reference},
+                {"issuetype", "Epic"}
+            },
+                new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
+                );
+        }
+
+        public void SetIssueToResolved(string issueKey)
+        {
+            _connector.Post("issue/" + issueKey + "/transitions", new
+            {
+                update = new
+                {
+                    comment = new[]
+                    {
+                        new {add = new {body = "Closed from VersionOne"}}
+                    }
+                },
+                transition = new {id = "31"}
+            }, HttpStatusCode.NoContent);
+
+            _connector.Put("issue/" + issueKey, new
+            {
+                update = new
+                {
+                    customfield_10007 = new[]
+                    {
+                        new {set = new {value = "Done"}}
+                    }
+                }
+            }, HttpStatusCode.NoContent);
+        }
     }
 }

@@ -11,10 +11,17 @@ namespace VersionOne.SDK.Jira.Entities
     {
         protected JiraBase()
         {
-            errorMessages = new List<string>();
+            ErrorMessages = new List<string>();
         }
-        public List<string> errorMessages { get; set; }
-        public object errors { get; set; } //no idea what this is yet
+        public List<string> ErrorMessages { get; set; }
+        public dynamic Errors { get; set; }
+
+        public bool HasErrors { get { return ErrorMessages.Count > 0; } }
+    }
+
+    public class Errors
+    {
+        string Status { get; set; }
     }
 
     public class JiraProject : JiraBase
@@ -22,8 +29,8 @@ namespace VersionOne.SDK.Jira.Entities
         public int MaxResults { get; set; }
         public List<Issue> Issues { get; set; }
     }
-
-    public class SearchResult
+    
+    public class SearchResult : JiraBase
     {
         public string Expand { get; set; }
         public int StartAt { get; set; }

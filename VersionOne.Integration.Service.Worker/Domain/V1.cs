@@ -30,7 +30,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
 		internal async Task<List<Epic>> GetClosedTrackedEpics()
 		{
-			return await _connector.Query("Epic", new []{"Name", "AssetState"}, new[]{ "Reference!=\"\"", "AssetState='Closed'" }, Epic.FromQuery);
+            return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" }, new[] { "Reference!=\"\"", "AssetState='Closed'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
 		}
 
         internal async Task<List<Epic>> GetEpicsWithReference()
