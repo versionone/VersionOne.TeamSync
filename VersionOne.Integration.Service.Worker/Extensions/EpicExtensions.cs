@@ -16,8 +16,8 @@ namespace VersionOne.Integration.Service.Worker.Extensions
             {
                 Fields = new EpicFields()
                 {
-                    Description = epic.Description ?? "",
-                    Summary = epic.Description ?? "",
+                    Description = epic.Description ?? "-",
+                    Summary = epic.Name ?? "-",
                     Name = epic.Name,
                     IssueType = new IssueType() {Name = "Epic"},
                     Project = new Project() {Key = projectKey}
@@ -32,7 +32,7 @@ namespace VersionOne.Integration.Service.Worker.Extensions
                 Fields = new EpicFields()
                 {
                     Description = epic.Description ?? "-",
-                    Summary = epic.Description ?? "-",
+                    Summary = epic.Name ?? "-",
                     Name = epic.Name,
                 }
             };

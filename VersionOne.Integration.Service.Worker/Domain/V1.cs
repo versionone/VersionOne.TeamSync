@@ -12,7 +12,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 	public class V1
 	{
 		private readonly V1Connector _connector;
-        private readonly string _aDayAgo = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-dd").InQuotes();
+        private readonly string _aDayAgo = DateTime.UtcNow.AddSeconds(-15).ToString("yyyy-MM-dd").InQuotes();
 		public V1(V1Connector connector)
 		{
 			_connector = connector;
@@ -36,6 +36,11 @@ namespace VersionOne.Integration.Service.Worker.Domain
         internal async Task<List<Epic>> GetEpicsWithReference()
         {
             return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference" }, new[] { "Reference!=\"\"", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
+        }
+
+        internal async Task<List<Epic>> GetDeletedEpics()
+        {
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference" }, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
         }
     }
 }

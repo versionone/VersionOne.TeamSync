@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using VersionOne.Integration.Service.Core;
 using VersionOne.Integration.Service.Worker.Extensions;
 using VersionOne.SDK.Jira.Connector;
 using VersionOne.SDK.Jira.Entities;
@@ -34,8 +35,9 @@ namespace VersionOne.Integration.Service.Worker.Domain
         {
         }
 
-        internal async void DeleteEpic(Epic epic) // TODO: async
+        internal async void DeleteEpic(string issueKey) // TODO: async
         {
+            _connector.Delete("issue/" + issueKey, HttpStatusCode.NoContent);
         }
 
         internal SearchResult GetEpicsInProject(string projectKey)
@@ -62,6 +64,8 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         public void SetIssueToResolved(string issueKey)
         {
+            SimpleLogger.WriteLogMessage("Attempting to transition " + issueKey);
+
             _connector.Post("issue/" + issueKey + "/transitions", new
             {
                 update = new
@@ -73,6 +77,8 @@ namespace VersionOne.Integration.Service.Worker.Domain
                 },
                 transition = new {id = "31"}
             }, HttpStatusCode.NoContent);
+
+            SimpleLogger.WriteLogMessage("Attempting to set status on " + issueKey);
 
             _connector.Put("issue/" + issueKey, new
             {
