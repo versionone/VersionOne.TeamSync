@@ -35,8 +35,16 @@ namespace VersionOne.Integration.Service.Worker.Domain
         {
         }
 
-        internal async void DeleteEpic(string issueKey) // TODO: async
+        internal async void DeleteEpicIfExists(string issueKey) // TODO: async
         {
+            var existing = GetEpicByKey(issueKey);
+            if (existing.HasErrors)
+            {
+                SimpleLogger.WriteLogMessage("Error attempting to remove jira issue " + issueKey);
+                SimpleLogger.WriteLogMessage("  message(s) returned : " + string.Join(" ||| ", existing.ErrorMessages));
+                return;
+            }
+
             _connector.Delete("issue/" + issueKey, HttpStatusCode.NoContent);
         }
 

@@ -44,7 +44,7 @@ namespace VersionOne.SDK.Jira.Connector
         private T ExecuteWithReturn<T>(RestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
-            if (response.StatusCode.Equals(responseStatusCode))
+            if (response.StatusCode.Equals(responseStatusCode) || response.StatusCode.Equals(HttpStatusCode.BadRequest))
                 return returnBuilder(response.Content);
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 throw new JiraLoginException();
@@ -124,8 +124,8 @@ namespace VersionOne.SDK.Jira.Connector
             };
 
             var queryString = string.Join(" AND ", query.Select(item => item.Key + "=" + item.Value));
-            request.AddUrlSegment("jql", queryString);
-            request.AddUrlSegment("fields", string.Join(",", properties));
+            request.AddQueryParameter("jql", queryString);
+            request.AddQueryParameter("fields", string.Join(",", properties));
 
             return ExecuteWithReturn(request, HttpStatusCode.OK, Newtonsoft.Json.JsonConvert.DeserializeObject<SearchResult>);
         }

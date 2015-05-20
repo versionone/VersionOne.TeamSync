@@ -29,12 +29,10 @@ namespace VersionOne.Integration.Service.Worker
         public async void DoWork()
         {
             SimpleLogger.WriteLogMessage("Beginning Output run... ");
+
             await CreateEpics();
-
             await UpdateEpics();
-
             await ClosedV1EpicsSetJiraEpicsToResolved();
-
             await DeleteEpics();
 
             SimpleLogger.WriteLogMessage("Outpost run has finished");
@@ -47,7 +45,7 @@ namespace VersionOne.Integration.Service.Worker
             {
                 SimpleLogger.WriteLogMessage("Attempting to delete " + epic.Reference);
 
-                _jira.DeleteEpic(epic.Reference);
+                _jira.DeleteEpicIfExists(epic.Reference);
 
                 SimpleLogger.WriteLogMessage("Deleted " + epic.Reference);
 
@@ -78,17 +76,29 @@ namespace VersionOne.Integration.Service.Worker
             var assignedEpics = await _v1.GetEpicsWithReference();
             var jiraEpics = _jira.GetEpicsInProject("OPC").issues;
 
+            if (assignedEpics.Count > 0)
+                SimpleLogger.WriteLogMessage("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
+
             assignedEpics.ForEach(epic =>
             {
                 var relatedJiraEpic = jiraEpics.FirstOrDefault(issue => issue.Key == epic.Reference);
-                if (relatedJiraEpic != null)
-                    _jira.UpdateEpic(epic, relatedJiraEpic.Key);
+                if (relatedJiraEpic == null)
+                {
+                    SimpleLogger.WriteLogMessage("No related issue found in Jira for " + epic.Reference);
+                    return;
+                }
+                _jira.UpdateEpic(epic, relatedJiraEpic.Key);
+                SimpleLogger.WriteLogMessage("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
             });
         }
 
         private async Task CreateEpics()
         {
             var unassignedEpics = await _v1.GetEpicsWithoutReference();
+
+            if (unassignedEpics.Count > 0)
+                SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
+            
             unassignedEpics.ForEach(epic =>
             {
                 var jiraData = _jira.CreateEpic(epic, "OPC");

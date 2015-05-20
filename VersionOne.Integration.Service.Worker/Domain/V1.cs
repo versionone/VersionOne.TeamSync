@@ -13,7 +13,9 @@ namespace VersionOne.Integration.Service.Worker.Domain
 	{
 		private readonly V1Connector _connector;
         private readonly string _aDayAgo = DateTime.UtcNow.AddSeconds(-15).ToString("yyyy-MM-dd").InQuotes();
-		public V1(V1Connector connector)
+	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
+
+	    public V1(V1Connector connector)
 		{
 			_connector = connector;
 		}
@@ -35,12 +37,12 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         internal async Task<List<Epic>> GetEpicsWithReference()
         {
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference" }, new[] { "Reference!=\"\"", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
+            return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
         }
 
         internal async Task<List<Epic>> GetDeletedEpics()
         {
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference" }, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
+            return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
         }
     }
 }

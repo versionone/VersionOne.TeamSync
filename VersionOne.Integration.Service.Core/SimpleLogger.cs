@@ -27,19 +27,9 @@ namespace VersionOne.Integration.Service.Core
             }
         }
 
-        public static void WriteLogMessage(String message)
+        public static void WriteLogMessage(string message)
         {
-            StreamWriter sw = null;
-            try
-            {
-                sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + LOGFILE, true);
-                sw.WriteLine(DateTime.Now.ToString() + ": " + message);
-                sw.Flush();
-                sw.Close();
-            }
-            catch
-            {
-            }
+            File.AppendAllLines(AppDomain.CurrentDomain.BaseDirectory + LOGFILE, new []{ message });
         }
     }
 }
