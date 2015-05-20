@@ -105,6 +105,7 @@ namespace VersionOne.Integration.Service.Worker
                 _jira.AddCreatedByV1Comment(jiraData.Key, epic, _v1.Project, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
+                _v1.CreateLink(epic, "Jira Epic", _jira.InstanceUrl + "/browse/" + jiraData.Key);
             });
         }
     }

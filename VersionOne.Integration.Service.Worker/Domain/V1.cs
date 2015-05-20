@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VersionOne.Integration.Service.Worker.Extensions;
 using VersionOne.SDK.APIClient;
+using VersionOne.SDK.APIClient.Model.Interfaces;
 
 namespace VersionOne.Integration.Service.Worker.Domain
 {
@@ -50,6 +51,19 @@ namespace VersionOne.Integration.Service.Worker.Domain
         internal async Task<List<Epic>> GetDeletedEpics()
         {
             return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
+        }
+
+        internal async void CreateLink(IVersionOneAsset asset, string title, string url)
+        {
+            var link = new Link()
+            {
+                Asset = asset.AssetType + ":" + asset.ID, //TODO: add a token
+                OnMenu = true,
+                Name = title,
+                Url = url,
+            };
+
+            await _connector.Post(link, link.CreatePayload());
         }
     }
 }

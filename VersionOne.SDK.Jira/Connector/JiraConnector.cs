@@ -18,17 +18,21 @@ namespace VersionOne.SDK.Jira.Connector
         public JiraConnector(string baseUrl)
             : this(baseUrl, string.Empty, string.Empty)
         {
+            _client = new RestClient(baseUrl);
+            BaseUrl = _client.BaseUrl.AbsoluteUri.Replace(_client.BaseUrl.AbsolutePath, "");
         }
 
         public JiraConnector(string baseUrl, string username, string password)
         {
             _client = new RestClient(baseUrl);
-
+            BaseUrl = _client.BaseUrl.AbsoluteUri.Replace(_client.BaseUrl.AbsolutePath, "");
             if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {
                 _client.Authenticator = new HttpBasicAuthenticator(username, password);
             }
         }
+
+        public string BaseUrl { get; private set; }
 
         private void Execute(RestRequest request, HttpStatusCode responseStatusCode)
         {

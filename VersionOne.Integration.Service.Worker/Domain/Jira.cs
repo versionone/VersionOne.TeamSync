@@ -19,6 +19,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
         public Jira(JiraConnector connector)
         {
             _connector = connector;
+            InstanceUrl = _connector.BaseUrl;
         }
 
         internal ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
@@ -50,11 +51,11 @@ namespace VersionOne.Integration.Service.Worker.Domain
             _connector.Put("issue/" + issueKey, epic.UpdateJiraEpic(), HttpStatusCode.NoContent);
         }
 
-        internal async void ResolveEpic(Epic epic) // TODO: async
+        internal void ResolveEpic(Epic epic) // TODO: async
         {
         }
 
-        internal async void DeleteEpicIfExists(string issueKey) // TODO: async
+        internal void DeleteEpicIfExists(string issueKey) // TODO: async
         {
             var existing = GetEpicByKey(issueKey);
             if (existing.HasErrors)
@@ -118,5 +119,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
                 }
             }, HttpStatusCode.NoContent);
         }
+
+        public string InstanceUrl { get; private set; }
     }
 }
