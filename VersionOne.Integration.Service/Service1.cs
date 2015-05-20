@@ -46,8 +46,7 @@ namespace VersionOne.Integration.Service
         {
             SimpleLogger.WriteLogMessage("The service event was raised at " + e.SignalTime);
 			_worker.DoWork();
-			SimpleLogger.WriteLogMessage("Finished at " + e.SignalTime);
-
+			SimpleLogger.WriteLogMessage(" ************************** Finished at " + e.SignalTime + "");
         }
 
         private static string startMessage() 

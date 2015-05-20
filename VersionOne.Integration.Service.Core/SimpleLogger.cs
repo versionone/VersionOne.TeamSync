@@ -14,17 +14,8 @@ namespace VersionOne.Integration.Service.Core
 
         public static void WriteLogException(Exception ex)
         {
-            StreamWriter sw = null;
-            try
-            {
-                sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + LOGFILE, true);
-                sw.WriteLine(DateTime.Now.ToString() + ": " + ex.Source.ToString() + "; " + ex.Message.ToString().Trim());
-                sw.Flush();
-                sw.Close();
-            }
-            catch
-            {
-            }
+            var message = DateTime.Now + ": " + ex.Source + "; " + ex.Message.Trim();
+            File.AppendAllLines(AppDomain.CurrentDomain.BaseDirectory + LOGFILE, new[] { message });
         }
 
         public static void WriteLogMessage(string message)
