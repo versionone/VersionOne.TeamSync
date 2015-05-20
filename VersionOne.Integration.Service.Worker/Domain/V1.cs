@@ -18,7 +18,14 @@ namespace VersionOne.Integration.Service.Worker.Domain
 	    public V1(V1Connector connector)
 		{
 			_connector = connector;
+
+            //need properties from the connector for this
+	        Project = "TODO: expose / supply project?";
+	        InstanceUrl = "http://localhost/VersionOne/";
 		}
+
+        public string Project { get; private set; }
+        public string InstanceUrl { get; private set; }
 
 		public async Task<List<Epic>> GetEpicsWithoutReference()
 		{

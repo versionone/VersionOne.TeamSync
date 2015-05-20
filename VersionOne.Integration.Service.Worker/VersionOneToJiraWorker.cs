@@ -102,6 +102,7 @@ namespace VersionOne.Integration.Service.Worker
             unassignedEpics.ForEach(epic =>
             {
                 var jiraData = _jira.CreateEpic(epic, "OPC");
+                _jira.AddCreatedByV1Comment(jiraData.Key, epic, _v1.Project, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
             });

@@ -23,7 +23,26 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         internal ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
-            return _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey), HttpStatusCode.Created);
+            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey), HttpStatusCode.Created);
+            return baseItem;
+        }
+
+        internal void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Project, string v1Instance)
+        {
+            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, CreatedByV1Comment(epic, v1Project, v1Instance), HttpStatusCode.NoContent);
+        }
+
+        private object CreatedByV1Comment(Epic epic, string v1Project, string v1Instance)
+        {
+            return new
+            {
+                update = new {
+                    comment = new[]
+                    {
+                        new { add = new { body = string.Format("Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}/assetdetail.v1?Number={0}", epic.Number, v1Project, v1Instance)} }
+                    }
+                }
+            };
         }
 
         internal void UpdateEpic(Epic epic, string issueKey) // TODO: async
