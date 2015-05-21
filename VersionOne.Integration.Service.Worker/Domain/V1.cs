@@ -13,42 +13,52 @@ namespace VersionOne.Integration.Service.Worker.Domain
 {
 	public class V1
 	{
-		private readonly V1Connector _connector;
+		private readonly IV1Connector _connector;
 	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private readonly string _aDayAgo;
 
-	    public V1(V1Connector connector)
+	    public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
 		{
 			_connector = connector;
 
             //need properties from the connector for this
-	        InstanceUrl = "http://localhost/VersionOne/";
-            _aDayAgo = DateTime.UtcNow.AddSeconds(-15).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
+	        InstanceUrl = _connector.InstanceUrl;
+            _aDayAgo = dateTime.UtcNow.Add(-serviceDuration).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
 		}
+
+        public V1(IV1Connector connector, TimeSpan serviceDuration)
+        {
+            _connector = connector;
+
+            //need properties from the connector for this
+            InstanceUrl = _connector.InstanceUrl;
+            _aDayAgo = DateTime.UtcNow.Add(-serviceDuration).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
+        }
 
         public string InstanceUrl { get; private set; }
 
 		public async Task<List<Epic>> GetEpicsWithoutReference()
 		{
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Scope.Name" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _aDayAgo }, Epic.FromQuery);
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Scope.Name" }, 
+                                                  new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _aDayAgo }, Epic.FromQuery);
 		}
 
-        internal async void UpdateEpicReference(Epic epic)
+	    public async void UpdateEpicReference(Epic epic)
         {
             await _connector.Post(epic, epic.UpdateReferenceXml());
-        }   
+        }
 
-		internal async Task<List<Epic>> GetClosedTrackedEpics()
+	    public async Task<List<Epic>> GetClosedTrackedEpics()
 		{
             return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" }, new[] { "Reference!=\"\"", "AssetState='Closed'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
 		}
 
-        internal async Task<List<Epic>> GetEpicsWithReference()
+	    public async Task<List<Epic>> GetEpicsWithReference()
         {
             return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
         }
 
-        internal async Task<List<Epic>> GetDeletedEpics()
+	    public async Task<List<Epic>> GetDeletedEpics()
         {
             return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
         }
@@ -72,5 +82,15 @@ namespace VersionOne.Integration.Service.Worker.Domain
             await _connector.Post(epic, epic.RemoveReference());
             await _connector.Operation(epic, "Delete");
         }
+    }
+
+    public interface IDateTime
+    {
+        DateTime UtcNow { get; }
+    }
+
+    public class DateTimeHelper
+    {
+        public DateTime UtcNow { get { return DateTime.UtcNow;} }
     }
 }

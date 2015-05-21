@@ -25,10 +25,10 @@ namespace VersionOne.Integration.Service.Worker
                 .Build();
         }
 
-        public async void DoWork()
+        public async void DoWork(TimeSpan serviceDuration)
         {
             SimpleLogger.WriteLogMessage("Beginning Output run... ");
-            _v1 = new V1(_v1Connector);
+            _v1 = new V1(_v1Connector, serviceDuration);
 
             await CreateEpics();
             await UpdateEpics();

@@ -16,7 +16,7 @@ namespace VersionOne.Integration.Service
     public partial class Service1 : ServiceBase
     {
 	    private Timer _timer;
-	    private int _secondsToWait = 10;
+        private static TimeSpan _serviceDuration;
 	    private static readonly VersionOneToJiraWorker _worker = new VersionOneToJiraWorker();
         public Service1()
         {
@@ -30,11 +30,13 @@ namespace VersionOne.Integration.Service
 
         protected override void OnStart(string[] args)
         {
-            _timer = new Timer { Interval = _secondsToWait * 1000 };
+            _serviceDuration = new TimeSpan(0,0,10); //TODO: read from config
+
+            _timer = new Timer() { Interval = _serviceDuration.TotalSeconds };
             _timer.Elapsed += OnTimedEvent;
             _timer.Enabled = true;
             SimpleLogger.WriteLogMessage(startMessage());
-            _worker.DoWork(); //fire immediately at start
+            _worker.DoWork(_serviceDuration); //fire immediately at start
         }
 
         protected override void OnStop()
@@ -46,7 +48,7 @@ namespace VersionOne.Integration.Service
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             SimpleLogger.WriteLogMessage("The service event was raised at " + e.SignalTime);
-			_worker.DoWork();
+            _worker.DoWork(_serviceDuration);
 			SimpleLogger.WriteLogMessage(" ************************** Finished at " + e.SignalTime + "");
         }
 
