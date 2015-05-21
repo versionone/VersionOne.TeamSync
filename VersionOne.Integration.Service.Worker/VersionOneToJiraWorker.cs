@@ -14,21 +14,21 @@ namespace VersionOne.Integration.Service.Worker
     {
         private Jira _jira;
         private V1 _v1;
+        private V1Connector _v1Connector;
 
         public VersionOneToJiraWorker()
         {
             _jira = new Jira(new JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", ***REMOVED***));
-            _v1 = new V1(
-                V1Connector.WithInstanceUrl("http://localhost/VersionOne.Web/")
-                    .WithUserAgentHeader("guy", "15.0") //???? why
-                    .WithUsernameAndPassword(***REMOVED***)
-                    .Build()
-                );
+            _v1Connector = V1Connector.WithInstanceUrl("http://localhost/VersionOne")
+                .WithUserAgentHeader("guy", "15.0") //???? why
+                .WithUsernameAndPassword(***REMOVED***)
+                .Build();
         }
 
         public async void DoWork()
         {
             SimpleLogger.WriteLogMessage("Beginning Output run... ");
+            _v1 = new V1(_v1Connector);
 
             await CreateEpics();
             await UpdateEpics();
@@ -96,13 +96,13 @@ namespace VersionOne.Integration.Service.Worker
         {
             var unassignedEpics = await _v1.GetEpicsWithoutReference();
 
-            if (unassignedEpics.Count > 0)
-                SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
+            //if (unassignedEpics.Count > 0)
+            //    SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
             
             unassignedEpics.ForEach(epic =>
             {
                 var jiraData = _jira.CreateEpic(epic, "OPC");
-                _jira.AddCreatedByV1Comment(jiraData.Key, epic, _v1.Project, _v1.InstanceUrl);
+                _jira.AddCreatedByV1Comment(jiraData.Key, epic, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
                 _v1.CreateLink(epic, "Jira Epic", _jira.InstanceUrl + "/browse/" + jiraData.Key);

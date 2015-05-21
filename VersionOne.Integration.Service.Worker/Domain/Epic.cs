@@ -23,6 +23,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 		public string Description { get; set; }
 		public string AssetState { get; set; }
         public string Reference { get; set; }
+        public string ProjectName { get; set; }
 
 		public static Epic FromQuery(XElement asset)
 		{
@@ -35,7 +36,8 @@ namespace VersionOne.Integration.Service.Worker.Domain
 				Name = attributes.GetValueOrDefault("Name"),
 				AssetState = attributes.GetValueOrDefault("AssetState"),
 
-                Reference = attributes.GetValueOrDefault("Reference")
+                Reference = attributes.GetValueOrDefault("Reference"),
+                ProjectName = attributes.GetValueOrDefault("Scope.Name")
 			};
 		}
         public XDocument UpdateReferenceXml()

@@ -14,30 +14,29 @@ namespace VersionOne.Integration.Service.Worker.Domain
 	public class V1
 	{
 		private readonly V1Connector _connector;
-        private readonly string _aDayAgo = DateTime.UtcNow.AddSeconds(-15).ToString("yyyy-MM-dd").InQuotes();
 	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
+        private readonly string _aDayAgo;
 
 	    public V1(V1Connector connector)
 		{
 			_connector = connector;
 
             //need properties from the connector for this
-	        Project = "TODO: expose / supply project?";
 	        InstanceUrl = "http://localhost/VersionOne/";
+            _aDayAgo = DateTime.UtcNow.AddSeconds(-15).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
 		}
 
-        public string Project { get; private set; }
         public string InstanceUrl { get; private set; }
 
 		public async Task<List<Epic>> GetEpicsWithoutReference()
 		{
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _aDayAgo }, Epic.FromQuery);
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Scope.Name" }, new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _aDayAgo }, Epic.FromQuery);
 		}
 
         internal async void UpdateEpicReference(Epic epic)
         {
             await _connector.Post(epic, epic.UpdateReferenceXml());
-        }
+        }   
 
 		internal async Task<List<Epic>> GetClosedTrackedEpics()
 		{
