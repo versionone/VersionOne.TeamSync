@@ -51,5 +51,13 @@ namespace VersionOne.Integration.Service.Worker.Domain
 			doc.AddSetNode("Description", Description);
 			return doc;
 		}
+
+	    public XDocument RemoveReference()
+	    {
+	        Reference = string.Empty;
+	        var doc = XDocument.Parse("<Asset></Asset>");
+	        doc.AddNullableSetNode("Reference", Reference);
+	        return doc;
+	    }
 	}
 }

@@ -19,7 +19,7 @@ namespace VersionOne.Integration.Service.Worker
         {
             _jira = new Jira(new JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", ***REMOVED***));
             _v1 = new V1(
-                V1Connector.WithInstanceUrl("http://localhost/VersionOne/")
+                V1Connector.WithInstanceUrl("http://localhost/VersionOne.Web/")
                     .WithUserAgentHeader("guy", "15.0") //???? why
                     .WithUsernameAndPassword(***REMOVED***)
                     .Build()
@@ -48,9 +48,9 @@ namespace VersionOne.Integration.Service.Worker
                 _jira.DeleteEpicIfExists(epic.Reference);
 
                 SimpleLogger.WriteLogMessage("Deleted " + epic.Reference);
-
-                //epic.Reference = String.Empty;
-                //_v1.UpdateEpicReference(epic);
+                _v1.RemoveReferenceOnDeletedEpic(epic);
+                
+                SimpleLogger.WriteLogMessage("Removed reference on " + epic.Number);
             });
 
             SimpleLogger.WriteLogMessage("Total deleted epics processed was " + deletedEpics.Count);

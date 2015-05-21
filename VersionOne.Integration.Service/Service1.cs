@@ -30,10 +30,11 @@ namespace VersionOne.Integration.Service
 
         protected override void OnStart(string[] args)
         {
-            _timer = new Timer { Interval = _secondsToWait * 1000 };
-            _timer.Elapsed += OnTimedEvent;
-            _timer.Enabled = true;
-            SimpleLogger.WriteLogMessage(startMessage());
+            //_timer = new Timer { Interval = _secondsToWait * 1000 };
+            //_timer.Elapsed += OnTimedEvent;
+            //_timer.Enabled = true;
+            //SimpleLogger.WriteLogMessage(startMessage());
+            _worker.DoWork();
         }
 
         protected override void OnStop()

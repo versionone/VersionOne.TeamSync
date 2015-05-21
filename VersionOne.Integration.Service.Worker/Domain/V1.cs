@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using VersionOne.Integration.Service.Worker.Extensions;
 using VersionOne.SDK.APIClient;
 using VersionOne.SDK.APIClient.Model.Interfaces;
@@ -64,6 +65,13 @@ namespace VersionOne.Integration.Service.Worker.Domain
             };
 
             await _connector.Post(link, link.CreatePayload());
+        }
+
+        internal async void RemoveReferenceOnDeletedEpic(Epic epic)
+        {
+            await _connector.Operation(epic, "Undelete");
+            await _connector.Post(epic, epic.RemoveReference());
+            await _connector.Operation(epic, "Delete");
         }
     }
 }
