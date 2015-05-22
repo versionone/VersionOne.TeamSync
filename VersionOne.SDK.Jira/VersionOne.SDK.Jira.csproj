@@ -84,6 +84,7 @@
       <HintPath>..\packages\RestSharp.105.0.1\lib\net4\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -92,6 +93,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\JiraSettings.cs" />
     <Compile Include="Connector\JiraConnector.cs" />
     <Compile Include="Connector\JiraResource.cs" />
     <Compile Include="Connector\JiraSerializer.cs" />
