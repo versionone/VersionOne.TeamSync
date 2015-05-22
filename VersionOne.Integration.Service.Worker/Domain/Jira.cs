@@ -12,9 +12,21 @@ using VersionOne.SDK.Jira.Entities;
 
 namespace VersionOne.Integration.Service.Worker.Domain
 {
-    public class Jira
+    public interface IJira
     {
-        private readonly JiraConnector _connector;
+        ItemBase CreateEpic(Epic epic, string projectKey);
+        void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance);
+        void UpdateEpic(Epic epic, string issueKey);
+        void DeleteEpicIfExists(string issueKey);
+        SearchResult GetEpicsInProject(string projectKey);
+        SearchResult GetEpicByKey(string reference);
+        void SetIssueToResolved(string issueKey);
+        string InstanceUrl { get; }
+    }
+
+    public class Jira : IJira
+    {
+        private readonly IJiraConnector _connector;
 
         public Jira(JiraConnector connector)
         {
@@ -22,13 +34,19 @@ namespace VersionOne.Integration.Service.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        internal ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
+        public Jira(IJiraConnector connector)
+        {
+            _connector = connector;
+            InstanceUrl = _connector.BaseUrl;
+        }
+
+        public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
             var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey), HttpStatusCode.Created);
             return baseItem;
         }
 
-        internal void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance)
+        public void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance)
         {
             _connector.Put(JiraResource.Issue.Value + "/" + issueKey, CreatedByV1Comment(epic, v1Instance), HttpStatusCode.NoContent);
         }
@@ -46,16 +64,12 @@ namespace VersionOne.Integration.Service.Worker.Domain
             };
         }
 
-        internal void UpdateEpic(Epic epic, string issueKey) // TODO: async
+        public void UpdateEpic(Epic epic, string issueKey) // TODO: async
         {
             _connector.Put("issue/" + issueKey, epic.UpdateJiraEpic(), HttpStatusCode.NoContent);
         }
 
-        internal void ResolveEpic(Epic epic) // TODO: async
-        {
-        }
-
-        internal void DeleteEpicIfExists(string issueKey) // TODO: async
+        public void DeleteEpicIfExists(string issueKey) // TODO: async
         {
             var existing = GetEpicByKey(issueKey);
             if (existing.HasErrors)
@@ -68,7 +82,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
             _connector.Delete("issue/" + issueKey, HttpStatusCode.NoContent);
         }
 
-        internal SearchResult GetEpicsInProject(string projectKey)
+        public SearchResult GetEpicsInProject(string projectKey)
         {
             return _connector.GetSearchResults(new Dictionary<string, string>
                 {
@@ -79,7 +93,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
                 );
         }
 
-        internal SearchResult GetEpicByKey(string reference)
+        public SearchResult GetEpicByKey(string reference)
         {
             return _connector.GetSearchResults(new Dictionary<string, string>
             {

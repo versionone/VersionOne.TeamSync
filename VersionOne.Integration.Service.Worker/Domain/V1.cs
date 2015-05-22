@@ -11,8 +11,20 @@ using VersionOne.SDK.APIClient.Model.Interfaces;
 
 namespace VersionOne.Integration.Service.Worker.Domain
 {
-	public class V1
-	{
+    public interface IV1
+    {
+        string InstanceUrl { get; }
+        Task<List<Epic>> GetEpicsWithoutReference();
+        void UpdateEpicReference(Epic epic);
+        Task<List<Epic>> GetClosedTrackedEpics();
+        Task<List<Epic>> GetEpicsWithReference();
+        Task<List<Epic>> GetDeletedEpics();
+        void CreateLink(IVersionOneAsset asset, string title, string url);
+        void RemoveReferenceOnDeletedEpic(Epic epic);
+    }
+
+    public class V1 : IV1
+    {
 		private readonly IV1Connector _connector;
 	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private readonly string _aDayAgo;
@@ -63,7 +75,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
             return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
         }
 
-        internal async void CreateLink(IVersionOneAsset asset, string title, string url)
+        public async void CreateLink(IVersionOneAsset asset, string title, string url)
         {
             var link = new Link()
             {
@@ -76,7 +88,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
             await _connector.Post(link, link.CreatePayload());
         }
 
-        internal async void RemoveReferenceOnDeletedEpic(Epic epic)
+        public async void RemoveReferenceOnDeletedEpic(Epic epic)
         {
             await _connector.Operation(epic, "Undelete");
             await _connector.Post(epic, epic.RemoveReference());

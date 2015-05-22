@@ -10,7 +10,18 @@ using VersionOne.SDK.Jira.Exceptions;
 
 namespace VersionOne.SDK.Jira.Connector
 {
-    public class JiraConnector
+    public interface IJiraConnector
+    {
+        string BaseUrl { get; }
+        void Execute(RestRequest request, HttpStatusCode responseStatusCode);
+        T ExecuteWithReturn<T>(RestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder);
+        ItemBase Post<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
+        void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
+        void Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
+        SearchResult GetSearchResults(IDictionary<string, string> query, IEnumerable<string> properties);
+    }
+
+    public class JiraConnector : IJiraConnector
     {
         private readonly RestClient _client;
         private ISerializer _serializer = new JiraSerializer();
@@ -34,7 +45,7 @@ namespace VersionOne.SDK.Jira.Connector
 
         public string BaseUrl { get; private set; }
 
-        private void Execute(RestRequest request, HttpStatusCode responseStatusCode)
+        public void Execute(RestRequest request, HttpStatusCode responseStatusCode)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
 
@@ -45,7 +56,7 @@ namespace VersionOne.SDK.Jira.Connector
             throw new JiraException(response.StatusDescription, new Exception(response.Content));
         }
 
-        private T ExecuteWithReturn<T>(RestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
+        public T ExecuteWithReturn<T>(RestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
             if (response.StatusCode.Equals(responseStatusCode) || response.StatusCode.Equals(HttpStatusCode.BadRequest))

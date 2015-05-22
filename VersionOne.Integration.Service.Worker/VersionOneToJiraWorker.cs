@@ -12,9 +12,9 @@ namespace VersionOne.Integration.Service.Worker
 {
     public class VersionOneToJiraWorker
     {
-        private Jira _jira;
-        private V1 _v1;
-        private V1Connector _v1Connector;
+        private IJira _jira;
+        private IV1 _v1;
+        private IV1Connector _v1Connector;
 
         public VersionOneToJiraWorker()
         {
@@ -23,6 +23,18 @@ namespace VersionOne.Integration.Service.Worker
                 .WithUserAgentHeader("guy", "15.0") //???? why
                 .WithUsernameAndPassword(***REMOVED***)
                 .Build();
+        }
+
+        public VersionOneToJiraWorker(IV1 v1, IJira jira)
+        {
+            _v1 = v1;
+            _jira = jira;
+        }
+
+        public VersionOneToJiraWorker(IV1Connector v1, IJiraConnector jiraConnector)
+        {
+            _v1Connector = v1;
+            _jira = new Jira(jiraConnector);
         }
 
         public async void DoWork(TimeSpan serviceDuration)
@@ -38,7 +50,7 @@ namespace VersionOne.Integration.Service.Worker
             SimpleLogger.WriteLogMessage("Outpost run has finished");
         }
 
-        private async Task DeleteEpics()
+        public async Task DeleteEpics()
         {
             var deletedEpics = await _v1.GetDeletedEpics();
             deletedEpics.ForEach(epic =>
@@ -56,7 +68,7 @@ namespace VersionOne.Integration.Service.Worker
             SimpleLogger.WriteLogMessage("Total deleted epics processed was " + deletedEpics.Count);
         }
 
-        private async Task ClosedV1EpicsSetJiraEpicsToResolved()
+        public async Task ClosedV1EpicsSetJiraEpicsToResolved()
         {
             var closedEpics = await _v1.GetClosedTrackedEpics();
             closedEpics.ForEach(epic =>
@@ -71,7 +83,7 @@ namespace VersionOne.Integration.Service.Worker
             });
         }
 
-        private async Task UpdateEpics()
+        public async Task UpdateEpics()
         {
             var assignedEpics = await _v1.GetEpicsWithReference();
             var jiraEpics = _jira.GetEpicsInProject("OPC").issues;
@@ -92,7 +104,7 @@ namespace VersionOne.Integration.Service.Worker
             });
         }
 
-        private async Task CreateEpics()
+        public async Task CreateEpics()
         {
             var unassignedEpics = await _v1.GetEpicsWithoutReference();
 
