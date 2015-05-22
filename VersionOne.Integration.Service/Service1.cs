@@ -32,7 +32,7 @@ namespace VersionOne.Integration.Service
         {
             _serviceDuration = new TimeSpan(0,0,10); //TODO: read from config
 
-            _timer = new Timer() { Interval = _serviceDuration.TotalSeconds };
+            _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
             _timer.Elapsed += OnTimedEvent;
             _timer.Enabled = true;
             SimpleLogger.WriteLogMessage(startMessage());
