@@ -32,6 +32,10 @@ namespace VersionOne.SDK.Jira.Entities
     
     public class SearchResult : JiraBase
     {
+        public SearchResult()
+        {
+            issues = new List<Issue>();
+        }
         public string Expand { get; set; }
         public int StartAt { get; set; }
         public int maxResults { get; set; }
