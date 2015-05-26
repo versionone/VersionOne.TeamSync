@@ -55,6 +55,11 @@ namespace VersionOne.SDK.Jira.Connector
                 return;
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 throw new JiraLoginException();
+
+            var error = JsonConvert.DeserializeObject<BadResult>(response.Content);
+            if (error.Errors.Values.Any(x => x.Contains("It is not on the appropriate screen, or unknown.")))
+                throw new JiraException("Please expose the field " + error.Errors.First().Key + " on the screen", new Exception(error.Errors.First().Value));
+
             throw new JiraException(response.StatusDescription, new Exception(response.Content));
         }
 
