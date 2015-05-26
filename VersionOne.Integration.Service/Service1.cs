@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using VersionOne.Integration.Service.Core;
+using VersionOne.Integration.Service.Core.Config;
 using VersionOne.Integration.Service.Worker;
 
 namespace VersionOne.Integration.Service
@@ -30,7 +31,8 @@ namespace VersionOne.Integration.Service
 
         protected override void OnStart(string[] args)
         {
-            _serviceDuration = new TimeSpan(0,0,10); //TODO: read from config
+			var config = new ServiceSettings();
+			_serviceDuration = new TimeSpan(0, 0, config.syncIntervalInSeconds);
 
             _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
             _timer.Elapsed += OnTimedEvent;

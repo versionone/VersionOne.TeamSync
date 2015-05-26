@@ -11,11 +11,11 @@ namespace VersionOne.Integration.Service.Core.Config
     {
         public static readonly ServiceSettings Settings = ConfigurationManager.GetSection("serviceSettings") as ServiceSettings;
 
-        [ConfigurationProperty("syncInterval", DefaultValue = 5000, IsRequired = true)]
-        public int SyncInterval
+        [ConfigurationProperty("syncIntervalInSeconds", DefaultValue = 5, IsRequired = true)]
+		public int syncIntervalInSeconds
         {
-            get { return (int)this["syncInterval"]; }
-            set { this["syncInterval"] = value; }
+			get { return (int)this["syncIntervalInSeconds"]; }
+			set { this["syncIntervalInSeconds"] = value; }
         }
     }
 }
