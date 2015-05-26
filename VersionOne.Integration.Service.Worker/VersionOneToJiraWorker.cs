@@ -21,7 +21,7 @@ namespace VersionOne.Integration.Service.Worker
             _jira = new Jira(new JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", ***REMOVED***));
             _v1Connector = V1Connector.WithInstanceUrl("http://localhost/VersionOne")
                 .WithUserAgentHeader("guy", "15.0") //???? why
-                .WithUsernameAndPassword(***REMOVED***)
+                .WithUsernameAndPassword("service", "service")
                 .Build();
         }
 
