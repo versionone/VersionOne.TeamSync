@@ -21,7 +21,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _mockV1.Setup(x => x.GetEpicsWithoutReference()).ReturnsAsync(new List<Epic>());
             _mockJira = new Mock<IJira>();
 
-            var classUnderTest = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+            var classUnderTest = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>(){{"v1", "OPC"}});
             await classUnderTest.CreateEpics();
         }
 
@@ -56,7 +56,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestInitialize]
         public async void Context()
         {
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny" };
+            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", ProjectName = "v1"};
             _itemBase = new ItemBase() { Key = "OPC-10" };
 
             _mockV1 = new Mock<IV1>();
@@ -70,7 +70,10 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.CreateEpic(_epic, It.IsAny<string>())).Returns(() => _itemBase);
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>()
+            {
+	            {"v1", "OPC"}
+            });
             
             _epic.Reference.ShouldBeNull();
             
@@ -84,7 +87,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         }
 
         [TestMethod]
-        public void should_call_CreateEpic_on_jir()
+        public void should_call_CreateEpic_on_jira()
         {
             _mockJira.Verify(x => x.CreateEpic(_epic, "OPC"), Times.Once());
         }
@@ -119,7 +122,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+			_worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>() { { "v1", "OPC" } });
 
             await _worker.UpdateEpics();
         }
@@ -133,7 +136,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void calls_GetEpicsInProject_once()
         {
-            _mockJira.Verify(x => x.GetEpicsInProject(It.IsAny<string>()), Times.Once);
+            _mockJira.Verify(x => x.GetEpicsInProjects(It.IsAny<IEnumerable<string>>()), Times.Once);
         }
 
         [TestMethod]
@@ -155,7 +158,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestInitialize]
         public async void Context()
         {
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10"};
+            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ProjectName = "v1"};
             _searchResult = new SearchResult();
             _searchResult.issues.Add(new Issue(){Key = "OPC-10"});
 
@@ -166,9 +169,9 @@ namespace VersionOne.Integration.Service.Worker.Tests
             });
 
             _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(_searchResult);
-            
-            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+			_mockJira.Setup(x => x.GetEpicsInProjects(It.IsAny<IEnumerable<string>>())).Returns(_searchResult);
+
+			_worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>() { { "v1", "OPC" } });
             _epic.Reference.ShouldNotBeNull("need a reference");
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
 
@@ -184,7 +187,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void should_call_GetEpicsInProject_jira()
         {
-            _mockJira.Verify(x => x.GetEpicsInProject(It.IsAny<string>()), Times.Once());
+            _mockJira.Verify(x => x.GetEpicsInProjects(It.IsAny<IEnumerable<string>>()), Times.Once());
         }
 
         [TestMethod]
@@ -219,7 +222,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(_searchResult);
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+			_worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>() { { "v1", "OPC" } });
             _epic.Reference.ShouldNotBeNull("need a reference");
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
 
@@ -235,7 +238,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void should_call_GetEpicsInProject_jira()
         {
-            _mockJira.Verify(x => x.GetEpicsInProject(It.IsAny<string>()), Times.Once());
+            _mockJira.Verify(x => x.GetEpicsInProjects(It.IsAny<IEnumerable<string>>()), Times.Once());
         }
 
         [TestMethod]
@@ -272,7 +275,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+			_worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>() { { "v1", "OPC" } });
 
             await _worker.ClosedV1EpicsSetJiraEpicsToResolved();
         }
@@ -297,7 +300,6 @@ namespace VersionOne.Integration.Service.Worker.Tests
 
     }
 
-
     [TestClass]
     public class Worker_when_a_VersionOne_epic_is_deleted
     {
@@ -321,7 +323,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.DeleteEpicIfExists(_epic.Reference));
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+			_worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>() { { "v1", "OPC" } });
 
             await _worker.DeleteEpics();
         }

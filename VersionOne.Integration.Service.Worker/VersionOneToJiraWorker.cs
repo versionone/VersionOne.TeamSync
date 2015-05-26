@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using VersionOne.Integration.Service.Core;
+using VersionOne.Integration.Service.Core.Config;
 using VersionOne.Integration.Service.Worker.Domain;
 using VersionOne.SDK.APIClient;
+using VersionOne.SDK.Jira.Config;
 using VersionOne.SDK.Jira.Connector;
 
 namespace VersionOne.Integration.Service.Worker
@@ -16,19 +19,28 @@ namespace VersionOne.Integration.Service.Worker
         private IV1 _v1;
         private IV1Connector _v1Connector;
 
+        private IDictionary<string, string> _v1ProjectToJiraProject;
+
         public VersionOneToJiraWorker()
         {
-            _jira = new Jira(new JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", ***REMOVED***));
-            _v1Connector = V1Connector.WithInstanceUrl("http://localhost/VersionOne")
+			_v1ProjectToJiraProject = new Dictionary<string, string>();
+	        var firstServer = JiraSettings.Settings.Servers[0];
+
+			for (var i = 0; i < firstServer.ProjectMappings.Count; i++)
+				_v1ProjectToJiraProject.Add(firstServer.ProjectMappings[i].V1Project, firstServer.ProjectMappings[i].JiraProject);
+
+			_jira = new Jira(new JiraConnector(firstServer.Url + "/rest/api/latest", firstServer.Username, firstServer.Password));
+            _v1Connector = V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
                 .WithUserAgentHeader("guy", "15.0") //???? why
-                .WithUsernameAndPassword("service", "service")
+                .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password)
                 .Build();
         }
 
-        public VersionOneToJiraWorker(IV1 v1, IJira jira)
+        public VersionOneToJiraWorker(IV1 v1, IJira jira, IDictionary<string,string> v1toJiraMappings)
         {
             _v1 = v1;
             _jira = jira;
+	        _v1ProjectToJiraProject = v1toJiraMappings;
         }
 
         public VersionOneToJiraWorker(IV1Connector v1, IJiraConnector jiraConnector)
@@ -86,7 +98,7 @@ namespace VersionOne.Integration.Service.Worker
         public async Task UpdateEpics()
         {
             var assignedEpics = await _v1.GetEpicsWithReference();
-            var jiraEpics = _jira.GetEpicsInProject("OPC").issues;
+			var jiraEpics = _jira.GetEpicsInProjects(_v1ProjectToJiraProject.Values).issues;
 
             if (assignedEpics.Count > 0)
                 SimpleLogger.WriteLogMessage("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
@@ -113,7 +125,18 @@ namespace VersionOne.Integration.Service.Worker
             
             unassignedEpics.ForEach(epic =>
             {
-                var jiraData = _jira.CreateEpic(epic, "OPC");
+	            if (!_v1ProjectToJiraProject.ContainsKey(epic.ProjectName))
+	            {
+		            //TODO : log, move on
+		            return;
+	            }
+
+	            var jiraProject = _v1ProjectToJiraProject[epic.ProjectName];
+                var jiraData = _jira.CreateEpic(epic, jiraProject);
+
+				if (jiraData.IsEmpty)
+					throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraProject + ") doesn't have epic type or expected custom field");
+
                 _jira.AddCreatedByV1Comment(jiraData.Key, epic, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);

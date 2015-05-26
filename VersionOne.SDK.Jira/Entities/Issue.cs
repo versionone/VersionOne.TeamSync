@@ -14,10 +14,15 @@ namespace VersionOne.SDK.Jira.Entities
             ErrorMessages = new List<string>();
         }
         public List<string> ErrorMessages { get; set; }
-        public dynamic Errors { get; set; }
+        public Dictionary<string, string> Errors { get; set; }
 
         public bool HasErrors { get { return ErrorMessages.Count > 0; } }
     }
+
+	public class BadResult : JiraBase
+	{
+		//for just mess ups
+	}
 
     public class Errors
     {
@@ -49,6 +54,11 @@ namespace VersionOne.SDK.Jira.Entities
         public string id { get; set; }
         public string Key { get; set; }
         public string Self { get; set; }
+
+	    public bool IsEmpty
+	    {
+		    get { return string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(Key) && string.IsNullOrWhiteSpace(Self); }
+	    }
     }
 
     public class BaseRefType : ItemBase

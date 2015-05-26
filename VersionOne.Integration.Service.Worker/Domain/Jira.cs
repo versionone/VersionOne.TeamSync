@@ -19,6 +19,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
         void UpdateEpic(Epic epic, string issueKey);
         void DeleteEpicIfExists(string issueKey);
         SearchResult GetEpicsInProject(string projectKey);
+        SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys);
         SearchResult GetEpicByKey(string reference);
         void SetIssueToResolved(string issueKey);
         string InstanceUrl { get; }
@@ -91,6 +92,17 @@ namespace VersionOne.Integration.Service.Worker.Domain
                 },
                     new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
                 );
+        }
+
+        public SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys)
+        {
+            return _connector.GetSearchResults(new Dictionary<string, IEnumerable<string>>
+            {
+                {"project", projectKeys},
+                {"issuetype", new[] {"Epic"}}
+            },
+                new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
+            );
         }
 
         public SearchResult GetEpicByKey(string reference)

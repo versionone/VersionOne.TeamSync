@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Serializers;
 using VersionOne.SDK.Jira.Entities;
@@ -19,6 +20,7 @@ namespace VersionOne.SDK.Jira.Connector
         void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         void Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         SearchResult GetSearchResults(IDictionary<string, string> query, IEnumerable<string> properties);
+        SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
     }
 
     public class JiraConnector : IJiraConnector
@@ -143,6 +145,28 @@ namespace VersionOne.SDK.Jira.Connector
             request.AddQueryParameter("fields", string.Join(",", properties));
 
             return ExecuteWithReturn(request, HttpStatusCode.OK, Newtonsoft.Json.JsonConvert.DeserializeObject<SearchResult>);
+        }
+
+        private const string _inQuery = "{0} in ({1})";
+
+        public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
+        {
+            var request = new RestRequest(Method.GET)
+            {
+                Resource = "search",
+            };
+
+            var queryString = string.Join(" AND ", query.Select(item =>
+            {
+                if (item.Value.Count() == 1)
+                    return item.Key + "=" + item.Value.First();
+                return string.Format(_inQuery, item.Key, string.Join(", ", item.Value));
+            }));
+
+            request.AddQueryParameter("jql", queryString);
+            request.AddQueryParameter("fields", string.Join(",", properties));
+
+            return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<SearchResult>);
         }
     }
 }
