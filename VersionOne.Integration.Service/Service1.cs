@@ -31,8 +31,7 @@ namespace VersionOne.Integration.Service
 
         protected override void OnStart(string[] args)
         {
-			var config = new ServiceSettings();
-			_serviceDuration = new TimeSpan(0, 0, config.syncIntervalInSeconds);
+			_serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
 
             _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
             _timer.Elapsed += OnTimedEvent;
