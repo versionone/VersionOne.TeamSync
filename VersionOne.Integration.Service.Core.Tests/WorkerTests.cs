@@ -297,4 +297,47 @@ namespace VersionOne.Integration.Service.Worker.Tests
 
     }
 
+
+    [TestClass]
+    public class Worker_when_a_VersionOne_epic_is_deleted
+    {
+        private VersionOneToJiraWorker _worker;
+        private Mock<IV1> _mockV1;
+        private Epic _epic;
+        private Mock<IJira> _mockJira;
+
+        [TestInitialize]
+        public async void Context()
+        {
+            _epic = new Epic() { Reference = "OPC-10", Number = "E-00001"};
+
+            _mockV1 = new Mock<IV1>();
+            _mockV1.Setup(x => x.GetDeletedEpics()).ReturnsAsync(new List<Epic>()
+            {
+                _epic
+            });
+            _mockV1.Setup(x => x.RemoveReferenceOnDeletedEpic(_epic));
+
+            _mockJira = new Mock<IJira>();
+            _mockJira.Setup(x => x.DeleteEpicIfExists(_epic.Reference));
+
+            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object);
+
+            await _worker.DeleteEpics();
+        }
+
+        [TestMethod]
+        public void should_call_EpicsWithoutReference_one_time()
+        {
+            _mockV1.Verify(x => x.RemoveReferenceOnDeletedEpic(_epic), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_call_CreateEpic_on_jir()
+        {
+            _mockJira.Verify(x => x.DeleteEpicIfExists("OPC-10"), Times.Once());
+        }
+
+    }
+
 }
