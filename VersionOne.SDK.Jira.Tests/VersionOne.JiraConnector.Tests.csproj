@@ -6,8 +6,8 @@
     <ProjectGuid>{9B7888A4-BB67-4DB8-B299-37F8A12E3CE2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VersionOne.SDK.Jira.Tests</RootNamespace>
-    <AssemblyName>VersionOne.SDK.Jira.Tests</AssemblyName>
+    <RootNamespace>VersionOne.JiraConnector.Tests</RootNamespace>
+    <AssemblyName>VersionOne.JiraConnector.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -54,9 +54,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VersionOne.SDK.Jira\VersionOne.SDK.Jira.csproj">
+    <ProjectReference Include="..\VersionOne.SDK.Jira\VersionOne.JiraConnector.csproj">
       <Project>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</Project>
-      <Name>VersionOne.SDK.Jira</Name>
+      <Name>VersionOne.JiraConnector</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

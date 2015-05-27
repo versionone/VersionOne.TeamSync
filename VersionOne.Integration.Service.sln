@@ -16,13 +16,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{
 		Resources\versionone-logo-noTagline.png = Resources\versionone-logo-noTagline.png
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.SDK.Jira", "VersionOne.SDK.Jira\VersionOne.SDK.Jira.csproj", "{57F712AE-9E25-4578-BB06-71AFE3121DEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.JiraConnector", "VersionOne.SDK.Jira\VersionOne.JiraConnector.csproj", "{57F712AE-9E25-4578-BB06-71AFE3121DEB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.Integration.Service.Worker.Tests", "VersionOne.Integration.Service.Core.Tests\VersionOne.Integration.Service.Worker.Tests.csproj", "{1C5AD822-FE01-4D48-ADD4-C91E892D52BC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.Integration.Service.Worker", "VersionOne.Integration.Service.Worker\VersionOne.Integration.Service.Worker.csproj", "{52681EF1-BAE1-4E7D-82A7-9BF3638CEFF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.SDK.Jira.Tests", "VersionOne.SDK.Jira.Tests\VersionOne.SDK.Jira.Tests.csproj", "{9B7888A4-BB67-4DB8-B299-37F8A12E3CE2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.JiraConnector.Tests", "VersionOne.SDK.Jira.Tests\VersionOne.JiraConnector.Tests.csproj", "{9B7888A4-BB67-4DB8-B299-37F8A12E3CE2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{2CA355F2-93CC-428F-AEA8-11A4DF7BC7F6}"
 	ProjectSection(SolutionItems) = preProject

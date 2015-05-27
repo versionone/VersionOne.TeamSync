@@ -80,9 +80,9 @@
       <Project>{52681ef1-bae1-4e7d-82a7-9bf3638ceff9}</Project>
       <Name>VersionOne.Integration.Service.Worker</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VersionOne.SDK.Jira\VersionOne.SDK.Jira.csproj">
+    <ProjectReference Include="..\VersionOne.SDK.Jira\VersionOne.JiraConnector.csproj">
       <Project>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</Project>
-      <Name>VersionOne.SDK.Jira</Name>
+      <Name>VersionOne.JiraConnector</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

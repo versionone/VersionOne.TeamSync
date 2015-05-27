@@ -9,8 +9,8 @@
     <ProjectGuid>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VersionOne.SDK.Jira</RootNamespace>
-    <AssemblyName>VersionOne.SDK.Jira</AssemblyName>
+    <RootNamespace>VersionOne.JiraConnector</RootNamespace>
+    <AssemblyName>VersionOne.JiraConnector</AssemblyName>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
