@@ -96,9 +96,4 @@ namespace VersionOne.Integration.Service.Worker.Domain
     {
         DateTime UtcNow { get; }
     }
-
-    public class DateTimeHelper
-    {
-        public DateTime UtcNow { get { return DateTime.UtcNow;} }
-    }
 }
