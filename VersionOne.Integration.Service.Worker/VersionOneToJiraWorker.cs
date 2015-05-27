@@ -46,7 +46,7 @@ namespace VersionOne.Integration.Service.Worker
                         .Build();
                     break;
                 default:
-                    throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting.");
+                    throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
             }
         }
 
