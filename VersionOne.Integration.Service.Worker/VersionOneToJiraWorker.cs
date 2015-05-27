@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using VersionOne.Integration.Service.Core;
 using VersionOne.Integration.Service.Core.Config;
 using VersionOne.Integration.Service.Worker.Domain;
-using VersionOne.SDK.APIClient;
 using VersionOne.SDK.Jira.Config;
 using VersionOne.SDK.Jira.Connector;
+using VersionOne.SDK.APIClient;
 
 namespace VersionOne.Integration.Service.Worker
 {

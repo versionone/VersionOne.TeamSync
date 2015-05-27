@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 using VersionOne.Integration.Service.Worker.Extensions;
 using VersionOne.SDK.APIClient.Model.Interfaces;
 
@@ -13,6 +8,8 @@ namespace VersionOne.Integration.Service.Worker.Domain
     {
         public string AssetType { get { return "Link"; }}
         public string ID { get; private set; }
+        public string Error { get; private set; }
+        public bool HasErrors { get; private set; }
 
         public string Asset { get; set; }
         public string Name { get; set; }
