@@ -51,8 +51,6 @@ namespace VersionOne.Integration.Service
         {
             var sb = new StringBuilder();
             sb.AppendLine("************************************************************");
-            sb.AppendLine("* VersionOne.Integration.Service");
-            sb.AppendLine("************************************************************");
             sb.AppendLine("Service started...");
             return sb.ToString();
         }
@@ -61,6 +59,7 @@ namespace VersionOne.Integration.Service
         {
             var sb = new StringBuilder();
             sb.AppendLine("Service stopped...");
+            sb.AppendLine("************************************************************");
             return sb.ToString();
         }
     }
