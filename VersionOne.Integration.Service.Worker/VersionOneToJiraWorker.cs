@@ -30,7 +30,7 @@ namespace VersionOne.Integration.Service.Worker
 			for (var i = 0; i < firstServer.ProjectMappings.Count; i++)
 				_v1ProjectToJiraProject.Add(firstServer.ProjectMappings[i].V1Project, firstServer.ProjectMappings[i].JiraProject);
 
-			_jira = new Jira(new JiraConnector(firstServer.Url + "/rest/api/latest", firstServer.Username, firstServer.Password));
+            _jira = new Jira(new JiraConnector(new Uri(new Uri(firstServer.Url), "/rest/api/latest").ToString(), firstServer.Username, firstServer.Password));
 
             switch (V1Settings.Settings.AuthenticationType)
             {
