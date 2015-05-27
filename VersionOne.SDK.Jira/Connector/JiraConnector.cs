@@ -28,8 +28,7 @@ namespace VersionOne.SDK.Jira.Connector
         private readonly RestClient _client;
         private ISerializer _serializer = new JiraSerializer();
 
-        public JiraConnector(string baseUrl)
-            : this(baseUrl, string.Empty, string.Empty)
+        public JiraConnector(string baseUrl) : this(baseUrl, string.Empty, string.Empty)
         {
             _client = new RestClient(baseUrl);
             BaseUrl = _client.BaseUrl.AbsoluteUri.Replace(_client.BaseUrl.AbsolutePath, "");
@@ -156,6 +155,13 @@ namespace VersionOne.SDK.Jira.Connector
 
         public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
         {
+            var request = BuildSearchRequest(query, properties);
+
+            return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<SearchResult>);
+        }
+
+        public static RestRequest BuildSearchRequest(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)// ..|..
+        {
             var request = new RestRequest(Method.GET)
             {
                 Resource = "search",
@@ -164,14 +170,13 @@ namespace VersionOne.SDK.Jira.Connector
             var queryString = string.Join(" AND ", query.Select(item =>
             {
                 if (item.Value.Count() == 1)
-                    return item.Key + "=" + item.Value.First();
+                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
                 return string.Format(_inQuery, item.Key, string.Join(", ", item.Value));
             }));
 
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
-
-            return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<SearchResult>);
+            return request;
         }
     }
 }

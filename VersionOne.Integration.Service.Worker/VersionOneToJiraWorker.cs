@@ -10,6 +10,7 @@ using VersionOne.SDK.Jira.Config;
 using VersionOne.SDK.Jira.Connector;
 using VersionOne.SDK.APIClient;
 using System.Reflection;
+using VersionOne.SDK.Jira;
 
 namespace VersionOne.Integration.Service.Worker
 {
@@ -152,7 +153,7 @@ namespace VersionOne.Integration.Service.Worker
 		            return;
 	            }
 
-	            var jiraProject = _v1ProjectToJiraProject[epic.ProjectName];
+	            var jiraProject = _v1ProjectToJiraProject[epic.ProjectName].QuoteReservedWord();
                 var jiraData = _jira.CreateEpic(epic, jiraProject);
 
 				if (jiraData.IsEmpty)

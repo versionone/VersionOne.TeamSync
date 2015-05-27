@@ -44,7 +44,6 @@ namespace VersionOne.Integration.Service.Worker.Tests
         }
     }
 
-
     public class Worker_when_there_is_a_new_epic_in_v1
     {
         protected VersionOneToJiraWorker _worker;
@@ -149,7 +148,42 @@ namespace VersionOne.Integration.Service.Worker.Tests
 
     }
 
+    [TestClass]
+    public class and_the_jira_project_contains_a_reserved_word : Worker_when_there_is_a_new_epic_in_v1
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            _mappingValues = new Dictionary<string, string>() { { "v1", "AS" } };
+            DataSetup();
+        }
 
+        [TestMethod]
+        public void should_call_EpicsWithoutReference_one_time()
+        {
+            _mockV1.Verify(x => x.GetEpicsWithoutReference(), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_call_CreateEpic_on_jira_with_qoutes_around_reserved_word()
+        {
+            _mockJira.Verify(x => x.CreateEpic(_epic, "\"AS\""), Times.Once());
+        }
+
+        [TestMethod]
+        public void should_pass_along_the_key_to_epic_reference()
+        {
+            _epic.Reference.ShouldEqual(_itemBase.Key);
+        }
+
+        [TestMethod]
+        public void should_create_a_link_on_v1_epic()
+        {
+            _mockV1.Verify(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()), Times.Once);
+        }
+
+
+    }
 
     [TestClass]
     public class Worker_when_there_are_no_epics_to_update
