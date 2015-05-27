@@ -9,6 +9,7 @@ using VersionOne.Integration.Service.Worker.Domain;
 using VersionOne.SDK.Jira.Config;
 using VersionOne.SDK.Jira.Connector;
 using VersionOne.SDK.APIClient;
+using System.Reflection;
 
 namespace VersionOne.Integration.Service.Worker
 {
@@ -30,7 +31,7 @@ namespace VersionOne.Integration.Service.Worker
 
 			_jira = new Jira(new JiraConnector(firstServer.Url + "/rest/api/latest", firstServer.Username, firstServer.Password));
             _v1Connector = V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                .WithUserAgentHeader("guy", "15.0") //???? why
+                .WithUserAgentHeader("VersionOne.Integration.Service", Assembly.GetExecutingAssembly().GetName().Version.ToString())
                 .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password)
                 .Build();
         }
