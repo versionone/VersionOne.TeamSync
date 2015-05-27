@@ -97,8 +97,15 @@ namespace VersionOne.Integration.Service.Worker
         public async Task UpdateEpics()
         {
             var assignedEpics = await _v1.GetEpicsWithReference();
-			var jiraEpics = _jira.GetEpicsInProjects(_v1ProjectToJiraProject.Values).issues;
+			var searchResult = _jira.GetEpicsInProjects(_v1ProjectToJiraProject.Values);
 
+            if (searchResult.HasErrors)
+            {
+                searchResult.ErrorMessages.ForEach(SimpleLogger.WriteLogMessage);
+                return;
+            }
+
+            var jiraEpics = searchResult.issues;
             if (assignedEpics.Count > 0)
                 SimpleLogger.WriteLogMessage("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
 
