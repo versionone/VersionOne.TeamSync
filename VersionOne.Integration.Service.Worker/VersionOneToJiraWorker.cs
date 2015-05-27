@@ -153,7 +153,7 @@ namespace VersionOne.Integration.Service.Worker
 		            return;
 	            }
 
-	            var jiraProject = _v1ProjectToJiraProject[epic.ProjectName].QuoteReservedWord();
+	            var jiraProject = _v1ProjectToJiraProject[epic.ProjectName];
                 var jiraData = _jira.CreateEpic(epic, jiraProject);
 
 				if (jiraData.IsEmpty)
