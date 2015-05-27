@@ -30,10 +30,24 @@ namespace VersionOne.Integration.Service.Worker
 				_v1ProjectToJiraProject.Add(firstServer.ProjectMappings[i].V1Project, firstServer.ProjectMappings[i].JiraProject);
 
 			_jira = new Jira(new JiraConnector(firstServer.Url + "/rest/api/latest", firstServer.Username, firstServer.Password));
-            _v1Connector = V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                .WithUserAgentHeader("VersionOne.Integration.Service", Assembly.GetExecutingAssembly().GetName().Version.ToString())
-                .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password)
-                .Build();
+
+            switch (V1Settings.Settings.AuthenticationType)
+            {
+                case 0:
+                    _v1Connector = V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
+                        .WithAccessToken(V1Settings.Settings.AccessToken)
+                        .Build();
+                    break;
+                case 1:
+                    _v1Connector = V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
+                        .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password)
+                        .Build();
+                    break;
+                default:
+                    throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting.");
+            }
         }
 
         public VersionOneToJiraWorker(IV1 v1, IJira jira, IDictionary<string,string> v1toJiraMappings)
@@ -51,7 +65,7 @@ namespace VersionOne.Integration.Service.Worker
 
         public async void DoWork(TimeSpan serviceDuration)
         {
-            SimpleLogger.WriteLogMessage("Beginning Output run... ");
+            SimpleLogger.WriteLogMessage("Beginning sync... ");
             _v1 = new V1(_v1Connector, serviceDuration);
 
             await CreateEpics();
@@ -59,7 +73,7 @@ namespace VersionOne.Integration.Service.Worker
             await ClosedV1EpicsSetJiraEpicsToResolved();
             await DeleteEpics();
 
-            SimpleLogger.WriteLogMessage("Outpost run has finished");
+            SimpleLogger.WriteLogMessage("Ending sync...");
         }
 
         public async Task DeleteEpics()
