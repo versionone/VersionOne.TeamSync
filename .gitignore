@@ -50,3 +50,6 @@ packages/
 
 ## Subversion files ##
 .svn
+
+## Nuget ##
+!.nuget/*
