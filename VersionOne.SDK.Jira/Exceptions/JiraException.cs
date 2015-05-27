@@ -2,7 +2,7 @@
 
 using System;
 
-namespace VersionOne.SDK.Jira.Exceptions {
+namespace VersionOne.JiraConnector.Exceptions {
     public class JiraException : Exception {
         public JiraException(string message, Exception innerException) : base(message, innerException) { }
     }

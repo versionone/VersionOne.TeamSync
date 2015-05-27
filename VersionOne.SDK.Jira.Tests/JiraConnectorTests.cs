@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VersionOne.SDK.Jira.Connector;
+using VersionOne.JiraConnector.Connector;
 
 namespace VersionOne.SDK.Jira.Tests
 {
     [TestClass]
     public class JiraConnectorTests
     {
-        private readonly JiraConnector _connector = new JiraConnector("http://jira-64.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
+        private readonly JiraConnector.Connector.JiraConnector _connector = new JiraConnector.Connector.JiraConnector("http://jira-64.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
 
         [TestMethod]
         public void CreateEpicTest()

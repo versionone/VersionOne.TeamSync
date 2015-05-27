@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace VersionOne.SDK.Jira.Entities
+namespace VersionOne.JiraConnector.Entities
 {
     public abstract class JiraBase
     {

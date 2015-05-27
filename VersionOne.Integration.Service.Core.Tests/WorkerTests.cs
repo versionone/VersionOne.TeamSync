@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
 using VersionOne.Integration.Service.Worker.Domain;
-using VersionOne.SDK.Jira.Entities;
+using VersionOne.JiraConnector.Entities;
 
 namespace VersionOne.Integration.Service.Worker.Tests
 {

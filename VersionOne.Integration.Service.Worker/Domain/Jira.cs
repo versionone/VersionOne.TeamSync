@@ -7,8 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using VersionOne.Integration.Service.Core;
 using VersionOne.Integration.Service.Worker.Extensions;
-using VersionOne.SDK.Jira.Connector;
-using VersionOne.SDK.Jira.Entities;
+using VersionOne.JiraConnector.Connector;
+using VersionOne.JiraConnector.Entities;
 
 namespace VersionOne.Integration.Service.Worker.Domain
 {
@@ -29,7 +29,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
     {
         private readonly IJiraConnector _connector;
 
-        public Jira(JiraConnector connector)
+        public Jira(JiraConnector.Connector.JiraConnector connector)
         {
             _connector = connector;
             InstanceUrl = _connector.BaseUrl;

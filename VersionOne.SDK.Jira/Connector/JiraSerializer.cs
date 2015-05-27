@@ -1,9 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using RestSharp.Serializers;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
-namespace VersionOne.SDK.Jira.Connector
+namespace VersionOne.JiraConnector.Connector
 {
     public class JiraSerializer : ISerializer
     {

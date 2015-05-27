@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace VersionOne.SDK.Jira.Config
+namespace VersionOne.JiraConnector.Config
 {
     public class JiraSettings : ConfigurationSection
     {

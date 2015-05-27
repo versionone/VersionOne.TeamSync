@@ -1,4 +1,4 @@
-namespace VersionOne.SDK.Jira.Connector
+namespace VersionOne.JiraConnector.Connector
 {
     public sealed class JiraResource
     {

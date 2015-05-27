@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RestSharp;
 using Should;
-using VersionOne.SDK.Jira.Connector;
 
 namespace VersionOne.Integration.Service.Worker.Tests
 {
@@ -79,7 +78,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
 
         public void MakeRequest()
         {
-            _resultRequest = JiraConnector.BuildSearchRequest(_query, new[] { "item", "item2", "item3" });
+            _resultRequest = JiraConnector.Connector.JiraConnector.BuildSearchRequest(_query, new[] { "item", "item2", "item3" });
         }
 
         [TestMethod]

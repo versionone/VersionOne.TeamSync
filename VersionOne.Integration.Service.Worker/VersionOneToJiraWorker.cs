@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using VersionOne.Integration.Service.Core;
 using VersionOne.Integration.Service.Core.Config;
 using VersionOne.Integration.Service.Worker.Domain;
-using VersionOne.SDK.Jira.Config;
-using VersionOne.SDK.Jira.Connector;
 using VersionOne.SDK.APIClient;
 using System.Reflection;
-using VersionOne.SDK.Jira;
+using VersionOne.JiraConnector.Config;
+using VersionOne.JiraConnector.Connector;
 
 namespace VersionOne.Integration.Service.Worker
 {
@@ -30,7 +29,7 @@ namespace VersionOne.Integration.Service.Worker
 			for (var i = 0; i < firstServer.ProjectMappings.Count; i++)
 				_v1ProjectToJiraProject.Add(firstServer.ProjectMappings[i].V1Project, firstServer.ProjectMappings[i].JiraProject);
 
-            _jira = new Jira(new JiraConnector(new Uri(new Uri(firstServer.Url), "/rest/api/latest").ToString(), firstServer.Username, firstServer.Password));
+            _jira = new Jira(new JiraConnector.Connector.JiraConnector(new Uri(new Uri(firstServer.Url), "/rest/api/latest").ToString(), firstServer.Username, firstServer.Password));
 
             switch (V1Settings.Settings.AuthenticationType)
             {

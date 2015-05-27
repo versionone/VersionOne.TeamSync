@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VersionOne.Integration.Service.Worker.Domain;
-using VersionOne.SDK.Jira.Entities;
+using VersionOne.JiraConnector.Entities;
 
 namespace VersionOne.Integration.Service.Worker.Extensions
 {

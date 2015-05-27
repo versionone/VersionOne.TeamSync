@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Serializers;
-using VersionOne.SDK.Jira.Entities;
-using VersionOne.SDK.Jira.Exceptions;
+using VersionOne.JiraConnector.Entities;
+using VersionOne.JiraConnector.Exceptions;
 
-namespace VersionOne.SDK.Jira.Connector
+namespace VersionOne.JiraConnector.Connector
 {
     public interface IJiraConnector
     {
