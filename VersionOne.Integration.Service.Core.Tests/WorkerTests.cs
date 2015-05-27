@@ -44,19 +44,19 @@ namespace VersionOne.Integration.Service.Worker.Tests
         }
     }
 
-    [TestClass]
-    public class Worker_when_there_is_1_new_epic
-    {
-        private VersionOneToJiraWorker _worker;
-        private Mock<IV1> _mockV1;
-        private Epic _epic;
-        private ItemBase _itemBase;
-        private Mock<IJira> _mockJira;
 
-        [TestInitialize]
-        public async void Context()
+    public class Worker_when_there_is_a_new_epic_in_v1
+    {
+        protected VersionOneToJiraWorker _worker;
+        protected Mock<IV1> _mockV1;
+        protected Epic _epic;
+        protected ItemBase _itemBase;
+        protected Mock<IJira> _mockJira;
+        protected Dictionary<string, string> _mappingValues;
+        
+        public async void DataSetup()
         {
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", ProjectName = "v1"};
+            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", ProjectName = "v1" };
             _itemBase = new ItemBase() { Key = "OPC-10" };
 
             _mockV1 = new Mock<IV1>();
@@ -70,14 +70,21 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.CreateEpic(_epic, It.IsAny<string>())).Returns(() => _itemBase);
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, new Dictionary<string, string>()
-            {
-	            {"v1", "OPC"}
-            });
-            
             _epic.Reference.ShouldBeNull();
-            
+
+            _worker = new VersionOneToJiraWorker(_mockV1.Object, _mockJira.Object, _mappingValues);
             await _worker.CreateEpics();
+        }
+    }
+
+    [TestClass]
+    public class and_it_is_a_mapped_project : Worker_when_there_is_a_new_epic_in_v1
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            _mappingValues = new Dictionary<string, string>() { {"v1", "OPC"} };
+            DataSetup();
         }
 
         [TestMethod]
@@ -105,6 +112,44 @@ namespace VersionOne.Integration.Service.Worker.Tests
         }
 
     }
+
+    [TestClass]
+    public class And_does_not_match_mapped_projects_in_config : Worker_when_there_is_a_new_epic_in_v1
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            _mappingValues = new Dictionary<string, string>() { { "v1-project", "OPC" } };
+            DataSetup();
+        }
+
+        [TestMethod]
+        public void should_call_EpicsWithoutReference_one_time()
+        {
+            _mockV1.Verify(x => x.GetEpicsWithoutReference(), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_not_call_CreateEpic_on_jira()
+        {
+            _mockJira.Verify(x => x.CreateEpic(_epic, It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_pass_along_the_key_to_epic_reference()
+        {
+            _epic.Reference.ShouldNotEqual(_itemBase.Key);
+        }
+
+        [TestMethod]
+        public void should_not_create_a_link_on_v1_epic()
+        {
+            _mockV1.Verify(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()), Times.Never);
+        }
+
+    }
+
+
 
     [TestClass]
     public class Worker_when_there_are_no_epics_to_update
