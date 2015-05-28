@@ -134,16 +134,16 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
             SimpleLogger.WriteLogMessage("Attempting to set status on " + issueKey);
 
-            _connector.Put("issue/" + issueKey, new
-            {
-                update = new
-                {
-                    customfield_10007 = new[]
-                    {
-                        new {set = new {value = "Done"}}
-                    }
-                }
-            }, HttpStatusCode.NoContent);
+            //_connector.Put("issue/" + issueKey, new
+            //{
+            //    update = new
+            //    {
+            //        customfield_10007 = new[]
+            //        {
+            //            new {set = new {value = "Done"}}
+            //        }
+            //    }
+            //}, HttpStatusCode.NoContent);
         }
 
         public string InstanceUrl { get; private set; }
