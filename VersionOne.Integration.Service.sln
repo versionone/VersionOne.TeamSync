@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BetaSDK", "BetaSDK", "{F331
 		BetaSDK\VersionOne.SDK.APIClient.pdb = BetaSDK\VersionOne.SDK.APIClient.pdb
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.Api", "VersionOne.Api\VersionOne.Api.csproj", "{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +92,12 @@ Global
 		{9B7888A4-BB67-4DB8-B299-37F8A12E3CE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B7888A4-BB67-4DB8-B299-37F8A12E3CE2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9B7888A4-BB67-4DB8-B299-37F8A12E3CE2}.Release|x86.ActiveCfg = Release|Any CPU
+		{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

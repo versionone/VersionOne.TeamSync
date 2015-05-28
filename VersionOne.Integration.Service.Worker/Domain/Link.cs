@@ -1,10 +1,10 @@
 ﻿using System.Xml.Linq;
+using VersionOne.Api.Interfaces;
 using VersionOne.Integration.Service.Worker.Extensions;
-using VersionOne.SDK.APIClient.Model.Interfaces;
 
 namespace VersionOne.Integration.Service.Worker.Domain
 {
-    public class Link : IVersionOneAsset
+    public class Link : IV1Asset
     {
         public string AssetType { get { return "Link"; }}
         public string ID { get; private set; }

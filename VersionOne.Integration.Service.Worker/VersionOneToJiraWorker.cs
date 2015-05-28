@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using VersionOne.Integration.Service.Core;
 using VersionOne.Integration.Service.Core.Config;
 using VersionOne.Integration.Service.Worker.Domain;
-using VersionOne.SDK.APIClient;
 using System.Reflection;
+using VersionOne.Api;
+using VersionOne.Api.Interfaces;
 using VersionOne.JiraConnector.Config;
 using VersionOne.JiraConnector.Connector;
 

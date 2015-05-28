@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using VersionOne.Api.Interfaces;
 using VersionOne.Integration.Service.Worker.Domain;
 using VersionOne.Integration.Service.Worker.Extensions;
-using VersionOne.SDK.APIClient;
 
 namespace VersionOne.Integration.Service.Worker.Tests
 {

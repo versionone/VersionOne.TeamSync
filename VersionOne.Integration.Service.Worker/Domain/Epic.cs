@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using System.Xml.Linq;
+using VersionOne.Api.Extensions;
+using VersionOne.Api.Interfaces;
 using VersionOne.Integration.Service.Worker.Extensions;
-using VersionOne.SDK.APIClient.Extensions;
-using VersionOne.SDK.APIClient.Model.Interfaces;
 
 namespace VersionOne.Integration.Service.Worker.Domain
 {
-	public class Epic : IVersionOneAsset
+	public class Epic : IV1Asset
 	{
 		public string AssetType
 		{

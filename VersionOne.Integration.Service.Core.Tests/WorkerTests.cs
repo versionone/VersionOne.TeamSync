@@ -165,9 +165,9 @@ namespace VersionOne.Integration.Service.Worker.Tests
         }
 
         [TestMethod]
-        public void should_call_CreateEpic_on_jira_with_qoutes_around_reserved_word()
+        public void should_call_CreateEpic_on_jira_without_modifying_reserved_word()
         {
-            _mockJira.Verify(x => x.CreateEpic(_epic, "\"AS\""), Times.Once());
+            _mockJira.Verify(x => x.CreateEpic(_epic, "AS"), Times.Once());
         }
 
         [TestMethod]

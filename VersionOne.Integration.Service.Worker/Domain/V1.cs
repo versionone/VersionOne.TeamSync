@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using VersionOne.Api.Interfaces;
 using VersionOne.Integration.Service.Worker.Extensions;
-using VersionOne.SDK.APIClient;
-using VersionOne.SDK.APIClient.Model.Interfaces;
 
 namespace VersionOne.Integration.Service.Worker.Domain
 {
@@ -15,7 +14,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
         Task<List<Epic>> GetClosedTrackedEpics();
         Task<List<Epic>> GetEpicsWithReference();
         Task<List<Epic>> GetDeletedEpics();
-        void CreateLink(IVersionOneAsset asset, string title, string url);
+        void CreateLink(IV1Asset asset, string title, string url);
         void RemoveReferenceOnDeletedEpic(Epic epic);
     }
 
@@ -71,7 +70,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
             return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo }, Epic.FromQuery);
         }
 
-        public async void CreateLink(IVersionOneAsset asset, string title, string url)
+        public async void CreateLink(IV1Asset asset, string title, string url)
         {
             var link = new Link()
             {
