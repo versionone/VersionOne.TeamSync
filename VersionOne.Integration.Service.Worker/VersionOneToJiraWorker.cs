@@ -7,6 +7,7 @@ using VersionOne.Integration.Service.Core;
 using VersionOne.Integration.Service.Core.Config;
 using VersionOne.Integration.Service.Worker.Domain;
 using System.Reflection;
+using System.Xml.Linq;
 using VersionOne.Api;
 using VersionOne.Api.Interfaces;
 using VersionOne.JiraConnector.Config;
@@ -16,7 +17,7 @@ namespace VersionOne.Integration.Service.Worker
 {
     public class VersionOneToJiraWorker
     {
-        private IJira _jira;
+        private List<IJira> _jiraInstances;
         private IV1 _v1;
         private IV1Connector _v1Connector;
 
@@ -25,12 +26,23 @@ namespace VersionOne.Integration.Service.Worker
         public VersionOneToJiraWorker()
         {
 			_v1ProjectToJiraProject = new Dictionary<string, string>();
-	        var firstServer = JiraSettings.Settings.Servers[0];
 
-			for (var i = 0; i < firstServer.ProjectMappings.Count; i++)
-				_v1ProjectToJiraProject.Add(firstServer.ProjectMappings[i].V1Project, firstServer.ProjectMappings[i].JiraProject);
+            _jiraInstances = new List<IJira>();
 
-            _jira = new Jira(new JiraConnector.Connector.JiraConnector(new Uri(new Uri(firstServer.Url), "/rest/api/latest").ToString(), firstServer.Username, firstServer.Password));
+            for (var i = 0; i < JiraSettings.Settings.Servers.Count; i++)
+            {
+                    var server = JiraSettings.Settings.Servers[i];
+                if (!server.Enabled)
+                    continue;
+
+                for (var p = 0; p < server.ProjectMappings.Count; p++)
+                {
+                    if (server.ProjectMappings[p].Enabled)
+                        _v1ProjectToJiraProject.Add(server.ProjectMappings[p].V1Project, server.ProjectMappings[p].JiraProject);
+                }
+                _jiraInstances.Add(new Jira(new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password)));
+
+            }
 
             switch (V1Settings.Settings.AuthenticationType)
             {
@@ -51,17 +63,17 @@ namespace VersionOne.Integration.Service.Worker
             }
         }
 
-        public VersionOneToJiraWorker(IV1 v1, IJira jira, IDictionary<string,string> v1toJiraMappings)
+        public VersionOneToJiraWorker(IV1 v1, List<IJira> jira, IDictionary<string,string> v1toJiraMappings)
         {
             _v1 = v1;
-            _jira = jira;
+            _jiraInstances = jira;
 	        _v1ProjectToJiraProject = v1toJiraMappings;
         }
 
         public VersionOneToJiraWorker(IV1Connector v1, IJiraConnector jiraConnector)
         {
             _v1Connector = v1;
-            _jira = new Jira(jiraConnector);
+            _jiraInstances = new List<IJira> {new Jira(jiraConnector)};
         }
 
         public async void DoWork(TimeSpan serviceDuration)
@@ -69,22 +81,25 @@ namespace VersionOne.Integration.Service.Worker
             SimpleLogger.WriteLogMessage("Beginning sync... ");
             _v1 = new V1(_v1Connector, serviceDuration);
 
-            await CreateEpics();
-            await UpdateEpics();
-            await ClosedV1EpicsSetJiraEpicsToResolved();
-            await DeleteEpics();
+            _jiraInstances.ForEach(async jira =>
+            {
+                await CreateEpics(jira);
+                await UpdateEpics(jira);
+                await ClosedV1EpicsSetJiraEpicsToResolved(jira);
+                await DeleteEpics(jira);
+            });
 
             SimpleLogger.WriteLogMessage("Ending sync...");
         }
 
-        public async Task DeleteEpics()
+        public async Task DeleteEpics(IJira jiraInstance)
         {
             var deletedEpics = await _v1.GetDeletedEpics();
             deletedEpics.ForEach(epic =>
             {
                 SimpleLogger.WriteLogMessage("Attempting to delete " + epic.Reference);
 
-                _jira.DeleteEpicIfExists(epic.Reference);
+                jiraInstance.DeleteEpicIfExists(epic.Reference);
 
                 SimpleLogger.WriteLogMessage("Deleted " + epic.Reference);
                 _v1.RemoveReferenceOnDeletedEpic(epic);
@@ -95,25 +110,25 @@ namespace VersionOne.Integration.Service.Worker
             SimpleLogger.WriteLogMessage("Total deleted epics processed was " + deletedEpics.Count);
         }
 
-        public async Task ClosedV1EpicsSetJiraEpicsToResolved()
+        public async Task ClosedV1EpicsSetJiraEpicsToResolved(IJira jiraInstance)
         {
             var closedEpics = await _v1.GetClosedTrackedEpics();
             closedEpics.ForEach(epic =>
             {
-                var jiraEpic = _jira.GetEpicByKey(epic.Reference);
+                var jiraEpic = jiraInstance.GetEpicByKey(epic.Reference);
                 if (jiraEpic.HasErrors)
                 {
                     //???
                     return;
                 }
-                _jira.SetIssueToResolved(epic.Reference);
+                jiraInstance.SetIssueToResolved(epic.Reference);
             });
         }
 
-        public async Task UpdateEpics()
+        public async Task UpdateEpics(IJira jiraInstance)
         {
             var assignedEpics = await _v1.GetEpicsWithReference();
-			var searchResult = _jira.GetEpicsInProjects(_v1ProjectToJiraProject.Values);
+            var searchResult = jiraInstance.GetEpicsInProjects(_v1ProjectToJiraProject.Values);
 
             if (searchResult.HasErrors)
             {
@@ -133,12 +148,12 @@ namespace VersionOne.Integration.Service.Worker
                     SimpleLogger.WriteLogMessage("No related issue found in Jira for " + epic.Reference);
                     return;
                 }
-                _jira.UpdateEpic(epic, relatedJiraEpic.Key);
+                jiraInstance.UpdateEpic(epic, relatedJiraEpic.Key);
                 SimpleLogger.WriteLogMessage("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
             });
         }
 
-        public async Task CreateEpics()
+        public async Task CreateEpics(IJira jiraInstance)
         {
             var unassignedEpics = await _v1.GetEpicsWithoutReference();
 
@@ -154,15 +169,15 @@ namespace VersionOne.Integration.Service.Worker
 	            }
 
 	            var jiraProject = _v1ProjectToJiraProject[epic.ProjectName];
-                var jiraData = _jira.CreateEpic(epic, jiraProject);
+                var jiraData = jiraInstance.CreateEpic(epic, jiraProject);
 
 				if (jiraData.IsEmpty)
 					throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraProject + ") doesn't have epic type or expected custom field");
 
-                _jira.AddCreatedByV1Comment(jiraData.Key, epic, _v1.InstanceUrl);
+                jiraInstance.AddCreatedByV1Comment(jiraData.Key, epic, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
-                _v1.CreateLink(epic, "Jira Epic", _jira.InstanceUrl + "/browse/" + jiraData.Key);
+                _v1.CreateLink(epic, "Jira Epic", jiraInstance.InstanceUrl + "/browse/" + jiraData.Key);
             });
         }
     }
