@@ -31,13 +31,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{2CA355
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BetaSDK", "BetaSDK", "{F331218F-D4DC-4605-B82A-A7D392A4A4D9}"
-	ProjectSection(SolutionItems) = preProject
-		BetaSDK\VersionOne.SDK.APIClient.dll = BetaSDK\VersionOne.SDK.APIClient.dll
-		BetaSDK\VersionOne.SDK.APIClient.dll.config = BetaSDK\VersionOne.SDK.APIClient.dll.config
-		BetaSDK\VersionOne.SDK.APIClient.pdb = BetaSDK\VersionOne.SDK.APIClient.pdb
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.Api", "VersionOne.Api\VersionOne.Api.csproj", "{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}"
 EndProject
 Global
