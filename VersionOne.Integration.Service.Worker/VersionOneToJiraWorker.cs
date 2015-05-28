@@ -17,32 +17,13 @@ namespace VersionOne.Integration.Service.Worker
 {
     public class VersionOneToJiraWorker
     {
-        private List<IJira> _jiraInstances;
+        private HashSet<V1JiraInfo> _jiraInstances;
         private IV1 _v1;
         private IV1Connector _v1Connector;
 
-        private IDictionary<string, string> _v1ProjectToJiraProject;
-
         public VersionOneToJiraWorker()
         {
-			_v1ProjectToJiraProject = new Dictionary<string, string>();
-
-            _jiraInstances = new List<IJira>();
-
-            for (var i = 0; i < JiraSettings.Settings.Servers.Count; i++)
-            {
-                    var server = JiraSettings.Settings.Servers[i];
-                if (!server.Enabled)
-                    continue;
-
-                for (var p = 0; p < server.ProjectMappings.Count; p++)
-                {
-                    if (server.ProjectMappings[p].Enabled)
-                        _v1ProjectToJiraProject.Add(server.ProjectMappings[p].V1Project, server.ProjectMappings[p].JiraProject);
-                }
-                _jiraInstances.Add(new Jira(new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password)));
-
-            }
+            _jiraInstances = new HashSet<V1JiraInfo>(V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers));
 
             switch (V1Settings.Settings.AuthenticationType)
             {
@@ -63,43 +44,38 @@ namespace VersionOne.Integration.Service.Worker
             }
         }
 
-        public VersionOneToJiraWorker(IV1 v1, List<IJira> jira, IDictionary<string,string> v1toJiraMappings)
+        public VersionOneToJiraWorker(IV1 v1)
         {
             _v1 = v1;
-            _jiraInstances = jira;
-	        _v1ProjectToJiraProject = v1toJiraMappings;
-        }
-
-        public VersionOneToJiraWorker(IV1Connector v1, IJiraConnector jiraConnector)
-        {
-            _v1Connector = v1;
-            _jiraInstances = new List<IJira> {new Jira(jiraConnector)};
         }
 
         public async void DoWork(TimeSpan serviceDuration)
         {
-            SimpleLogger.WriteLogMessage("Beginning sync... ");
             _v1 = new V1(_v1Connector, serviceDuration);
 
-            _jiraInstances.ForEach(async jira =>
+            _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
-                await CreateEpics(jira);
-                await UpdateEpics(jira);
-                await ClosedV1EpicsSetJiraEpicsToResolved(jira);
-                await DeleteEpics(jira);
+                SimpleLogger.WriteLogMessage("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
+
+                await CreateEpics(jiraInfo);
+                await UpdateEpics(jiraInfo);
+                await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+                await DeleteEpics(jiraInfo);
+
+                SimpleLogger.WriteLogMessage("Ending sync...");
+
             });
 
-            SimpleLogger.WriteLogMessage("Ending sync...");
         }
 
-        public async Task DeleteEpics(IJira jiraInstance)
+        public async Task DeleteEpics(V1JiraInfo jiraInfo)
         {
-            var deletedEpics = await _v1.GetDeletedEpics();
+            var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId);
             deletedEpics.ForEach(epic =>
             {
                 SimpleLogger.WriteLogMessage("Attempting to delete " + epic.Reference);
 
-                jiraInstance.DeleteEpicIfExists(epic.Reference);
+                jiraInfo.JiraInstance.DeleteEpicIfExists(epic.Reference);
 
                 SimpleLogger.WriteLogMessage("Deleted " + epic.Reference);
                 _v1.RemoveReferenceOnDeletedEpic(epic);
@@ -110,25 +86,25 @@ namespace VersionOne.Integration.Service.Worker
             SimpleLogger.WriteLogMessage("Total deleted epics processed was " + deletedEpics.Count);
         }
 
-        public async Task ClosedV1EpicsSetJiraEpicsToResolved(IJira jiraInstance)
+        public async Task ClosedV1EpicsSetJiraEpicsToResolved(V1JiraInfo jiraInfo)
         {
-            var closedEpics = await _v1.GetClosedTrackedEpics();
+            var closedEpics = await _v1.GetClosedTrackedEpics(jiraInfo.V1ProjectId);
             closedEpics.ForEach(epic =>
             {
-                var jiraEpic = jiraInstance.GetEpicByKey(epic.Reference);
+                var jiraEpic = jiraInfo.JiraInstance.GetEpicByKey(epic.Reference);
                 if (jiraEpic.HasErrors)
                 {
                     //???
                     return;
                 }
-                jiraInstance.SetIssueToResolved(epic.Reference);
+                jiraInfo.JiraInstance.SetIssueToResolved(epic.Reference);
             });
         }
 
-        public async Task UpdateEpics(IJira jiraInstance)
+        public async Task UpdateEpics(V1JiraInfo jiraInfo)
         {
-            var assignedEpics = await _v1.GetEpicsWithReference();
-            var searchResult = jiraInstance.GetEpicsInProjects(_v1ProjectToJiraProject.Values);
+            var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId);
+            var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
 
             if (searchResult.HasErrors)
             {
@@ -148,36 +124,29 @@ namespace VersionOne.Integration.Service.Worker
                     SimpleLogger.WriteLogMessage("No related issue found in Jira for " + epic.Reference);
                     return;
                 }
-                jiraInstance.UpdateEpic(epic, relatedJiraEpic.Key);
+                jiraInfo.JiraInstance.UpdateEpic(epic, relatedJiraEpic.Key);
                 SimpleLogger.WriteLogMessage("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
             });
         }
 
-        public async Task CreateEpics(IJira jiraInstance)
+        public async Task CreateEpics(V1JiraInfo jiraInfo)
         {
-            var unassignedEpics = await _v1.GetEpicsWithoutReference();
+            var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId);
 
             //if (unassignedEpics.Count > 0)
             //    SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
             
             unassignedEpics.ForEach(epic =>
             {
-	            if (!_v1ProjectToJiraProject.ContainsKey(epic.ProjectName))
-	            {
-		            //TODO : log, move on
-		            return;
-	            }
-
-	            var jiraProject = _v1ProjectToJiraProject[epic.ProjectName];
-                var jiraData = jiraInstance.CreateEpic(epic, jiraProject);
+                var jiraData = jiraInfo.JiraInstance.CreateEpic(epic, jiraInfo.JiraKey);
 
 				if (jiraData.IsEmpty)
-					throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraProject + ") doesn't have epic type or expected custom field");
+					throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraInfo.JiraKey + ") doesn't have epic type or expected custom field");
 
-                jiraInstance.AddCreatedByV1Comment(jiraData.Key, epic, _v1.InstanceUrl);
+                jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
-                _v1.CreateLink(epic, "Jira Epic", jiraInstance.InstanceUrl + "/browse/" + jiraData.Key);
+                _v1.CreateLink(epic, "Jira Epic", jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key);
             });
         }
     }

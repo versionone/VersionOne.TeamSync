@@ -67,6 +67,7 @@
     <Compile Include="Domain\Jira.cs" />
     <Compile Include="Domain\Link.cs" />
     <Compile Include="Domain\V1.cs" />
+    <Compile Include="Domain\V1JiraInfo.cs" />
     <Compile Include="Domain\Xml\IV1ApiXmlNode.cs" />
     <Compile Include="Domain\Xml\V1NulableSetNode.cs" />
     <Compile Include="Domain\Xml\V1SetNode.cs" />
