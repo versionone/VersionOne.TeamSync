@@ -9,11 +9,11 @@ namespace VersionOne.Integration.Service.Worker.Domain
     public interface IV1
     {
         string InstanceUrl { get; }
-        Task<List<Epic>> GetEpicsWithoutReference(string projectId);
+        Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category);
         void UpdateEpicReference(Epic epic);
-        Task<List<Epic>> GetClosedTrackedEpics(string projectId);
-        Task<List<Epic>> GetEpicsWithReference(string projectId);
-        Task<List<Epic>> GetDeletedEpics(string projectId);
+        Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category);
+        Task<List<Epic>> GetEpicsWithReference(string projectId, string category);
+        Task<List<Epic>> GetDeletedEpics(string projectId, string category);
         void CreateLink(IV1Asset asset, string title, string url);
         void RemoveReferenceOnDeletedEpic(Epic epic);
     }
@@ -23,6 +23,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 		private readonly IV1Connector _connector;
 	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private const string _whereProject = "Scope=\"{0}\"";
+        private const string _whereEpicCategory = "Category=\"{0}\"";
         private readonly string _aDayAgo;
 
 	    public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
@@ -45,30 +46,58 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         public string InstanceUrl { get; private set; }
 
-        public async Task<List<Epic>> GetEpicsWithoutReference(string projectId)
-		{
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Scope.Name" }, 
-                                                  new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _aDayAgo, string.Format(_whereProject, projectId) }, Epic.FromQuery);
-		}
+        public async Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category)
+        {
+            return await _connector.Query("Epic",
+                new[] {"ID.Number", "Name", "Description", "Scope.Name"},
+                new[]
+                {
+                    "Reference=\"\"",
+                    "AssetState='Active'",
+                    "CreateDateUTC>=" + _aDayAgo,
+                    string.Format(_whereProject, projectId),
+                    string.Format(_whereEpicCategory, category)
+                }, Epic.FromQuery);
+        }
 
 	    public async void UpdateEpicReference(Epic epic)
         {
             await _connector.Post(epic, epic.UpdateReferenceXml());
         }
 
-	    public async Task<List<Epic>> GetClosedTrackedEpics(string projectId)
+        public async Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category)
 		{
-            return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" }, new[] { "Reference!=\"\"", "AssetState='Closed'", "ChangeDateUTC>=" + _aDayAgo, string.Format(_whereProject, projectId) }, Epic.FromQuery);
+            return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" }, 
+                new[] { 
+                    "Reference!=\"\"",
+                    "AssetState='Closed'", 
+                    "ChangeDateUTC>=" + _aDayAgo, 
+                    string.Format(_whereProject, projectId),
+                    string.Format(_whereEpicCategory, category)
+                }, Epic.FromQuery);
 		}
 
-	    public async Task<List<Epic>> GetEpicsWithReference(string projectId)
+	    public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
         {
-            return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "ChangeDateUTC>=" + _aDayAgo, string.Format(_whereProject, projectId) }, Epic.FromQuery);
+            return await _connector.Query("Epic", _numberNameDescriptRef, 
+                new[] { 
+                    "Reference!=\"\"", 
+                    "ChangeDateUTC>=" + _aDayAgo, 
+                    string.Format(_whereProject, projectId), 
+                    string.Format(_whereEpicCategory, category)
+                }, Epic.FromQuery);
         }
 
-	    public async Task<List<Epic>> GetDeletedEpics(string projectId)
+        public async Task<List<Epic>> GetDeletedEpics(string projectId, string category)
         {
-            return await _connector.Query("Epic", _numberNameDescriptRef, new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _aDayAgo, string.Format(_whereProject, projectId) }, Epic.FromQuery);
+            return await _connector.Query("Epic", _numberNameDescriptRef, 
+                new[] { 
+                    "Reference!=\"\"", 
+                    "IsDeleted='True'",
+                    "ChangeDateUTC>=" + _aDayAgo, 
+                    string.Format(_whereProject, projectId), 
+                    string.Format(_whereEpicCategory, category) 
+                }, Epic.FromQuery);
         }
 
         public async void CreateLink(IV1Asset asset, string title, string url)

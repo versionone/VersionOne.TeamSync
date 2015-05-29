@@ -37,7 +37,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         public async void Context()
         {
             BuildContext();
-            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId)).ReturnsAsync(new List<Epic>());
+            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
             var jiraInfo = MakeInfo();
             await _worker.CreateEpics(jiraInfo);
         }
@@ -45,7 +45,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void calls_the_GetEpicsWithoutReference_once()
         {
-            _mockV1.Verify(x => x.GetEpicsWithoutReference(_projectId), Times.Once);
+            _mockV1.Verify(x => x.GetEpicsWithoutReference(_projectId, _epicCategory), Times.Once);
         }
 
         [TestMethod]
@@ -72,7 +72,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", ProjectName = "v1" };
             _itemBase = new ItemBase() { Key = _jiraKey };
 
-            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
                 _epic
             });
@@ -99,7 +99,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void should_call_EpicsWithoutReference_one_time()
         {
-            _mockV1.Verify(x => x.GetEpicsWithoutReference(_projectId), Times.Once);
+            _mockV1.Verify(x => x.GetEpicsWithoutReference(_projectId, _epicCategory), Times.Once);
         }
 
         [TestMethod]
@@ -135,7 +135,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void should_call_EpicsWithoutReference_one_time()
         {
-            _mockV1.Verify(x => x.GetEpicsWithoutReference(_projectId), Times.Once);
+            _mockV1.Verify(x => x.GetEpicsWithoutReference(_projectId, _epicCategory), Times.Once);
         }
 
         [TestMethod]
@@ -167,7 +167,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         {
             BuildContext();
             _mockV1 = new Mock<IV1>();
-            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId)).ReturnsAsync(new List<Epic>());
+            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
 
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
@@ -181,7 +181,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void calls_GetEpicWithReference_once()
         {
-            _mockV1.Verify(x =>x.GetEpicsWithReference(_projectId), Times.Once);
+            _mockV1.Verify(x => x.GetEpicsWithReference(_projectId, _epicCategory), Times.Once);
         }
 
         [TestMethod]
@@ -211,7 +211,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _searchResult = new SearchResult();
             _searchResult.issues.Add(new Issue(){Key = "OPC-10"});
 
-            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
                 _epic
             });
@@ -228,7 +228,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void should_call_EpicsWithReference_one_time()
         {
-            _mockV1.Verify(x => x.GetEpicsWithReference(_projectId), Times.Once);
+            _mockV1.Verify(x => x.GetEpicsWithReference(_projectId, _epicCategory), Times.Once);
         }
 
         [TestMethod]
@@ -258,7 +258,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _searchResult = new SearchResult();
             _searchResult.issues.Add(new Issue() { Key = "OPC-50" });
 
-            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
                 _epic
             });
@@ -276,7 +276,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void should_call_EpicsWithReference_one_time()
         {
-            _mockV1.Verify(x => x.GetEpicsWithReference(_projectId), Times.Once);
+            _mockV1.Verify(x => x.GetEpicsWithReference(_projectId, _epicCategory), Times.Once);
         }
 
         [TestMethod]
@@ -306,7 +306,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             _searchResult = new SearchResult();
             _searchResult.issues.Add(new Issue() { Key = "OPC-10" });
 
-            _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
                 _epic
             });
@@ -323,7 +323,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
         [TestMethod]
         public void should_call_EpicsWithoutReference_one_time()
         {
-            _mockV1.Verify(x => x.GetClosedTrackedEpics(_projectId), Times.Once);
+            _mockV1.Verify(x => x.GetClosedTrackedEpics(_projectId, _epicCategory), Times.Once);
         }
 
         [TestMethod]
@@ -351,7 +351,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             BuildContext();
             _epic = new Epic() { Reference = "OPC-10", Number = "E-00001"};
 
-            _mockV1.Setup(x => x.GetDeletedEpics(_projectId)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetDeletedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
                 _epic
             });

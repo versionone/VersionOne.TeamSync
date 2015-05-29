@@ -70,7 +70,7 @@ namespace VersionOne.Integration.Service.Worker
 
         public async Task DeleteEpics(V1JiraInfo jiraInfo)
         {
-            var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId);
+            var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             deletedEpics.ForEach(epic =>
             {
                 SimpleLogger.WriteLogMessage("Attempting to delete " + epic.Reference);
@@ -88,7 +88,7 @@ namespace VersionOne.Integration.Service.Worker
 
         public async Task ClosedV1EpicsSetJiraEpicsToResolved(V1JiraInfo jiraInfo)
         {
-            var closedEpics = await _v1.GetClosedTrackedEpics(jiraInfo.V1ProjectId);
+            var closedEpics = await _v1.GetClosedTrackedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             closedEpics.ForEach(epic =>
             {
                 var jiraEpic = jiraInfo.JiraInstance.GetEpicByKey(epic.Reference);
@@ -103,7 +103,7 @@ namespace VersionOne.Integration.Service.Worker
 
         public async Task UpdateEpics(V1JiraInfo jiraInfo)
         {
-            var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId);
+            var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
 
             if (searchResult.HasErrors)
@@ -131,7 +131,7 @@ namespace VersionOne.Integration.Service.Worker
 
         public async Task CreateEpics(V1JiraInfo jiraInfo)
         {
-            var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId);
+            var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             //if (unassignedEpics.Count > 0)
             //    SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
