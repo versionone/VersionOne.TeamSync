@@ -27,10 +27,11 @@ namespace VersionOne.Integration.Service.Worker.Domain
             }
         }
 
-        public V1JiraInfo(string v1ProjectId, string jiraKey, IJira jiraInstance)
+        public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
         {
             V1ProjectId = v1ProjectId;
             JiraKey = jiraKey;
+            EpicCategory = epicCategory;
             JiraInstance = jiraInstance;
         }
 
@@ -44,6 +45,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         public string V1ProjectId { get; private set; }
         public string JiraKey { get; private set; }
+        public string EpicCategory { get; set; }
         public IJira JiraInstance { get; private set; }
 
         public static HashSet<V1JiraInfo> BuildJiraInfo(JiraServerCollection servers)
@@ -62,6 +64,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
                         list.Add(new V1JiraInfo(
                             server.ProjectMappings[p].V1Project,
                             server.ProjectMappings[p].JiraProject,
+                            server.ProjectMappings[p].EpicSyncType,
                             new Jira(new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password))));
                 }
             }

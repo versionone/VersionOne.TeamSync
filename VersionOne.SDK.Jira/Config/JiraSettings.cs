@@ -144,6 +144,15 @@ namespace VersionOne.JiraConnector.Config
             get { return (string)this["jiraProject"]; }
             set { this["jiraProject"] = value; }
         }
+
+        [ConfigurationProperty("epicSyncType", IsRequired = true)]
+        public string EpicSyncType
+        {
+            get { return (string)this["epicSyncType"]; }
+            set { this["epicSyncType"] = value; }
+        }
+
+
     }
 
     [ConfigurationCollection(typeof(ProjectMapping), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]

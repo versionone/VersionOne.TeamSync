@@ -17,32 +17,20 @@ namespace VersionOne.Integration.Service.Worker.Tests
         public void Should_ignore_duplicates_added_to_a_hash_set()
         {
             var listOMoqs = new List<Mock<IJira>>(4);
-
+            var hashSet = new HashSet<V1JiraInfo>();
             for (var i = 0; i < listOMoqs.Capacity; i++)
             {
                 var moqInstance = new Mock<IJira>();
                 moqInstance.Setup(x => x.InstanceUrl).Returns("http://instance" + i);
-                listOMoqs.Add(moqInstance);
-            }
 
-            var info0 = new V1JiraInfo("project0", "key0", listOMoqs[0].Object);
-            var info1 = new V1JiraInfo("project1", "key1", listOMoqs[1].Object);
-            var info2 = new V1JiraInfo("project2", "key2", listOMoqs[2].Object);
-            var info3 = new V1JiraInfo("project3", "key3", listOMoqs[3].Object);
+                hashSet.Add(new V1JiraInfo("project" + i, "key" + i, "category" + i, moqInstance.Object));
+            }
 
             var dupeInstance = new Mock<IJira>();
             dupeInstance.Setup(x => x.InstanceUrl).Returns("http://instance0");
 
-            var infoDuplicate = new V1JiraInfo("project0", "key0", dupeInstance.Object);
-
-            var hashSet = new HashSet<V1JiraInfo>()
-            {
-                info0,
-                info1,
-                info2,
-                info3,
-                infoDuplicate
-            };
+            var infoDuplicate = new V1JiraInfo("project0", "key0", "category0", dupeInstance.Object);
+            hashSet.Add(infoDuplicate);
 
             hashSet.Count.ShouldEqual(4);
         }
