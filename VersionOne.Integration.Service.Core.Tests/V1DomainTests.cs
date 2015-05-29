@@ -41,7 +41,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
                              new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"" },
                              new List<Epic>());
 
-            await api.GetEpicsWithoutReference("1000");
+            await api.GetEpicsWithoutReference("Scope:1000");
 
             mockConnector.VerifyAll();
         }
@@ -57,7 +57,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
                 new[] { "Reference!=\"\"", "AssetState='Closed'", "ChangeDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"" },
                              new List<Epic>());
 
-            await api.GetClosedTrackedEpics("1000");
+            await api.GetClosedTrackedEpics("Scope:1000");
 
             mockConnector.VerifyAll();
         }
@@ -72,7 +72,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
                 new[] { "Reference!=\"\"", "ChangeDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"" },
                              new List<Epic>());
 
-            await api.GetEpicsWithReference("1000");
+            await api.GetEpicsWithReference("Scope:1000");
 
             mockConnector.VerifyAll();
         }
@@ -87,7 +87,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
                 new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"" },
                              new List<Epic>());
 
-            await api.GetDeletedEpics("1000");
+            await api.GetDeletedEpics("Scope:1000");
 
             mockConnector.VerifyAll();
         }

@@ -22,7 +22,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
     {
 		private readonly IV1Connector _connector;
 	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
-        private const string _whereProject = "Scope=\"Scope:{0}\"";
+        private const string _whereProject = "Scope=\"{0}\"";
         private readonly string _aDayAgo;
 
 	    public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
