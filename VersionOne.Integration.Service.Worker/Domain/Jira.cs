@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VersionOne.Integration.Service.Core;
 using VersionOne.Integration.Service.Worker.Extensions;
+using VersionOne.JiraConnector;
 using VersionOne.JiraConnector.Connector;
 using VersionOne.JiraConnector.Entities;
 
@@ -87,7 +88,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
         {
             return _connector.GetSearchResults(new Dictionary<string, string>
                 {
-                    {"project", projectKey},
+                    {"project", projectKey.QuoteReservedWord()},
                     {"issuetype", "Epic"}
                 },
                     new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
