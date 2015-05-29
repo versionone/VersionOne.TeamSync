@@ -11,7 +11,9 @@ namespace VersionOne.Integration.Service.Worker.Domain
     {
         protected bool Equals(V1JiraInfo other)
         {
-            return string.Equals(V1ProjectId, other.V1ProjectId) && string.Equals(JiraKey, other.JiraKey) && JiraInstance.Equals(other.JiraInstance);
+            return string.Equals(V1ProjectId, other.V1ProjectId) && 
+                string.Equals(JiraKey, other.JiraKey) && 
+                JiraInstance.InstanceUrl.Equals(other.JiraInstance.InstanceUrl);
         }
 
         public override int GetHashCode()
@@ -20,7 +22,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
             {
                 var hashCode = V1ProjectId.GetHashCode();
                 hashCode = (hashCode*397) ^ JiraKey.GetHashCode();
-                hashCode = (hashCode*397) ^ JiraInstance.GetHashCode();
+                hashCode = (hashCode*397) ^ JiraInstance.InstanceUrl.GetHashCode();
                 return hashCode;
             }
         }

@@ -64,6 +64,7 @@
     <Compile Include="Helpers\GetContent.cs" />
     <Compile Include="Helpers\MockHttp.cs" />
     <Compile Include="JiraConnectorTests.cs" />
+    <Compile Include="JiraInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="V1DomainTests.cs" />
     <Compile Include="WorkerTests.cs" />
