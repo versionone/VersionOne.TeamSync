@@ -38,7 +38,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
             var mockConnector = new Mock<IV1Connector>();
 
             var api = SetApiQuery(mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name" }, 
-                             new[] { "Reference=\"\"", "AssetState='Active'", "CreateDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
+                             new[] { "Reference=\"\"", "AssetState='Active'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
             await api.GetEpicsWithoutReference("Scope:1000", "EpicCategory:1000");
@@ -54,7 +54,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
 
             var api = SetApiQuery(mockConnector, 
                 new[] { "Name", "AssetState", "Reference" },
-                new[] { "Reference!=\"\"", "AssetState='Closed'", "ChangeDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
+                new[] { "Reference!=\"\"", "AssetState='Closed'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
             await api.GetClosedTrackedEpics("Scope:1000", "EpicCategory:1000");
@@ -68,8 +68,8 @@ namespace VersionOne.Integration.Service.Worker.Tests
             var mockConnector = new Mock<IV1Connector>();
 
             var api = SetApiQuery(mockConnector,
-                new[] { "ID.Number", "Name", "Description", "Reference" },
-                new[] { "Reference!=\"\"", "ChangeDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
+                new[] { "ID.Number", "Name", "Description", "Reference", "AssetState" },
+                new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
             await api.GetEpicsWithReference("Scope:1000", "EpicCategory:1000");
@@ -84,7 +84,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
 
             var api = SetApiQuery(mockConnector,
                 new[] { "ID.Number", "Name", "Description", "Reference" },
-                new[] { "Reference!=\"\"", "IsDeleted='True'", "ChangeDateUTC>=" + _timeAgo.Add(-_span).ToString("yyyy-MM-dd HH:mm:ss").InQuotes(), "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
+                new[] { "Reference!=\"\"", "IsDeleted='True'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
             await api.GetDeletedEpics("Scope:1000", "EpicCategory:1000");

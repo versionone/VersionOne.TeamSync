@@ -207,9 +207,9 @@ namespace VersionOne.Integration.Service.Worker.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ProjectName = "v1"};
+            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ProjectName = "v1", AssetState = "64"};
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue(){Key = "OPC-10"});
+            _searchResult.issues.Add(new Issue(){Key = "OPC-10", Fields = new EpicFields(){Status = new Status(){Name = "ToDo"}}});
 
             _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
@@ -219,6 +219,7 @@ namespace VersionOne.Integration.Service.Worker.Tests
 			_mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(_searchResult);
 
             _epic.Reference.ShouldNotBeNull("need a reference");
+            _epic.IsClosed().ShouldBeFalse();
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
             var jiraInfo = MakeInfo();
 

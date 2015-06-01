@@ -61,7 +61,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 			return doc;
 		}
 
-        internal bool IsClosed()
+        public bool IsClosed()
         {
             return AssetState == "128";
         }
