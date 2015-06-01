@@ -19,7 +19,7 @@ namespace VersionOne.Api
         private readonly HttpClientHandler _handler;
         private Uri _baseAddress;
         private static ICredentials _networkCreds;
-        private string _endpoint = "rest-1.v1/Data/";
+        private string _endpoint = "rest-1.v1/Data";
         private string _upstreamUserAgent;
 
         public V1Connector(string instanceUrl)

@@ -54,7 +54,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
                 {
                     "Reference=\"\"",
                     "AssetState='Active'",
-                    "CreateDateUTC>=" + _aDayAgo,
+                    //"CreateDateUTC>=" + _aDayAgo,
                     string.Format(_whereProject, projectId),
                     string.Format(_whereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -71,7 +71,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
                 new[] { 
                     "Reference!=\"\"",
                     "AssetState='Closed'", 
-                    "ChangeDateUTC>=" + _aDayAgo, 
+                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(_whereProject, projectId),
                     string.Format(_whereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -82,7 +82,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
             return await _connector.Query("Epic", _numberNameDescriptRef, 
                 new[] { 
                     "Reference!=\"\"", 
-                    "ChangeDateUTC>=" + _aDayAgo, 
+                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(_whereProject, projectId), 
                     string.Format(_whereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -94,7 +94,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
                 new[] { 
                     "Reference!=\"\"", 
                     "IsDeleted='True'",
-                    "ChangeDateUTC>=" + _aDayAgo, 
+                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(_whereProject, projectId), 
                     string.Format(_whereEpicCategory, category) 
                 }, Epic.FromQuery);
