@@ -7,6 +7,7 @@ using Moq;
 using RestSharp;
 using Should;
 using VersionOne.JiraConnector.Connector;
+using VersionOne.JiraConnector.Exceptions;
 using VersionOne.TeamSync.Service.Worker.Domain;
 
 namespace VersionOne.TeamSync.Service.Worker.Tests
@@ -109,25 +110,80 @@ namespace VersionOne.TeamSync.Service.Worker.Tests
     }
 
     [TestClass]
-    public class jiraConnectorTests
+    public class Executing_a_request_with_no_return
     {
-        [TestMethod]
-        public void dostuff()
+        private Mock<IRestRequest> _restRequest;
+        private Mock<IRestResponse> _restResponse;
+
+        private JiraConnector.Connector.JiraConnector createConnect(HttpStatusCode toReturn)
         {
             var restClient = new Mock<IRestClient>();
-            var restRequest = new Mock<IRestRequest>();
-            var restResponse = new Mock<IRestResponse>();
+            _restRequest = new Mock<IRestRequest>();
+            _restResponse = new Mock<IRestResponse>();
 
-            restResponse.Setup(x => x.StatusCode).Returns(HttpStatusCode.NoContent);
-            restResponse.Setup(x => x.Content).Returns("{}");
+            _restResponse.Setup(x => x.StatusCode).Returns(toReturn);
+            _restResponse.Setup(x => x.Content).Returns("{}");
 
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
-            restClient.Setup(x => x.Execute(restRequest.Object)).Returns(restResponse.Object);
+            restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
-            var connector = new JiraConnector.Connector.JiraConnector(restClient.Object);
-
-            connector.Execute(restRequest.Object, HttpStatusCode.NoContent);
+            return new JiraConnector.Connector.JiraConnector(restClient.Object);
 
         }
+
+        [TestMethod]
+        public void when_the_content_types_match_it_should_do_nothing()
+        {
+            var connector = createConnect(HttpStatusCode.NoContent);
+            connector.Execute(_restRequest.Object, HttpStatusCode.NoContent);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(JiraLoginException))]
+        public void when_the_content_type_is_not_authorized_should_throw_a_jira_exception()
+        {
+            var connector = createConnect(HttpStatusCode.Unauthorized);
+            connector.Execute(_restRequest.Object, HttpStatusCode.NoContent);
+        }
+
+        [TestMethod]
+        public void when_content_does_not_match_and_the_error_is_not_on_the_appropriate_screen_throw_a_jira_exception_with_that_data()
+        {
+            var connector = createConnect(HttpStatusCode.BadRequest);
+
+            _restResponse.Setup(response => response.Content).Returns(appropriateScreenJsonError);
+
+            try
+            {
+                connector.Execute(_restRequest.Object, HttpStatusCode.NoContent);
+            }
+            catch (JiraException jira)
+            {
+                jira.Message.ShouldEqual("Please expose the field targetProperty on the screen");
+                jira.InnerException.ShouldNotBeNull();
+            }
+        }
+
+        [TestMethod]
+        public void when_content_does_not_match_throw_a_jira_exception_with_that_data()
+        {
+            var connector = createConnect(HttpStatusCode.BadRequest);
+
+            var errorContent = "{\"errorMessages\":[],\"errors\":{\"someError\":\"some other error\"}}";
+            _restResponse.Setup(response => response.Content).Returns(errorContent);
+            _restResponse.Setup(response => response.StatusDescription).Returns("Errors");
+            try
+            {
+                connector.Execute(_restRequest.Object, HttpStatusCode.NoContent);
+            }
+            catch (JiraException jira)
+            {
+                jira.Message.ShouldEqual("Errors");
+                jira.InnerException.ShouldNotBeNull();
+                jira.InnerException.Message.ShouldEqual(errorContent);
+            }
+        }
+
+        private const string appropriateScreenJsonError = "{\"errorMessages\":[],\"errors\":{\"targetProperty\":\"Field 'components' cannot be set. It is not on the appropriate screen, or unknown.\"}}";
     }
 }
