@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using RestSharp;
 using Should;
+using VersionOne.Integration.Service.Worker.Domain;
+using VersionOne.JiraConnector.Connector;
 
 namespace VersionOne.Integration.Service.Worker.Tests
 {
@@ -75,7 +79,6 @@ namespace VersionOne.Integration.Service.Worker.Tests
         protected RestRequest _resultRequest;
         protected Dictionary<string, IEnumerable<string>> _query;
 
-
         public void MakeRequest()
         {
             _resultRequest = JiraConnector.Connector.JiraConnector.BuildSearchRequest(_query, new[] { "item", "item2", "item3" });
@@ -89,4 +92,44 @@ namespace VersionOne.Integration.Service.Worker.Tests
 
     }
 
+    [TestClass]
+    public class for_setting_a_project_to_todo
+    {
+        private const string _issueKey = "AKey-10";
+        [TestMethod]
+        public void should_request_an_update_correctly()
+        {
+            var mockConnector = new Mock<IJiraConnector>();
+            mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
+
+            var jira = new Jira(mockConnector.Object);
+
+            jira.SetIssueToToDo(_issueKey);
+
+            mockConnector.VerifyAll();
+        }
+    }
+
+    [TestClass]
+    public class jiraConnectorTests
+    {
+        [TestMethod]
+        public void dostuff()
+        {
+            var restClient = new Mock<IRestClient>();
+            var restRequest = new Mock<IRestRequest>();
+            var restResponse = new Mock<IRestResponse>();
+
+            restResponse.Setup(x => x.StatusCode).Returns(HttpStatusCode.NoContent);
+            restResponse.Setup(x => x.Content).Returns("{}");
+
+            restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
+            restClient.Setup(x => x.Execute(restRequest.Object)).Returns(restResponse.Object);
+
+            var connector = new JiraConnector.Connector.JiraConnector(restClient.Object);
+
+            connector.Execute(restRequest.Object, HttpStatusCode.NoContent);
+
+        }
+    }
 }

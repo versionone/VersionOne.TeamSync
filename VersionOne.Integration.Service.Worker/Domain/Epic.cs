@@ -60,5 +60,10 @@ namespace VersionOne.Integration.Service.Worker.Domain
 			doc.AddNullableSetNode("Reference", Reference);
 			return doc;
 		}
-	}
+
+        internal bool IsClosed()
+        {
+            return AssetState == "128";
+        }
+    }
 }

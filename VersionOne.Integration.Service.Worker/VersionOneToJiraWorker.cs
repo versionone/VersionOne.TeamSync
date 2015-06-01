@@ -53,7 +53,7 @@ namespace VersionOne.Integration.Service.Worker
         {
             _v1 = new V1(_v1Connector, serviceDuration);
 
-            _jiraInstances.ToList().ForEach(async jiraInfo =>
+            _jiraInstances.ToList().ForEach(async jiraInfo => 
             {
                 SimpleLogger.WriteLogMessage("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
@@ -61,7 +61,6 @@ namespace VersionOne.Integration.Service.Worker
                 await UpdateEpics(jiraInfo);
                 await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
                 await DeleteEpics(jiraInfo);
-
                 SimpleLogger.WriteLogMessage("Ending sync...");
 
             });
@@ -124,6 +123,10 @@ namespace VersionOne.Integration.Service.Worker
                     SimpleLogger.WriteLogMessage("No related issue found in Jira for " + epic.Reference);
                     return;
                 }
+
+                if (relatedJiraEpic.Fields.Status.Name == "Done" && !epic.IsClosed()) //hrrmmm...
+                    jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
+                
                 jiraInfo.JiraInstance.UpdateEpic(epic, relatedJiraEpic.Key);
                 SimpleLogger.WriteLogMessage("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
             });

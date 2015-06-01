@@ -13,18 +13,18 @@ namespace VersionOne.JiraConnector.Connector
     public interface IJiraConnector
     {
         string BaseUrl { get; }
-        void Execute(RestRequest request, HttpStatusCode responseStatusCode);
-        T ExecuteWithReturn<T>(RestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder);
+        void Execute(IRestRequest request, HttpStatusCode responseStatusCode);
+        T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder);
         ItemBase Post<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         void Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
-        SearchResult GetSearchResults(IDictionary<string, string> query, IEnumerable<string> properties);
+        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
     }
 
     public class JiraConnector : IJiraConnector
     {
-        private readonly RestClient _client;
+        private readonly IRestClient _client;
         private ISerializer _serializer = new JiraSerializer();
 
         public JiraConnector(string baseUrl) : this(baseUrl, string.Empty, string.Empty)
@@ -43,9 +43,14 @@ namespace VersionOne.JiraConnector.Connector
             }
         }
 
+        public JiraConnector(IRestClient restClient)
+        {
+            _client = restClient;
+        }
+
         public string BaseUrl { get; private set; }
 
-        public void Execute(RestRequest request, HttpStatusCode responseStatusCode)
+        public void Execute(IRestRequest request, HttpStatusCode responseStatusCode)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
 
@@ -61,7 +66,7 @@ namespace VersionOne.JiraConnector.Connector
             throw new JiraException(response.StatusDescription, new Exception(response.Content));
         }
 
-        public T ExecuteWithReturn<T>(RestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
+        public T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
             if (response.StatusCode.Equals(responseStatusCode) || response.StatusCode.Equals(HttpStatusCode.BadRequest))
@@ -136,14 +141,14 @@ namespace VersionOne.JiraConnector.Connector
             Execute(request, responseStatusCode);
         }
 
-        public SearchResult GetSearchResults(IDictionary<string, string> query, IEnumerable<string> properties) //not entirely convinced this belongs here
+        public SearchResult GetSearchResults(IList<JqOperator> query , IEnumerable<string> properties) //not entirely convinced this belongs here
         {
             var request = new RestRequest(Method.GET)
             {
                 Resource = "search",
             };
 
-            var queryString = string.Join(" AND ", query.Select(item => item.Key + "=" + item.Value));
+            var queryString = string.Join(" AND ", query.Select(item => item.ToString()));
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
 

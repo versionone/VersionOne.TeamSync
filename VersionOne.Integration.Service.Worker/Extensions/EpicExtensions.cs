@@ -37,5 +37,13 @@ namespace VersionOne.Integration.Service.Worker.Extensions
                 }
             };
         }
+
+        public static void ReOpen(this Issue issue)
+        {
+            if (issue.Fields.Status == null)
+                issue.Fields.Status = new Status() {Name = "ToDo"};
+            else
+                issue.Fields.Status.Name = "ToDo";
+        }
     }
 }

@@ -23,6 +23,8 @@ namespace VersionOne.Integration.Service.Worker.Domain
         SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys);
         SearchResult GetEpicByKey(string reference);
         void SetIssueToResolved(string issueKey);
+        void SetIssueToToDo(string issueKey);
+
         string InstanceUrl { get; }
     }
 
@@ -86,10 +88,11 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         public SearchResult GetEpicsInProject(string projectKey)
         {
-            return _connector.GetSearchResults(new Dictionary<string, string>
+            return _connector.GetSearchResults(new List<JqOperator>
                 {
-                    {"project", projectKey.QuoteReservedWord()},
-                    {"issuetype", "Epic"}
+                    JqOperator.Equals("project", projectKey.QuoteReservedWord()),
+                    JqOperator.Equals("issuetype", "Epic"),
+                    //JqOperator.NotEquals("status", "Done")
                 },
                     new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
                 );
@@ -100,7 +103,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
             return _connector.GetSearchResults(new Dictionary<string, IEnumerable<string>>
             {
                 {"project", projectKeys},
-                {"issuetype", new[] {"Epic"}}
+                {"issuetype", new[] {"Epic"}},
             },
                 new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
             );
@@ -108,10 +111,10 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
         public SearchResult GetEpicByKey(string reference)
         {
-            return _connector.GetSearchResults(new Dictionary<string, string>
+            return _connector.GetSearchResults(new List<JqOperator>
             {
-                {"key", reference},
-                {"issuetype", "Epic"}
+                JqOperator.Equals("key", reference),
+                JqOperator.Equals("issuetype", "Epic")
             },
                 new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
                 );
@@ -145,6 +148,25 @@ namespace VersionOne.Integration.Service.Worker.Domain
             //        }
             //    }
             //}, HttpStatusCode.NoContent);
+        }
+
+        public void SetIssueToToDo(string issueKey)
+        {
+            SimpleLogger.WriteLogMessage("Attempting to transition " + issueKey);
+
+            _connector.Post("issue/" + issueKey + "/transitions", new
+            {
+                update = new
+                {
+                    comment = new[]
+                    {
+                        new {add = new {body = "This epic status is managed from VersionOne.  Done can only be set by a project admin"}}
+                    }
+                },
+                transition = new { id = "11" }
+            }, HttpStatusCode.NoContent);
+
+            SimpleLogger.WriteLogMessage("Attempting to set status on " + issueKey);
         }
 
         public string InstanceUrl { get; private set; }

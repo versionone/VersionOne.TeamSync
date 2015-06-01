@@ -79,7 +79,7 @@ namespace VersionOne.Integration.Service.Worker.Domain
 
 	    public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
         {
-            return await _connector.Query("Epic", _numberNameDescriptRef, 
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState"},
                 new[] { 
                     "Reference!=\"\"", 
                     //"ChangeDateUTC>=" + _aDayAgo, 
