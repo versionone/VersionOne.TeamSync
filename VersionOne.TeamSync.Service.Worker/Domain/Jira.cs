@@ -132,17 +132,6 @@ namespace VersionOne.TeamSync.Service.Worker.Domain
             }, HttpStatusCode.NoContent);
 
             SimpleLogger.WriteLogMessage("Attempting to set status on " + issueKey);
-
-            //_connector.Put("issue/" + issueKey, new
-            //{
-            //    update = new
-            //    {
-            //        customfield_10007 = new[]
-            //        {
-            //            new {set = new {value = "Done"}}
-            //        }
-            //    }
-            //}, HttpStatusCode.NoContent);
         }
 
         public void SetIssueToToDo(string issueKey)
