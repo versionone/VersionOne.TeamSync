@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RestSharp;
 using Should;
+using VersionOne.JiraConnector;
 using VersionOne.JiraConnector.Connector;
+using VersionOne.JiraConnector.Entities;
 using VersionOne.JiraConnector.Exceptions;
 using VersionOne.TeamSync.Service.Worker.Domain;
 
@@ -110,6 +113,84 @@ namespace VersionOne.TeamSync.Service.Worker.Tests
     }
 
     [TestClass]
+    public class getting_epic_by_key
+    {
+        private List<JqOperator> _jqOperators;
+        private List<string> _whereItems;
+        private const string _issueKey = "AKey-10";
+
+        [TestInitialize]
+        public void when_doing_an_epic_search()
+        {
+            var mockConnector = new Mock<IJiraConnector>();
+
+            _jqOperators = new List<JqOperator>();
+            _whereItems = new List<string>();
+            mockConnector.Setup(x => x.GetSearchResults(It.IsAny<IList<JqOperator>>(), It.IsAny<IEnumerable<string>>()))
+                .Callback<IList<JqOperator>, IEnumerable<string>>((list, enumerable) =>
+                {
+                    _jqOperators.AddRange(list);
+                    _whereItems.AddRange(enumerable);
+                });
+
+            var jira = new Jira(mockConnector.Object);
+
+            jira.GetEpicByKey(_issueKey);
+        }
+
+        [TestMethod]
+        public void should_have_two_jqOperators()
+        {
+            _jqOperators.Count.ShouldEqual(2);
+        }
+
+        [TestMethod]
+        public void should_have_one_segment_for_issue_key()
+        {
+            var op = _jqOperators.Single(x => x.Value == _issueKey);
+            op.Property.ShouldEqual("key");
+        }
+
+        [TestMethod]
+        public void should_have_one_segment_for_issue_type()
+        {
+            var op = _jqOperators.Single(x => x.Value == "Epic");
+            op.Property.ShouldEqual("issuetype");
+        }
+
+        [TestMethod]
+        public void should_have_seven_query_items()
+        {
+            _whereItems.Count.ShouldEqual(7);
+            _whereItems.Contains("issuetype").ShouldBeTrue();
+            _whereItems.Contains("summary").ShouldBeTrue();
+            _whereItems.Contains("timeoriginalestimate").ShouldBeTrue();
+            _whereItems.Contains("description").ShouldBeTrue();
+            _whereItems.Contains("status").ShouldBeTrue();
+            _whereItems.Contains("key").ShouldBeTrue();
+            _whereItems.Contains("self").ShouldBeTrue();
+        }
+    }
+
+    [TestClass]
+    public class for_setting_a_project_to_resolved
+    {
+        private const string _issueKey = "AKey-10";
+        [TestMethod]
+        public void should_request_an_update_correctly()
+        {
+            var mockConnector = new Mock<IJiraConnector>();
+            mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
+
+            var jira = new Jira(mockConnector.Object);
+
+            jira.SetIssueToResolved(_issueKey);
+
+            mockConnector.VerifyAll();
+        }
+    }
+
+    [TestClass]
     public class Executing_a_request_with_no_return
     {
         private Mock<IRestRequest> _restRequest;
@@ -185,5 +266,74 @@ namespace VersionOne.TeamSync.Service.Worker.Tests
         }
 
         private const string appropriateScreenJsonError = "{\"errorMessages\":[],\"errors\":{\"targetProperty\":\"Field 'components' cannot be set. It is not on the appropriate screen, or unknown.\"}}";
+    }
+
+    [TestClass]
+    public class Executing_a_request_with_T_return
+    {
+        private Mock<IRestRequest> _restRequest;
+        private Mock<IRestResponse> _restResponse;
+
+        private JiraConnector.Connector.JiraConnector createConnect(HttpStatusCode toReturn)
+        {
+            var restClient = new Mock<IRestClient>();
+            _restRequest = new Mock<IRestRequest>();
+            _restResponse = new Mock<IRestResponse>();
+
+            _restResponse.Setup(x => x.StatusCode).Returns(toReturn);
+            _restResponse.Setup(x => x.Content).Returns("{ empty }");
+
+            restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
+            restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
+
+            return new JiraConnector.Connector.JiraConnector(restClient.Object);
+        }
+
+        [TestMethod]
+        public void runs_func_when_things_line_up()
+        {
+            var connect = createConnect(HttpStatusCode.OK);
+            var result = connect.ExecuteWithReturn(_restRequest.Object, HttpStatusCode.OK, s => s);
+            result.ShouldEqual("{ empty }");
+        }
+
+        [TestMethod]
+        public void when_content_type_is_a_bad_request_should_return_the_func()
+        {
+            var connect = createConnect(HttpStatusCode.BadRequest);
+            var result = connect.ExecuteWithReturn(_restRequest.Object, HttpStatusCode.OK, s => s);
+            result.ShouldEqual("{ empty }");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(JiraLoginException))]
+        public void when_the_content_type_is_not_authorized_should_throw_a_jira_exception()
+        {
+            var connector = createConnect(HttpStatusCode.Unauthorized);
+            connector.ExecuteWithReturn(_restRequest.Object, HttpStatusCode.NoContent, s => s);
+        }
+
+        [TestMethod]
+        public void when_content_does_not_match_throw_a_jira_exception_with_that_data()
+        {
+            var connector = createConnect(HttpStatusCode.Ambiguous);
+
+            var errorContent = "{\"errorMessages\":[],\"errors\":{\"someError\":\"some other error\"}}";
+            _restResponse.Setup(response => response.Content).Returns(errorContent);
+            _restResponse.Setup(response => response.StatusDescription).Returns("Errors");
+            try
+            {
+                connector.ExecuteWithReturn(_restRequest.Object, HttpStatusCode.NoContent, s => s);
+            }
+            catch (JiraException jira)
+            {
+                jira.Message.ShouldEqual("Errors");
+                jira.InnerException.ShouldNotBeNull();
+                jira.InnerException.Message.ShouldEqual(errorContent);
+            }
+        }
+
+
+
     }
 }
