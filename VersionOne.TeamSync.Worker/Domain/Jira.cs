@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using log4net;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Connector;
@@ -26,6 +27,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     public class Jira : IJira
     {
         private readonly IJiraConnector _connector;
+        private static ILog _log = LogManager.GetLogger(typeof (Jira));
 
         public Jira(JiraConnector.Connector.JiraConnector connector)
         {
@@ -73,8 +75,8 @@ namespace VersionOne.TeamSync.Worker.Domain
             var existing = GetEpicByKey(issueKey);
             if (existing.HasErrors)
             {
-                SimpleLogger.WriteLogMessage("Error attempting to remove jira issue " + issueKey);
-                SimpleLogger.WriteLogMessage("  message(s) returned : " + string.Join(" ||| ", existing.ErrorMessages));
+                _log.Error("Error attempting to remove jira issue " + issueKey);
+                _log.Error("  message(s) returned : " + string.Join(" ||| ", existing.ErrorMessages));
                 return;
             }
 
@@ -117,7 +119,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void SetIssueToResolved(string issueKey)
         {
-            SimpleLogger.WriteLogMessage("Attempting to transition " + issueKey);
+            _log.Info("Attempting to transition " + issueKey);
 
             _connector.Post("issue/" + issueKey + "/transitions", new
             {
@@ -131,12 +133,12 @@ namespace VersionOne.TeamSync.Worker.Domain
                 transition = new {id = "31"}
             }, HttpStatusCode.NoContent);
 
-            SimpleLogger.WriteLogMessage("Attempting to set status on " + issueKey);
+            _log.Info("Attempting to set status on " + issueKey);
         }
 
         public void SetIssueToToDo(string issueKey)
         {
-            SimpleLogger.WriteLogMessage("Attempting to transition " + issueKey);
+            _log.Info("Attempting to transition " + issueKey);
 
             _connector.Post("issue/" + issueKey + "/transitions", new
             {
@@ -150,7 +152,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 transition = new { id = "11" }
             }, HttpStatusCode.NoContent);
 
-            SimpleLogger.WriteLogMessage("Attempting to set status on " + issueKey);
+            _log.Info("Attempting to set status on " + issueKey);
         }
 
         public string InstanceUrl { get; private set; }

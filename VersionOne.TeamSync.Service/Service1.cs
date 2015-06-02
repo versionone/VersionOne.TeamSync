@@ -2,6 +2,7 @@
 using System.ServiceProcess;
 using System.Text;
 using System.Timers;
+using log4net;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Worker;
@@ -13,6 +14,8 @@ namespace VersionOne.TeamSync.Service
 	    private Timer _timer;
         private static TimeSpan _serviceDuration;
 	    private static readonly VersionOneToJiraWorker _worker = new VersionOneToJiraWorker();
+        private static ILog _log = LogManager.GetLogger(typeof (Service1));
+
         public Service1()
         {
             InitializeComponent();
@@ -30,21 +33,21 @@ namespace VersionOne.TeamSync.Service
             _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
             _timer.Elapsed += OnTimedEvent;
             _timer.Enabled = true;
-            SimpleLogger.WriteLogMessage(startMessage());
+            _log.Info(startMessage());
             _worker.DoWork(_serviceDuration); //fire immediately at start
         }
 
         protected override void OnStop()
         {
             _timer.Enabled = false;
-            SimpleLogger.WriteLogMessage(stopMessage());
+            _log.Info(stopMessage());
         }
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            SimpleLogger.WriteLogMessage("The service event was raised at " + e.SignalTime);
+            _log.Info("The service event was raised at " + e.SignalTime);
             _worker.DoWork(_serviceDuration);
-			SimpleLogger.WriteLogMessage(" ************************** Finished at " + e.SignalTime + "");
+            _log.Info(" ************************** Finished at " + e.SignalTime + "");
         }
 
         private static string startMessage() 

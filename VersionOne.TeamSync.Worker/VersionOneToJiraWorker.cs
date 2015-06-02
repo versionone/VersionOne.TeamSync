@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using VersionOne.TeamSync.Core;
+using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.V1Connector.Interfaces;
@@ -17,6 +17,7 @@ namespace VersionOne.TeamSync.Worker
         private HashSet<V1JiraInfo> _jiraInstances;
         private IV1 _v1;
         private IV1Connector _v1Connector;
+        private static ILog _log = LogManager.GetLogger(typeof (VersionOneToJiraWorker));
 
         public VersionOneToJiraWorker()
         {
@@ -52,13 +53,13 @@ namespace VersionOne.TeamSync.Worker
 
             _jiraInstances.ToList().ForEach(async jiraInfo => 
             {
-                SimpleLogger.WriteLogMessage("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
+                _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
                 await CreateEpics(jiraInfo);
                 await UpdateEpics(jiraInfo);
                 await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
                 await DeleteEpics(jiraInfo);
-                SimpleLogger.WriteLogMessage("Ending sync...");
+                _log.Info("Ending sync...");
             });
         }
 
@@ -67,17 +68,17 @@ namespace VersionOne.TeamSync.Worker
             var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             deletedEpics.ForEach(epic =>
             {
-                SimpleLogger.WriteLogMessage("Attempting to delete " + epic.Reference);
+                _log.Info("Attempting to delete " + epic.Reference);
 
                 jiraInfo.JiraInstance.DeleteEpicIfExists(epic.Reference);
 
-                SimpleLogger.WriteLogMessage("Deleted " + epic.Reference);
+                _log.Info("Deleted " + epic.Reference);
                 _v1.RemoveReferenceOnDeletedEpic(epic);
 
-                SimpleLogger.WriteLogMessage("Removed reference on " + epic.Number);
+                _log.Info("Removed reference on " + epic.Number);
             });
 
-            SimpleLogger.WriteLogMessage("Total deleted epics processed was " + deletedEpics.Count);
+            _log.Info("Total deleted epics processed was " + deletedEpics.Count);
         }
 
         public async Task ClosedV1EpicsSetJiraEpicsToResolved(V1JiraInfo jiraInfo)
@@ -102,20 +103,20 @@ namespace VersionOne.TeamSync.Worker
 
             if (searchResult.HasErrors)
             {
-                searchResult.ErrorMessages.ForEach(SimpleLogger.WriteLogMessage);
+                searchResult.ErrorMessages.ForEach(_log.Error);
                 return;
             }
 
             var jiraEpics = searchResult.issues;
             if (assignedEpics.Count > 0)
-                SimpleLogger.WriteLogMessage("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
+                _log.Info("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
 
             assignedEpics.ForEach(epic =>
             {
                 var relatedJiraEpic = jiraEpics.FirstOrDefault(issue => issue.Key == epic.Reference);
                 if (relatedJiraEpic == null)
                 {
-                    SimpleLogger.WriteLogMessage("No related issue found in Jira for " + epic.Reference);
+                    _log.Info("No related issue found in Jira for " + epic.Reference);
                     return;
                 }
 
@@ -123,7 +124,7 @@ namespace VersionOne.TeamSync.Worker
                     jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
                 
                 jiraInfo.JiraInstance.UpdateEpic(epic, relatedJiraEpic.Key);
-                SimpleLogger.WriteLogMessage("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
+                _log.Info("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
             });
         }
 

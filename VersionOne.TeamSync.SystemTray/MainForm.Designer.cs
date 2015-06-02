@@ -90,14 +90,15 @@
             this.viewActivityToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.viewActivityToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.viewActivityToolStripMenuItem.Name = "viewActivityToolStripMenuItem";
-            this.viewActivityToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.viewActivityToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.viewActivityToolStripMenuItem.Text = "View Activity...";
             this.viewActivityToolStripMenuItem.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.viewActivityToolStripMenuItem.Click += new System.EventHandler(this.viewActivityToolStripMenuItem_Click);
             // 
             // configureServiceToolStripMenuItem
             // 
             this.configureServiceToolStripMenuItem.Name = "configureServiceToolStripMenuItem";
-            this.configureServiceToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.configureServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.configureServiceToolStripMenuItem.Text = "Configure...";
             // 
             // toolStripSeparator1
@@ -108,26 +109,26 @@
             // startServiceToolStripMenuItem
             // 
             this.startServiceToolStripMenuItem.Name = "startServiceToolStripMenuItem";
-            this.startServiceToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.startServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.startServiceToolStripMenuItem.Text = "Start";
             this.startServiceToolStripMenuItem.Click += new System.EventHandler(this.startServiceToolStripMenuItem_Click);
             // 
             // pauseServiceToolStripMenuItem
             // 
             this.pauseServiceToolStripMenuItem.Name = "pauseServiceToolStripMenuItem";
-            this.pauseServiceToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.pauseServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.pauseServiceToolStripMenuItem.Text = "Pause";
             // 
             // recycleServiceToolStripMenuItem
             // 
             this.recycleServiceToolStripMenuItem.Name = "recycleServiceToolStripMenuItem";
-            this.recycleServiceToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.recycleServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.recycleServiceToolStripMenuItem.Text = "Recycle";
             // 
             // stopServiceToolStripMenuItem
             // 
             this.stopServiceToolStripMenuItem.Name = "stopServiceToolStripMenuItem";
-            this.stopServiceToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.stopServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.stopServiceToolStripMenuItem.Text = "Stop";
             this.stopServiceToolStripMenuItem.Click += new System.EventHandler(this.stopServiceToolStripMenuItem_Click);
             // 
@@ -139,7 +140,7 @@
             // exitServiceToolStripMenuItem
             // 
             this.exitServiceToolStripMenuItem.Name = "exitServiceToolStripMenuItem";
-            this.exitServiceToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.exitServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
             this.exitServiceToolStripMenuItem.Text = "Exit";
             this.exitServiceToolStripMenuItem.Click += new System.EventHandler(this.exitServiceToolStripMenuItem_Click);
             // 

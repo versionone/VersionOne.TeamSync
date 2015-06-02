@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Remoting;
 using System.ServiceProcess;
 using System.Windows.Forms;
 
@@ -9,10 +10,14 @@ namespace VersionOne.TeamSync.SystemTray
         public SystemTray()
         {
             InitializeComponent();
+            RemotingConfiguration.Configure("VersionOne.TeamSync.SystemTray.exe.config", false);
+            RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
         }
 
         private void startServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ServiceController sc = new ServiceController("VersionOne.TeamSync.Service");
+            sc.Start();
         }
 
         private void stopServiceToolStripMenuItem_Click(object sender, EventArgs e)
@@ -33,6 +38,16 @@ namespace VersionOne.TeamSync.SystemTray
         private void exitServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void viewActivityToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ViewActivityForm vaForm = (ViewActivityForm)Application.OpenForms["ViewActivityForm"];
+            if (vaForm == null)
+            {
+                var vaf = new ViewActivityForm();
+                vaf.Show();
+            }
         }
 
     }
