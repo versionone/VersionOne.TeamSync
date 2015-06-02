@@ -2,9 +2,9 @@
 using System.ServiceProcess;
 using System.Text;
 using System.Timers;
-using VersionOne.TeamSync.Service.Core;
-using VersionOne.TeamSync.Service.Core.Config;
-using VersionOne.TeamSync.Service.Worker;
+using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Core.Config;
+using VersionOne.TeamSync.Worker;
 
 namespace VersionOne.TeamSync.Service
 {
