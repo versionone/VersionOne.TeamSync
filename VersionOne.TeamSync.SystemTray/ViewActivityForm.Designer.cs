@@ -33,6 +33,10 @@
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.toolStripStopButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripRecyleButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripPasueButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripStartButton = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -40,7 +44,11 @@
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripLabel1,
-            this.toolStripComboBox1});
+            this.toolStripComboBox1,
+            this.toolStripStopButton,
+            this.toolStripRecyleButton,
+            this.toolStripPasueButton,
+            this.toolStripStartButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(749, 25);
@@ -79,6 +87,42 @@
             this.richTextBox1.TabIndex = 3;
             this.richTextBox1.Text = "";
             // 
+            // toolStripStopButton
+            // 
+            this.toolStripStopButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripStopButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripStopButton.Image")));
+            this.toolStripStopButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripStopButton.Name = "toolStripStopButton";
+            this.toolStripStopButton.Size = new System.Drawing.Size(51, 22);
+            this.toolStripStopButton.Text = "Stop";
+            // 
+            // toolStripRecyleButton
+            // 
+            this.toolStripRecyleButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripRecyleButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripRecyleButton.Image")));
+            this.toolStripRecyleButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripRecyleButton.Name = "toolStripRecyleButton";
+            this.toolStripRecyleButton.Size = new System.Drawing.Size(67, 22);
+            this.toolStripRecyleButton.Text = "Recycle";
+            // 
+            // toolStripPasueButton
+            // 
+            this.toolStripPasueButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripPasueButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripPasueButton.Image")));
+            this.toolStripPasueButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripPasueButton.Name = "toolStripPasueButton";
+            this.toolStripPasueButton.Size = new System.Drawing.Size(58, 22);
+            this.toolStripPasueButton.Text = "Pause";
+            // 
+            // toolStripStartButton
+            // 
+            this.toolStripStartButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripStartButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripStartButton.Image")));
+            this.toolStripStartButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripStartButton.Name = "toolStripStartButton";
+            this.toolStripStartButton.Size = new System.Drawing.Size(51, 22);
+            this.toolStripStartButton.Text = "Start";
+            // 
             // ViewActivityForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -106,5 +150,9 @@
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         private System.Windows.Forms.ToolStripComboBox toolStripComboBox1;
         private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.ToolStripButton toolStripStopButton;
+        private System.Windows.Forms.ToolStripButton toolStripRecyleButton;
+        private System.Windows.Forms.ToolStripButton toolStripPasueButton;
+        private System.Windows.Forms.ToolStripButton toolStripStartButton;
     }
 }
