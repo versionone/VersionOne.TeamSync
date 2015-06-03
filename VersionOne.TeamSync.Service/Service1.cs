@@ -1,9 +1,7 @@
 ﻿using System;
 using System.ServiceProcess;
-using System.Text;
 using System.Timers;
 using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Worker;
 
