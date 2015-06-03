@@ -122,7 +122,16 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         }
     }
 
-    public class ProjectMapping : ConfigurationElement
+    public interface IProjectMapping
+    {
+        bool Enabled { get; set; }
+        string V1Project { get; set; }
+        string JiraProject { get; set; }
+        string EpicSyncType { get; set; }
+        string JiraEpicNameId { get; set; }
+    }
+
+    public class ProjectMapping : ConfigurationElement, IProjectMapping
     {
         [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
         public bool Enabled
@@ -151,6 +160,14 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             get { return (string)this["epicSyncType"]; }
             set { this["epicSyncType"] = value; }
         }
+
+        [ConfigurationProperty("jiraEpicNameId", IsRequired = true)]
+        public string JiraEpicNameId
+        {
+            get { return (string)this["jiraEpicNameId"]; }
+            set { this["jiraEpicNameId"] = value; }
+        }
+
 
 
     }

@@ -1,34 +1,36 @@
-﻿using VersionOne.TeamSync.JiraConnector.Entities;
+﻿using System.Collections.Generic;
+using System.Dynamic;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Worker.Extensions
 {
     public static class EpicExtensions
     {
-        public static Issue CreateJiraEpic(this Epic epic, string projectKey)
+        public static dynamic CreateJiraEpic(this Epic epic, string projectKey, string jiraEpicNameId)
         {
-            return new Issue()
+            dynamic expando = new ExpandoObject(); //not sure if this is entirely necessary ... ?
+
+            expando.fields = new Dictionary<string, object>
             {
-                Fields = new EpicFields()
-                {
-                    Description = epic.Description ?? "-",
-                    Summary = epic.Name,
-                    Name = epic.Number,
-                    IssueType = new IssueType() {Name = "Epic"},
-                    Project = new Project() {Key = projectKey}
-                }
+                { "description", epic.Description ?? "-"},
+                { "summary", epic.Name},
+                { "IssueType", new {name = "Epic"} },
+                { "Project", new {Key = projectKey}},
+                { jiraEpicNameId, epic.Name}
             };
+
+            return expando;
         }
 
         public static Issue UpdateJiraEpic(this Epic epic)
         {
             return new Issue()
             {
-                Fields = new EpicFields()
+                Fields = new Fields()
                 {
                     Description = epic.Description ?? "-",
                     Summary = epic.Name,
-                    Name = epic.Number,
                 }
             };
         }

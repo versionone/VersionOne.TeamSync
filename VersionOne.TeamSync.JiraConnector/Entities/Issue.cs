@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using Newtonsoft.Json;
 
 namespace VersionOne.TeamSync.JiraConnector.Entities
@@ -93,13 +95,6 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public float Percent { get; set; }
     }
 
-
-    public class EpicFields : Fields
-    {
-        [JsonProperty("customfield_10006")] //yea, seriously
-        public string Name { get; set; }
-    }
-
     public class Fields
     {
         public string Summary { get; set; }
@@ -122,5 +117,24 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
     public class Project
     {
         public string Key { get; set; }
+    }
+
+
+    public class LateBindingConvereter : JsonConverter
+    {
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            return null;
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return true;
+        }
     }
 }

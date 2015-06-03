@@ -61,6 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EpicExtensionTests.cs" />
     <Compile Include="Helpers\GetContent.cs" />
     <Compile Include="Helpers\MockHttp.cs" />
     <Compile Include="JiraConnectorTests.cs" />

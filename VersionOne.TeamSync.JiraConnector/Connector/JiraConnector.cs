@@ -97,7 +97,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             request.AddBody(data);
 
-            return ExecuteWithReturn(request, responseStatusCode, Newtonsoft.Json.JsonConvert.DeserializeObject<ItemBase>);
+            return ExecuteWithReturn(request, responseStatusCode, JsonConvert.DeserializeObject<ItemBase>);
         }
 
         public void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))

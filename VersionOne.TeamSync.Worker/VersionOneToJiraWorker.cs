@@ -137,7 +137,7 @@ namespace VersionOne.TeamSync.Worker
 
             unassignedEpics.ForEach(epic =>
             {
-                var jiraData = jiraInfo.JiraInstance.CreateEpic(epic, jiraInfo.JiraKey);
+                var jiraData = jiraInfo.JiraInstance.CreateEpic(epic, jiraInfo.JiraKey, jiraInfo.JiraEpicNameId);
 
                 if (jiraData.IsEmpty)
                     throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraInfo.JiraKey + ") doesn't have epic type or expected custom field");

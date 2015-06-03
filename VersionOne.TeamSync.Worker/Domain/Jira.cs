@@ -11,7 +11,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 {
     public interface IJira
     {
-        ItemBase CreateEpic(Epic epic, string projectKey);
+        ItemBase CreateEpic(Epic epic, string projectKey, string epicNameKey);
         void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance);
         void UpdateEpic(Epic epic, string issueKey);
         void DeleteEpicIfExists(string issueKey);
@@ -41,9 +41,9 @@ namespace VersionOne.TeamSync.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
+        public ItemBase CreateEpic(Epic epic, string projectKey, string epicNameKey) // TODO: async
         {
-            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey), HttpStatusCode.Created);
+            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, epicNameKey), HttpStatusCode.Created);
             return baseItem;
         }
 

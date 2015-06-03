@@ -6,6 +6,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 {
     public class V1JiraInfo
     {
+        private Jira jira;
+
         protected bool Equals(V1JiraInfo other)
         {
             return string.Equals(V1ProjectId, other.V1ProjectId) && 
@@ -24,11 +26,22 @@ namespace VersionOne.TeamSync.Worker.Domain
             }
         }
 
-        public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
+        public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, string jiraEpicNameId, IJira jiraInstance)
         {
             V1ProjectId = v1ProjectId;
             JiraKey = jiraKey;
             EpicCategory = epicCategory;
+            JiraEpicNameId = jiraEpicNameId;
+            JiraInstance = jiraInstance;
+        }
+
+        public V1JiraInfo(IProjectMapping projectMapping, IJira jiraInstance)
+        {
+            V1ProjectId = projectMapping.V1Project;
+            JiraKey = projectMapping.JiraProject;
+            EpicCategory = projectMapping.EpicSyncType;
+            JiraEpicNameId = projectMapping.JiraEpicNameId;
+
             JiraInstance = jiraInstance;
         }
 
@@ -59,13 +72,13 @@ namespace VersionOne.TeamSync.Worker.Domain
                 {
                     if (server.ProjectMappings[p].Enabled)
                         list.Add(new V1JiraInfo(
-                            server.ProjectMappings[p].V1Project,
-                            server.ProjectMappings[p].JiraProject,
-                            server.ProjectMappings[p].EpicSyncType,
+                            server.ProjectMappings[p],
                             new Jira(new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password))));
                 }
             }
             return list;
         }
+
+        public string JiraEpicNameId { get; set; }
     }
 }

@@ -19,13 +19,13 @@ namespace VersionOne.TeamSync.Core.Tests
                 var moqInstance = new Mock<IJira>();
                 moqInstance.Setup(x => x.InstanceUrl).Returns("http://instance" + i);
 
-                hashSet.Add(new V1JiraInfo("project" + i, "key" + i, "category" + i, moqInstance.Object));
+                hashSet.Add(new V1JiraInfo("project" + i, "key" + i, "category" + i, "custom_field_000" + i, moqInstance.Object));
             }
 
             var dupeInstance = new Mock<IJira>();
             dupeInstance.Setup(x => x.InstanceUrl).Returns("http://instance0");
 
-            var infoDuplicate = new V1JiraInfo("project0", "key0", "category0", dupeInstance.Object);
+            var infoDuplicate = new V1JiraInfo("project0", "key0", "category0", "custom_field_0001", dupeInstance.Object);
             hashSet.Add(infoDuplicate);
 
             hashSet.Count.ShouldEqual(4);
