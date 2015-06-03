@@ -33,14 +33,14 @@ namespace VersionOne.TeamSync.Service
             _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
             _timer.Elapsed += OnTimedEvent;
             _timer.Enabled = true;
-            _log.Info(startMessage());
+            startMessage();
             _worker.DoWork(_serviceDuration); //fire immediately at start
         }
 
         protected override void OnStop()
         {
             _timer.Enabled = false;
-            _log.Info(stopMessage());
+            stopMessage();
         }
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
@@ -50,20 +50,18 @@ namespace VersionOne.TeamSync.Service
             _log.Info(" ************************** Finished at " + e.SignalTime + "");
         }
 
-        private static string startMessage() 
+        private static void startMessage() 
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("************************************************************");
-            sb.AppendLine("Service started...");
-            return sb.ToString();
+            _log.Info("************************************************************");
+            _log.Info("Service started...");
+            _log.DebugFormat("-> Started at {0}", DateTime.Now);
         }
 
-        private static string stopMessage()
+        private static void stopMessage()
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("Service stopped...");
-            sb.AppendLine("************************************************************");
-            return sb.ToString();
+            _log.Info("Service stopped...");
+            _log.Info("************************************************************");
+            _log.DebugFormat("-> Stopped at {0}", DateTime.Now);
         }
     }
 }
