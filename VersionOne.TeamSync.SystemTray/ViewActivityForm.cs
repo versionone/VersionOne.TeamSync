@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Drawing;
-using System.Runtime.Remoting;
 using System.Windows.Forms;
 
 namespace VersionOne.TeamSync.SystemTray
 {
     public partial class ViewActivityForm : Form
     {
-        private LogLevel _maxLevelToShow = LogLevel.ALL;
+        private LogLevel _levelToShow = LogLevel.ALL;
         private RemoteLoggingSink rls;
 
         public ViewActivityForm()
@@ -28,7 +27,7 @@ namespace VersionOne.TeamSync.SystemTray
                 }
                 else
                 {
-                    if (_maxLevelToShow == LogLevel.ALL || level <= _maxLevelToShow)
+                    if (_levelToShow == LogLevel.ALL || level == _levelToShow)
                     {
                         richTextBox1.SelectionStart = richTextBox1.TextLength;
                         richTextBox1.SelectionLength = 0;
@@ -64,7 +63,7 @@ namespace VersionOne.TeamSync.SystemTray
             var comboBox = (ToolStripComboBox)sender;
             string selectedLevel = (string)comboBox.SelectedItem;
 
-            _maxLevelToShow = (LogLevel)Enum.Parse(typeof(LogLevel), selectedLevel);
+            _levelToShow = (LogLevel)Enum.Parse(typeof(LogLevel), selectedLevel);
         }
     }
 
