@@ -43,7 +43,7 @@ namespace VersionOne.TeamSync.Service
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            _log.Info("The service event was raised at " + e.SignalTime);
+            _log.Debug("The service event was raised at " + e.SignalTime);
             _worker.DoWork(_serviceDuration);
             _log.Info(" ************************** Finished at " + e.SignalTime + "");
         }
