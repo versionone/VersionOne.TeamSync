@@ -36,13 +36,12 @@ namespace VersionOne.TeamSync.SystemTray
             if (serviceStatus == ServiceControllerStatus.Running)
             {
                 TeamSyncServiceController.PauseService();
-                UpdateContextMenuStrip();
             }
             else if (serviceStatus == ServiceControllerStatus.Paused)
             {
                 TeamSyncServiceController.ContinueService();
-                UpdateContextMenuStrip();
             }
+            UpdateContextMenuStrip();
         }
 
         private void recycleServiceToolStripMenuItem_Click(object sender, EventArgs e)
@@ -66,7 +65,7 @@ namespace VersionOne.TeamSync.SystemTray
             }
         }
 
-        private void UpdateContextMenuStrip()
+        public void UpdateContextMenuStrip(bool updateActivityWindowButtons = true)
         {
             if (TeamSyncServiceController.IsServiceInstalled())
             {
@@ -98,6 +97,12 @@ namespace VersionOne.TeamSync.SystemTray
                 this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Enabled = false;
                 this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = false;
                 this.contextMenuStrip1.Items["viewActivityToolStripMenuItem"].Enabled = false;
+            }
+            if (updateActivityWindowButtons)
+            {
+                var form = (ViewActivityForm)Application.OpenForms["ViewActivityForm"];
+                if (form != null)
+                    form.UpdateButtons(false);
             }
         }
     }

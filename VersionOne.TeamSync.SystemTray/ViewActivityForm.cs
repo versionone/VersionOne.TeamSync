@@ -100,7 +100,7 @@ namespace VersionOne.TeamSync.SystemTray
             UpdateButtons();
         }
 
-        private void UpdateButtons()
+        public void UpdateButtons(bool updateContextMenuStrip = true)
         {
             if (TeamSyncServiceController.IsServiceInstalled())
             {
@@ -130,6 +130,13 @@ namespace VersionOne.TeamSync.SystemTray
                 this.toolStripStopButton.Enabled = false;
                 //this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Enabled = false;
                 this.toolStripRecyleButton.Enabled = false;
+            }
+
+            if (updateContextMenuStrip)
+            {
+                var form = (SystemTray) Application.OpenForms["SystemTray"];
+                if (form != null)
+                    form.UpdateContextMenuStrip(false);
             }
         }
     }
