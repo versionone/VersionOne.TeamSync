@@ -32,11 +32,11 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.toolStripStopButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripRecyleButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripPasueButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripStartButton = new System.Windows.Forms.ToolStripButton();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -74,19 +74,6 @@
             this.toolStripComboBox1.Size = new System.Drawing.Size(121, 25);
             this.toolStripComboBox1.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBox1_SelectedIndexChanged_1);
             // 
-            // richTextBox1
-            // 
-            this.richTextBox1.BackColor = System.Drawing.Color.Black;
-            this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBox1.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBox1.ForeColor = System.Drawing.Color.White;
-            this.richTextBox1.Location = new System.Drawing.Point(0, 25);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(749, 586);
-            this.richTextBox1.TabIndex = 3;
-            this.richTextBox1.Text = "";
-            // 
             // toolStripStopButton
             // 
             this.toolStripStopButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
@@ -101,6 +88,7 @@
             this.toolStripRecyleButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.toolStripRecyleButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripRecyleButton.Image")));
             this.toolStripRecyleButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripRecyleButton.Margin = new System.Windows.Forms.Padding(0, 1, 5, 2);
             this.toolStripRecyleButton.Name = "toolStripRecyleButton";
             this.toolStripRecyleButton.Size = new System.Drawing.Size(67, 22);
             this.toolStripRecyleButton.Text = "Recycle";
@@ -110,6 +98,7 @@
             this.toolStripPasueButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.toolStripPasueButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripPasueButton.Image")));
             this.toolStripPasueButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripPasueButton.Margin = new System.Windows.Forms.Padding(0, 1, 5, 2);
             this.toolStripPasueButton.Name = "toolStripPasueButton";
             this.toolStripPasueButton.Size = new System.Drawing.Size(58, 22);
             this.toolStripPasueButton.Text = "Pause";
@@ -119,9 +108,23 @@
             this.toolStripStartButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.toolStripStartButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripStartButton.Image")));
             this.toolStripStartButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripStartButton.Margin = new System.Windows.Forms.Padding(0, 1, 5, 2);
             this.toolStripStartButton.Name = "toolStripStartButton";
             this.toolStripStartButton.Size = new System.Drawing.Size(51, 22);
             this.toolStripStartButton.Text = "Start";
+            // 
+            // richTextBox1
+            // 
+            this.richTextBox1.BackColor = System.Drawing.Color.Black;
+            this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.richTextBox1.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.richTextBox1.ForeColor = System.Drawing.Color.White;
+            this.richTextBox1.Location = new System.Drawing.Point(0, 25);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.ReadOnly = true;
+            this.richTextBox1.Size = new System.Drawing.Size(749, 586);
+            this.richTextBox1.TabIndex = 3;
+            this.richTextBox1.Text = "";
             // 
             // ViewActivityForm
             // 

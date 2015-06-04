@@ -12,6 +12,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{F4196EE8-A679-46FC-AC6D-619D28A4C589}"
 	ProjectSection(SolutionItems) = preProject
 		Resources\InstallUtil.exe = Resources\InstallUtil.exe
+		Resources\pause.png = Resources\pause.png
+		Resources\play.png = Resources\play.png
+		Resources\recycle.png = Resources\recycle.png
+		Resources\stop.png = Resources\stop.png
 		Resources\v1-icon-48x48.ico = Resources\v1-icon-48x48.ico
 		Resources\versionone-logo-noTagline.png = Resources\versionone-logo-noTagline.png
 	EndProjectSection
