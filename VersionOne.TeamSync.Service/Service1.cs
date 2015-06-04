@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
 using System.ServiceProcess;
 using System.Timers;
 using log4net;

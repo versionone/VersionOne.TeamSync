@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.ServiceProcess;
 using System.Windows.Forms;
 
 namespace VersionOne.TeamSync.SystemTray
@@ -7,11 +8,11 @@ namespace VersionOne.TeamSync.SystemTray
     public partial class ViewActivityForm : Form
     {
         private LogLevel _levelToShow = LogLevel.ALL;
-        private RemoteLoggingSink rls;
 
         public ViewActivityForm()
         {
             InitializeComponent();
+            UpdateButtons();
         }
 
         delegate void AppendTextCallback(string text, LogLevel level);
@@ -64,6 +65,72 @@ namespace VersionOne.TeamSync.SystemTray
             string selectedLevel = (string)comboBox.SelectedItem;
 
             _levelToShow = (LogLevel)Enum.Parse(typeof(LogLevel), selectedLevel);
+        }
+
+        private void toolStripStartButton_Click(object sender, EventArgs e)
+        {
+            TeamSyncServiceController.StartService();
+            UpdateButtons();
+        }
+
+        private void toolStripPasueButton_Click(object sender, EventArgs e)
+        {
+            var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+            if (serviceStatus == ServiceControllerStatus.Running)
+            {
+                TeamSyncServiceController.PauseService();
+                UpdateButtons();
+            }
+            else if (serviceStatus == ServiceControllerStatus.Paused)
+            {
+                TeamSyncServiceController.ContinueService();
+                UpdateButtons();
+            }
+        }
+
+        private void toolStripRecyleButton_Click(object sender, EventArgs e)
+        {
+            TeamSyncServiceController.RecycleService();
+            UpdateButtons();
+        }
+
+        private void toolStripStopButton_Click(object sender, EventArgs e)
+        {
+            TeamSyncServiceController.StopService();
+            UpdateButtons();
+        }
+
+        private void UpdateButtons()
+        {
+            if (TeamSyncServiceController.IsServiceInstalled())
+            {
+
+                var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+                this.toolStripStartButton.Enabled = 
+                    serviceStatus == ServiceControllerStatus.Stopped;
+                this.toolStripPasueButton.Enabled = 
+                    serviceStatus == ServiceControllerStatus.Running 
+                    || serviceStatus == ServiceControllerStatus.Paused;
+                this.toolStripRecyleButton.Enabled = 
+                    serviceStatus == ServiceControllerStatus.Running;
+                this.toolStripStopButton.Enabled = 
+                    serviceStatus == ServiceControllerStatus.Running;
+                if (serviceStatus == ServiceControllerStatus.Running)
+                {
+                    //this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Text = "Pause";
+                }
+                else if (serviceStatus == ServiceControllerStatus.Paused)
+                {
+                    //this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Text = "Continue";
+                }
+            }
+            else
+            {
+                this.toolStripStartButton.Enabled = false;
+                this.toolStripStopButton.Enabled = false;
+                //this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Enabled = false;
+                this.toolStripRecyleButton.Enabled = false;
+            }
         }
     }
 

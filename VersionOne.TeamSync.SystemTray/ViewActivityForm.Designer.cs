@@ -82,6 +82,7 @@
             this.toolStripStopButton.Name = "toolStripStopButton";
             this.toolStripStopButton.Size = new System.Drawing.Size(51, 22);
             this.toolStripStopButton.Text = "Stop";
+            this.toolStripStopButton.Click += new System.EventHandler(this.toolStripStopButton_Click);
             // 
             // toolStripRecyleButton
             // 
@@ -92,6 +93,7 @@
             this.toolStripRecyleButton.Name = "toolStripRecyleButton";
             this.toolStripRecyleButton.Size = new System.Drawing.Size(67, 22);
             this.toolStripRecyleButton.Text = "Recycle";
+            this.toolStripRecyleButton.Click += new System.EventHandler(this.toolStripRecyleButton_Click);
             // 
             // toolStripPasueButton
             // 
@@ -102,6 +104,7 @@
             this.toolStripPasueButton.Name = "toolStripPasueButton";
             this.toolStripPasueButton.Size = new System.Drawing.Size(58, 22);
             this.toolStripPasueButton.Text = "Pause";
+            this.toolStripPasueButton.Click += new System.EventHandler(this.toolStripPasueButton_Click);
             // 
             // toolStripStartButton
             // 
@@ -112,6 +115,7 @@
             this.toolStripStartButton.Name = "toolStripStartButton";
             this.toolStripStartButton.Size = new System.Drawing.Size(51, 22);
             this.toolStripStartButton.Text = "Start";
+            this.toolStripStartButton.Click += new System.EventHandler(this.toolStripStartButton_Click);
             // 
             // richTextBox1
             // 

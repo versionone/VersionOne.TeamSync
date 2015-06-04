@@ -32,7 +32,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SystemTray));
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.v1logoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripMenuItem();
             this.viewActivityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configureServiceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -57,7 +57,7 @@
             this.contextMenuStrip1.AutoSize = false;
             this.contextMenuStrip1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.v1logoToolStripMenuItem,
+            this.toolStripSeparator3,
             this.viewActivityToolStripMenuItem,
             this.configureServiceToolStripMenuItem,
             this.toolStripSeparator1,
@@ -69,28 +69,22 @@
             this.exitServiceToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 195);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 200);
             // 
-            // v1logoToolStripMenuItem
+            // toolStripSeparator3
             // 
-            this.v1logoToolStripMenuItem.AutoSize = false;
-            this.v1logoToolStripMenuItem.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("v1logoToolStripMenuItem.BackgroundImage")));
-            this.v1logoToolStripMenuItem.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.v1logoToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.v1logoToolStripMenuItem.Enabled = false;
-            this.v1logoToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.v1logoToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-            this.v1logoToolStripMenuItem.Name = "v1logoToolStripMenuItem";
-            this.v1logoToolStripMenuItem.ShowShortcutKeys = false;
-            this.v1logoToolStripMenuItem.Size = new System.Drawing.Size(236, 22);
-            this.v1logoToolStripMenuItem.Text = "VersionOne TeamSync Service";
+            this.toolStripSeparator3.AutoSize = false;
+            this.toolStripSeparator3.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripSeparator3.Enabled = false;
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(156, 22);
             // 
             // viewActivityToolStripMenuItem
             // 
             this.viewActivityToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.viewActivityToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.viewActivityToolStripMenuItem.Name = "viewActivityToolStripMenuItem";
-            this.viewActivityToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.viewActivityToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.viewActivityToolStripMenuItem.Text = "View Activity...";
             this.viewActivityToolStripMenuItem.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.viewActivityToolStripMenuItem.Click += new System.EventHandler(this.viewActivityToolStripMenuItem_Click);
@@ -98,7 +92,7 @@
             // configureServiceToolStripMenuItem
             // 
             this.configureServiceToolStripMenuItem.Name = "configureServiceToolStripMenuItem";
-            this.configureServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.configureServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.configureServiceToolStripMenuItem.Text = "Configure...";
             // 
             // toolStripSeparator1
@@ -109,26 +103,28 @@
             // startServiceToolStripMenuItem
             // 
             this.startServiceToolStripMenuItem.Name = "startServiceToolStripMenuItem";
-            this.startServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.startServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.startServiceToolStripMenuItem.Text = "Start";
             this.startServiceToolStripMenuItem.Click += new System.EventHandler(this.startServiceToolStripMenuItem_Click);
             // 
             // pauseServiceToolStripMenuItem
             // 
             this.pauseServiceToolStripMenuItem.Name = "pauseServiceToolStripMenuItem";
-            this.pauseServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.pauseServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.pauseServiceToolStripMenuItem.Text = "Pause";
+            this.pauseServiceToolStripMenuItem.Click += new System.EventHandler(this.pauseServiceToolStripMenuItem_Click);
             // 
             // recycleServiceToolStripMenuItem
             // 
             this.recycleServiceToolStripMenuItem.Name = "recycleServiceToolStripMenuItem";
-            this.recycleServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.recycleServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.recycleServiceToolStripMenuItem.Text = "Recycle";
+            this.recycleServiceToolStripMenuItem.Click += new System.EventHandler(this.recycleServiceToolStripMenuItem_Click);
             // 
             // stopServiceToolStripMenuItem
             // 
             this.stopServiceToolStripMenuItem.Name = "stopServiceToolStripMenuItem";
-            this.stopServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.stopServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.stopServiceToolStripMenuItem.Text = "Stop";
             this.stopServiceToolStripMenuItem.Click += new System.EventHandler(this.stopServiceToolStripMenuItem_Click);
             // 
@@ -140,7 +136,7 @@
             // exitServiceToolStripMenuItem
             // 
             this.exitServiceToolStripMenuItem.Name = "exitServiceToolStripMenuItem";
-            this.exitServiceToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.exitServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.exitServiceToolStripMenuItem.Text = "Exit";
             this.exitServiceToolStripMenuItem.Click += new System.EventHandler(this.exitServiceToolStripMenuItem_Click);
             // 
@@ -167,13 +163,13 @@
         private System.Windows.Forms.ToolStripMenuItem startServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stopServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitServiceToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem v1logoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configureServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewActivityToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem pauseServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem recycleServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem toolStripSeparator3;
     }
 }
 

@@ -1,4 +1,6 @@
-﻿using System.ServiceProcess;
+﻿using System.Diagnostics;
+using System.Linq;
+using System.ServiceProcess;
 namespace VersionOne.TeamSync.Service
 {
     static class Program
