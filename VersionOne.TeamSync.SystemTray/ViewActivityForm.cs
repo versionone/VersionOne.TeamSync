@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.ServiceProcess;
 using System.Windows.Forms;
+using VersionOne.TeamSync.SystemTray.Properties;
 
 namespace VersionOne.TeamSync.SystemTray
 {
@@ -56,6 +57,18 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void ViewActivityForm_Load(object sender, EventArgs e)
         {
+            var defaultLocation = Settings.Default.ActivityWindowLocation;
+            var defaultSize = Settings.Default.ActivityWindowSize;
+            
+            if (defaultLocation != new Point(-1, -1))
+            {
+                this.Location = defaultLocation;
+            }
+            if (defaultSize != new Size(0, 0))
+            {
+                this.Size = defaultSize;
+            }
+            
             toolStripComboBox1.SelectedIndex = 0;
         }
 
@@ -75,17 +88,17 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void toolStripPasueButton_Click(object sender, EventArgs e)
         {
-            var serviceStatus = TeamSyncServiceController.GetServiceStatus();
-            if (serviceStatus == ServiceControllerStatus.Running)
-            {
-                TeamSyncServiceController.PauseService();
-                UpdateButtons();
-            }
-            else if (serviceStatus == ServiceControllerStatus.Paused)
-            {
-                TeamSyncServiceController.ContinueService();
-                UpdateButtons();
-            }
+            //var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+            //if (serviceStatus == ServiceControllerStatus.Running)
+            //{
+            //    TeamSyncServiceController.PauseService();
+            //    UpdateButtons();
+            //}
+            //else if (serviceStatus == ServiceControllerStatus.Paused)
+            //{
+            //    TeamSyncServiceController.ContinueService();
+            //    UpdateButtons();
+            //}
         }
 
         private void toolStripRecyleButton_Click(object sender, EventArgs e)
@@ -138,6 +151,20 @@ namespace VersionOne.TeamSync.SystemTray
                 if (form != null)
                     form.UpdateContextMenuStrip(false);
             }
+        }
+
+        private void ViewActivityForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Settings.Default.ActivityWindowLocation = this.Location;
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                Settings.Default.ActivityWindowSize = this.Size;
+            }
+            else
+            {
+                Settings.Default.ActivityWindowSize = this.RestoreBounds.Size;
+            }
+            Settings.Default.Save();
         }
     }
 

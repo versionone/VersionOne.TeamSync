@@ -143,6 +143,7 @@
             this.Name = "ViewActivityForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "VersionOne TeamSync Activity";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ViewActivityForm_FormClosing);
             this.Load += new System.EventHandler(this.ViewActivityForm_Load);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();

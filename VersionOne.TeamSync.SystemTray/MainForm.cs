@@ -32,16 +32,16 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void pauseServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var serviceStatus = TeamSyncServiceController.GetServiceStatus();
-            if (serviceStatus == ServiceControllerStatus.Running)
-            {
-                TeamSyncServiceController.PauseService();
-            }
-            else if (serviceStatus == ServiceControllerStatus.Paused)
-            {
-                TeamSyncServiceController.ContinueService();
-            }
-            UpdateContextMenuStrip();
+            //var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+            //if (serviceStatus == ServiceControllerStatus.Running)
+            //{
+            //    TeamSyncServiceController.PauseService();
+            //}
+            //else if (serviceStatus == ServiceControllerStatus.Paused)
+            //{
+            //    TeamSyncServiceController.ContinueService();
+            //}
+            //UpdateContextMenuStrip();
         }
 
         private void recycleServiceToolStripMenuItem_Click(object sender, EventArgs e)
