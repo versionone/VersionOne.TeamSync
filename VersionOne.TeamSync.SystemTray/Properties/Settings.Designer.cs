@@ -22,5 +22,29 @@ namespace VersionOne.TeamSync.SystemTray.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1, -1")]
+        public global::System.Drawing.Point ActivityWindowLocation {
+            get {
+                return ((global::System.Drawing.Point)(this["ActivityWindowLocation"]));
+            }
+            set {
+                this["ActivityWindowLocation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        public global::System.Drawing.Size ActivityWindowSize {
+            get {
+                return ((global::System.Drawing.Size)(this["ActivityWindowSize"]));
+            }
+            set {
+                this["ActivityWindowSize"] = value;
+            }
+        }
     }
 }

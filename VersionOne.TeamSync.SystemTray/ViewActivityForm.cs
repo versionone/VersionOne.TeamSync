@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.ServiceProcess;
 using System.Windows.Forms;
+using VersionOne.TeamSync.SystemTray.Properties;
 
 namespace VersionOne.TeamSync.SystemTray
 {
@@ -56,6 +57,18 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void ViewActivityForm_Load(object sender, EventArgs e)
         {
+            var defaultLocation = Settings.Default.ActivityWindowLocation;
+            var defaultSize = Settings.Default.ActivityWindowSize;
+            
+            if (defaultLocation != new Point(-1, -1))
+            {
+                this.Location = defaultLocation;
+            }
+            if (defaultSize != new Size(0, 0))
+            {
+                this.Size = defaultSize;
+            }
+            
             toolStripComboBox1.SelectedIndex = 0;
         }
 
@@ -97,20 +110,11 @@ namespace VersionOne.TeamSync.SystemTray
                     serviceStatus == ServiceControllerStatus.Running;
                 this.toolStripStopButton.Enabled = 
                     serviceStatus == ServiceControllerStatus.Running;
-                if (serviceStatus == ServiceControllerStatus.Running)
-                {
-                    //this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Text = "Pause";
-                }
-                else if (serviceStatus == ServiceControllerStatus.Paused)
-                {
-                    //this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Text = "Continue";
-                }
             }
             else
             {
                 this.toolStripStartButton.Enabled = false;
                 this.toolStripStopButton.Enabled = false;
-                //this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Enabled = false;
                 this.toolStripRecyleButton.Enabled = false;
             }
 
@@ -120,6 +124,20 @@ namespace VersionOne.TeamSync.SystemTray
                 if (form != null)
                     form.UpdateContextMenuStrip(false);
             }
+        }
+
+        private void ViewActivityForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Settings.Default.ActivityWindowLocation = this.Location;
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                Settings.Default.ActivityWindowSize = this.Size;
+            }
+            else
+            {
+                Settings.Default.ActivityWindowSize = this.RestoreBounds.Size;
+            }
+            Settings.Default.Save();
         }
     }
 
