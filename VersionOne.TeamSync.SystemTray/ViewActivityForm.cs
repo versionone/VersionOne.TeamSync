@@ -73,21 +73,6 @@ namespace VersionOne.TeamSync.SystemTray
             UpdateButtons();
         }
 
-        private void toolStripPasueButton_Click(object sender, EventArgs e)
-        {
-            var serviceStatus = TeamSyncServiceController.GetServiceStatus();
-            if (serviceStatus == ServiceControllerStatus.Running)
-            {
-                TeamSyncServiceController.PauseService();
-                UpdateButtons();
-            }
-            else if (serviceStatus == ServiceControllerStatus.Paused)
-            {
-                TeamSyncServiceController.ContinueService();
-                UpdateButtons();
-            }
-        }
-
         private void toolStripRecyleButton_Click(object sender, EventArgs e)
         {
             TeamSyncServiceController.RecycleService();
@@ -108,9 +93,6 @@ namespace VersionOne.TeamSync.SystemTray
                 var serviceStatus = TeamSyncServiceController.GetServiceStatus();
                 this.toolStripStartButton.Enabled = 
                     serviceStatus == ServiceControllerStatus.Stopped;
-                this.toolStripPasueButton.Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running 
-                    || serviceStatus == ServiceControllerStatus.Paused;
                 this.toolStripRecyleButton.Enabled = 
                     serviceStatus == ServiceControllerStatus.Running;
                 this.toolStripStopButton.Enabled = 

@@ -37,7 +37,6 @@
             this.configureServiceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.startServiceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pauseServiceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.recycleServiceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopServiceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -62,14 +61,13 @@
             this.configureServiceToolStripMenuItem,
             this.toolStripSeparator1,
             this.startServiceToolStripMenuItem,
-            this.pauseServiceToolStripMenuItem,
             this.recycleServiceToolStripMenuItem,
             this.stopServiceToolStripMenuItem,
             this.toolStripSeparator2,
             this.exitServiceToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 200);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 170);
             // 
             // toolStripSeparator3
             // 
@@ -106,13 +104,6 @@
             this.startServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.startServiceToolStripMenuItem.Text = "Start";
             this.startServiceToolStripMenuItem.Click += new System.EventHandler(this.startServiceToolStripMenuItem_Click);
-            // 
-            // pauseServiceToolStripMenuItem
-            // 
-            this.pauseServiceToolStripMenuItem.Name = "pauseServiceToolStripMenuItem";
-            this.pauseServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
-            this.pauseServiceToolStripMenuItem.Text = "Pause";
-            this.pauseServiceToolStripMenuItem.Click += new System.EventHandler(this.pauseServiceToolStripMenuItem_Click);
             // 
             // recycleServiceToolStripMenuItem
             // 
@@ -166,7 +157,6 @@
         private System.Windows.Forms.ToolStripMenuItem configureServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewActivityToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripMenuItem pauseServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem recycleServiceToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem toolStripSeparator3;

@@ -34,7 +34,6 @@
             this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripStopButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripRecyleButton = new System.Windows.Forms.ToolStripButton();
-            this.toolStripPasueButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripStartButton = new System.Windows.Forms.ToolStripButton();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.toolStrip1.SuspendLayout();
@@ -47,7 +46,6 @@
             this.toolStripComboBox1,
             this.toolStripStopButton,
             this.toolStripRecyleButton,
-            this.toolStripPasueButton,
             this.toolStripStartButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
@@ -94,17 +92,6 @@
             this.toolStripRecyleButton.Size = new System.Drawing.Size(67, 22);
             this.toolStripRecyleButton.Text = "Recycle";
             this.toolStripRecyleButton.Click += new System.EventHandler(this.toolStripRecyleButton_Click);
-            // 
-            // toolStripPasueButton
-            // 
-            this.toolStripPasueButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.toolStripPasueButton.Image = ((System.Drawing.Image)(resources.GetObject("toolStripPasueButton.Image")));
-            this.toolStripPasueButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripPasueButton.Margin = new System.Windows.Forms.Padding(0, 1, 5, 2);
-            this.toolStripPasueButton.Name = "toolStripPasueButton";
-            this.toolStripPasueButton.Size = new System.Drawing.Size(58, 22);
-            this.toolStripPasueButton.Text = "Pause";
-            this.toolStripPasueButton.Click += new System.EventHandler(this.toolStripPasueButton_Click);
             // 
             // toolStripStartButton
             // 
@@ -159,7 +146,6 @@
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.ToolStripButton toolStripStopButton;
         private System.Windows.Forms.ToolStripButton toolStripRecyleButton;
-        private System.Windows.Forms.ToolStripButton toolStripPasueButton;
         private System.Windows.Forms.ToolStripButton toolStripStartButton;
     }
 }

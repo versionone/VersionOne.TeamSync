@@ -30,20 +30,6 @@ namespace VersionOne.TeamSync.SystemTray
             UpdateContextMenuStrip();
         }
 
-        private void pauseServiceToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var serviceStatus = TeamSyncServiceController.GetServiceStatus();
-            if (serviceStatus == ServiceControllerStatus.Running)
-            {
-                TeamSyncServiceController.PauseService();
-            }
-            else if (serviceStatus == ServiceControllerStatus.Paused)
-            {
-                TeamSyncServiceController.ContinueService();
-            }
-            UpdateContextMenuStrip();
-        }
-
         private void recycleServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
             TeamSyncServiceController.RecycleService();
@@ -69,34 +55,21 @@ namespace VersionOne.TeamSync.SystemTray
         {
             if (TeamSyncServiceController.IsServiceInstalled())
             {
-
                 var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+
                 this.contextMenuStrip1.Items["startServiceToolStripMenuItem"].Enabled = 
                     serviceStatus == ServiceControllerStatus.Stopped;
-                this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running 
-                    || serviceStatus == ServiceControllerStatus.Paused;
                 this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = 
                     serviceStatus == ServiceControllerStatus.Running;
                 this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled = 
                     serviceStatus == ServiceControllerStatus.Running;
-                if (serviceStatus == ServiceControllerStatus.Running)
-                {
-                    this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Text = "Pause";
-                }
-                else if (serviceStatus == ServiceControllerStatus.Paused)
-                {
-                    this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Text = "Continue";
-                }
                 this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = true;
             }
             else
             {
                 this.contextMenuStrip1.Items["startServiceToolStripMenuItem"].Enabled = false;
                 this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled = false;
-                this.contextMenuStrip1.Items["pauseServiceToolStripMenuItem"].Enabled = false;
                 this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = false;
-                this.contextMenuStrip1.Items["viewActivityToolStripMenuItem"].Enabled = false;
             }
             if (updateActivityWindowButtons)
             {
@@ -107,7 +80,7 @@ namespace VersionOne.TeamSync.SystemTray
         }
     }
 
-    public class CustomRenderer : ToolStripProfessionalRenderer
+    public class CustomRenderer : ToolStripSystemRenderer
     {
         protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
         {
