@@ -67,7 +67,7 @@
             this.exitServiceToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.contextMenuStrip1.Size = new System.Drawing.Size(190, 170);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(170, 170);
             // 
             // toolStripSeparator3
             // 
@@ -96,7 +96,7 @@
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(186, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(166, 6);
             // 
             // startServiceToolStripMenuItem
             // 
@@ -122,7 +122,7 @@
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(186, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(166, 6);
             // 
             // exitServiceToolStripMenuItem
             // 
