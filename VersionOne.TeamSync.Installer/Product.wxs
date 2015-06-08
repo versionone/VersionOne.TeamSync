@@ -3,7 +3,7 @@
 
   <?include "config.wxi"?>
 
-  <Product Id="*" Name="VersionOne.TeamSync.Installer" Language="1033" Version="1.0.0.0" Manufacturer="VersionOne" UpgradeCode="3f153f56-78d8-41e5-839e-2b29b86d1a36" >
+  <Product Id="*" Name="VersionOne TeamSync" Language="1033" Version="1.0.0.0" Manufacturer="VersionOne, Inc." UpgradeCode="3f153f56-78d8-41e5-839e-2b29b86d1a36" >
 
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -68,6 +68,9 @@
     <UIRef Id="WixUI_InstallDir"/>
 
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+    <Icon Id="icon.ico" SourceFile="$(var.SourceDir)\v1-icon-48x48.ico" />
+    <Property Id="ARPPRODUCTICON" Value="icon.ico" />
 
   </Product>
 
