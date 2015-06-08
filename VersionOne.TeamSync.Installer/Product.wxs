@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <?include "config.wxi"?>
+
+  <Product Id="*" Name="VersionOne.TeamSync.Installer" Language="1033" Version="1.0.0.0" Manufacturer="VersionOne" UpgradeCode="3f153f56-78d8-41e5-839e-2b29b86d1a36" >
+
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes"/>
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="VersionOne TeamSync" />
+      </Directory>
+    </Directory>
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="HtmlAgilityPack.dll">
+        <File Source="$(var.SourceDir)\HtmlAgilityPack.dll" />
+      </Component>
+      <Component Id="InstallUtil.exe">
+        <File Source="$(var.SourceDir)\InstallUtil.exe" />
+      </Component>
+      <Component Id="log4net.dll">
+        <File Source="$(var.SourceDir)\log4net.dll" />
+      </Component>      
+      <Component Id="Newtonsoft.Json.dll">
+        <File Source="$(var.SourceDir)\Newtonsoft.Json.dll" />
+      </Component>
+      <Component Id="RestSharp.dll">
+        <File Source="$(var.SourceDir)\RestSharp.dll" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.Core.dll">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Core.dll" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.JiraConnector.dll">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraConnector.dll" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.Service.exe">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Service.exe" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.Service.exe.config">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Service.exe.config" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.SystemTray.exe">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.SystemTray.exe" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.SystemTray.exe.config">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.SystemTray.exe.config" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.V1Connector.dll">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.V1Connector.dll" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.Worker.dll">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Worker.dll" />
+      </Component>
+      <Component Id="versionone_logo_noTagline.png">
+        <File Source="$(var.SourceDir)\versionone-logo-noTagline.png" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="ProductFeature" Title="VersionOne.TeamSync.Installer" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <UIRef Id="WixUI_InstallDir"/>
+
+  </Product>
+
+</Wix>
