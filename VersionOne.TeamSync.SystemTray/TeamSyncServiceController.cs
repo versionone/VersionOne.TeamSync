@@ -7,6 +7,9 @@ namespace VersionOne.TeamSync.SystemTray
     public abstract class TeamSyncServiceController
     {
         private const string ServiceName = "VersionOne.TeamSync.Service";
+
+        private const string NoAdminPrivilegesReason =
+            "The VersionOne TeamSync system tray application must be running with administrator privileges to control the TeamSync service.";
         private static readonly TimeSpan TimeOutTimeSpan = new TimeSpan(0, 0, 0, 3, 0); // 3 sec
         private static bool? _isServiceInstaleld = null;
 
@@ -23,30 +26,61 @@ namespace VersionOne.TeamSync.SystemTray
 
         public static void StartService()
         {
-            var serviceController = GetServiceController();
-            serviceController.Start();
-            serviceController.WaitForStatus(ServiceControllerStatus.Running, TimeOutTimeSpan);
+            ValidateServiceInstallation();
+            try
+            {
+                var serviceController = GetServiceController();
+                serviceController.Start();
+                serviceController.WaitForStatus(ServiceControllerStatus.Running, TimeOutTimeSpan);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+            }
         }
 
         public static void PauseService()
         {
-            var serviceController = GetServiceController();
-            serviceController.Pause();
-            serviceController.WaitForStatus(ServiceControllerStatus.Paused, TimeOutTimeSpan);
+            ValidateServiceInstallation();
+            try
+            {
+                var serviceController = GetServiceController();
+                serviceController.Pause();
+                serviceController.WaitForStatus(ServiceControllerStatus.Paused, TimeOutTimeSpan);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+            }
         }
 
         public static void ContinueService()
         {
-            var serviceController = GetServiceController();
-            serviceController.Continue();
-            serviceController.WaitForStatus(ServiceControllerStatus.Running, TimeOutTimeSpan);
+            ValidateServiceInstallation();
+            try
+            {
+                var serviceController = GetServiceController();
+                serviceController.Continue();
+                serviceController.WaitForStatus(ServiceControllerStatus.Running, TimeOutTimeSpan);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+            }
         }
 
         public static void StopService()
         {
-            var serviceController = GetServiceController();
-            serviceController.Stop();
-            serviceController.WaitForStatus(ServiceControllerStatus.Stopped, TimeOutTimeSpan);
+            try
+            {
+                var serviceController = GetServiceController();
+                serviceController.Stop();
+                serviceController.WaitForStatus(ServiceControllerStatus.Stopped, TimeOutTimeSpan);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+            }
         }
 
         public static void RecycleService()
@@ -57,6 +91,7 @@ namespace VersionOne.TeamSync.SystemTray
 
         public static ServiceControllerStatus GetServiceStatus()
         {
+            ValidateServiceInstallation();
             return GetServiceController().Status;
         }
 
@@ -64,5 +99,17 @@ namespace VersionOne.TeamSync.SystemTray
         {
             return new ServiceController(ServiceName);
         }
+
+        private static void ValidateServiceInstallation()
+        {
+            if (!IsServiceInstalled())
+                throw new ServiceControllerException("Service is not installed");
+        }
+    }
+
+    public class ServiceControllerException : Exception
+    {
+        public ServiceControllerException(string reason, Exception innerExecption = null) : base(string.Format("Unable to perform this action. {0}", reason), innerExecption) { }
+        public ServiceControllerException(string message) : base(message) { }
     }
 }

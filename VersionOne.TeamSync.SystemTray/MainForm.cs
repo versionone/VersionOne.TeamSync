@@ -20,20 +20,40 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void startServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TeamSyncServiceController.StartService();
-            UpdateContextMenuStrip();
+            try
+            {
+                TeamSyncServiceController.StartService();
+                UpdateContextMenuStrip();
+            }
+            catch (ServiceControllerException ex)
+            {
+                DialogUtils.ShowServiceControllerException(ex);
+            }
         }
 
         private void stopServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TeamSyncServiceController.StopService();
-            UpdateContextMenuStrip();
+            try
+            {
+                TeamSyncServiceController.StopService();
+                UpdateContextMenuStrip();
+            }
+            catch (ServiceControllerException ex)
+            {
+                DialogUtils.ShowServiceControllerException(ex);
+            }
         }
 
         private void recycleServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TeamSyncServiceController.RecycleService();
-            UpdateContextMenuStrip();
+            try { 
+                TeamSyncServiceController.RecycleService();
+                UpdateContextMenuStrip();
+            }
+            catch (ServiceControllerException ex)
+            {
+                DialogUtils.ShowServiceControllerException(ex);
+            }
         }
 
         private void exitServiceToolStripMenuItem_Click(object sender, EventArgs e)
@@ -63,7 +83,8 @@ namespace VersionOne.TeamSync.SystemTray
                     serviceStatus == ServiceControllerStatus.Running;
                 this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled = 
                     serviceStatus == ServiceControllerStatus.Running;
-                this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = true;
+                this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled =
+                    serviceStatus == ServiceControllerStatus.Running; ;
             }
             else
             {

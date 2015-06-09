@@ -82,20 +82,41 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void toolStripStartButton_Click(object sender, EventArgs e)
         {
-            TeamSyncServiceController.StartService();
-            UpdateButtons();
+            try
+            {
+                TeamSyncServiceController.StartService();
+                UpdateButtons();
+            }
+            catch (ServiceControllerException ex)
+            {
+                DialogUtils.ShowServiceControllerException(ex);
+            }
         }
 
         private void toolStripRecyleButton_Click(object sender, EventArgs e)
         {
-            TeamSyncServiceController.RecycleService();
-            UpdateButtons();
+            try
+            {
+                TeamSyncServiceController.RecycleService();
+                UpdateButtons();
+            }
+            catch (ServiceControllerException ex)
+            {
+                DialogUtils.ShowServiceControllerException(ex);
+            }
         }
 
         private void toolStripStopButton_Click(object sender, EventArgs e)
         {
-            TeamSyncServiceController.StopService();
-            UpdateButtons();
+            try
+            {
+                TeamSyncServiceController.StopService();
+                UpdateButtons();
+            }
+            catch (ServiceControllerException ex)
+            {
+                DialogUtils.ShowServiceControllerException(ex);
+            }
         }
 
         public void UpdateButtons(bool updateContextMenuStrip = true)
