@@ -9,12 +9,14 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes"/>
 
+    <!-- Installs to C:\Program Files\VersionOne TeamSync directory. -->
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="VersionOne TeamSync" />
       </Directory>
     </Directory>
 
+    <!-- List of files included in the installation. -->
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <Component Id="HtmlAgilityPack.dll">
         <File Source="$(var.SourceDir)\HtmlAgilityPack.dll" />
@@ -60,15 +62,19 @@
       </Component>
     </ComponentGroup>
 
+    <!-- Single feature application. -->
     <Feature Id="ProductFeature" Title="VersionOne.TeamSync.Installer" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
     </Feature>
 
+    <!-- Displays installation path in WiX installer UI. -->
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
     <UIRef Id="WixUI_InstallDir"/>
 
+    <!-- Overrides the default WiX license file. -->
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
+    <!-- Icon used in Control Panel's Add/Remove Programs. -->
     <Icon Id="icon.ico" SourceFile="$(var.SourceDir)\v1-icon-48x48.ico" />
     <Property Id="ARPPRODUCTICON" Value="icon.ico" />
 
