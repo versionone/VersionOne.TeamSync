@@ -13,6 +13,7 @@ namespace VersionOne.TeamSync.SystemTray
         public ViewActivityForm()
         {
             InitializeComponent();
+            InitializeLogLevelComboBox();
             UpdateButtons();
         }
 
@@ -48,6 +49,8 @@ namespace VersionOne.TeamSync.SystemTray
             if (level == LogLevel.INFO)
                 return Color.White;
             if (level == LogLevel.WARN)
+                return Color.Yellow;
+            if (level == LogLevel.TRACE)
                 return Color.Yellow;
             if (level == LogLevel.ERROR)
                 return Color.Red;
@@ -119,6 +122,15 @@ namespace VersionOne.TeamSync.SystemTray
             }
         }
 
+        private void InitializeLogLevelComboBox()
+        {
+            var logLevels = Enum.GetValues(typeof(LogLevel));
+            foreach (var logLevel in logLevels)
+            {
+                toolStripComboBox1.Items.Add(logLevel.ToString());
+            }
+        }
+
         public void UpdateButtons(bool updateContextMenuStrip = true)
         {
             if (TeamSyncServiceController.IsServiceInstalled())
@@ -165,6 +177,7 @@ namespace VersionOne.TeamSync.SystemTray
     public enum LogLevel
     {
         ALL,
+        TRACE,
         DEBUG,
         INFO,
         WARN,

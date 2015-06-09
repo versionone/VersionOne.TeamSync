@@ -18,6 +18,6 @@ namespace VersionOne.TeamSync.SystemTray
                 form.AppendText(loggingEvent.RenderedMessage + Environment.NewLine,
                     (LogLevel)Enum.Parse(typeof(LogLevel), loggingEvent.Level.Name));
             }
-        } 
+        }
     }
 }
