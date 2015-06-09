@@ -42,6 +42,34 @@ namespace VersionOne.TeamSync.SystemTray
             }
         }
 
+        public void UpdateButtons(bool updateContextMenuStrip = true)
+        {
+            if (TeamSyncServiceController.IsServiceInstalled())
+            {
+
+                var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+                this.toolStripStartButton.Enabled = 
+                    serviceStatus == ServiceControllerStatus.Stopped;
+                this.toolStripRecyleButton.Enabled = 
+                    serviceStatus == ServiceControllerStatus.Running;
+                this.toolStripStopButton.Enabled = 
+                    serviceStatus == ServiceControllerStatus.Running;
+            }
+            else
+            {
+                this.toolStripStartButton.Enabled = false;
+                this.toolStripStopButton.Enabled = false;
+                this.toolStripRecyleButton.Enabled = false;
+            }
+
+            if (updateContextMenuStrip)
+            {
+                var form = (SystemTray) Application.OpenForms["SystemTray"];
+                if (form != null)
+                    form.UpdateContextMenuStrip(false);
+            }
+        }
+
         private Color GetLevelColor(LogLevel level)
         {
             if (level == LogLevel.DEBUG)
@@ -62,7 +90,11 @@ namespace VersionOne.TeamSync.SystemTray
         {
             var defaultLocation = Settings.Default.ActivityWindowLocation;
             var defaultSize = Settings.Default.ActivityWindowSize;
-            
+            LogLevel defaultLogLevel;
+            if (Enum.TryParse(Settings.Default.LogLevel, out defaultLogLevel))
+            {
+                this.toolStripComboBox1.SelectedItem = defaultLogLevel.ToString();
+            }
             if (defaultLocation != new Point(-1, -1))
             {
                 this.Location = defaultLocation;
@@ -71,8 +103,6 @@ namespace VersionOne.TeamSync.SystemTray
             {
                 this.Size = defaultSize;
             }
-            
-            toolStripComboBox1.SelectedIndex = 0;
         }
 
         private void toolStripComboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
@@ -131,34 +161,6 @@ namespace VersionOne.TeamSync.SystemTray
             }
         }
 
-        public void UpdateButtons(bool updateContextMenuStrip = true)
-        {
-            if (TeamSyncServiceController.IsServiceInstalled())
-            {
-
-                var serviceStatus = TeamSyncServiceController.GetServiceStatus();
-                this.toolStripStartButton.Enabled = 
-                    serviceStatus == ServiceControllerStatus.Stopped;
-                this.toolStripRecyleButton.Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running;
-                this.toolStripStopButton.Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running;
-            }
-            else
-            {
-                this.toolStripStartButton.Enabled = false;
-                this.toolStripStopButton.Enabled = false;
-                this.toolStripRecyleButton.Enabled = false;
-            }
-
-            if (updateContextMenuStrip)
-            {
-                var form = (SystemTray) Application.OpenForms["SystemTray"];
-                if (form != null)
-                    form.UpdateContextMenuStrip(false);
-            }
-        }
-
         private void ViewActivityForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             Settings.Default.ActivityWindowLocation = this.Location;
@@ -170,6 +172,7 @@ namespace VersionOne.TeamSync.SystemTray
             {
                 Settings.Default.ActivityWindowSize = this.RestoreBounds.Size;
             }
+            Settings.Default.LogLevel = toolStripComboBox1.SelectedItem.ToString();
             Settings.Default.Save();
         }
     }
