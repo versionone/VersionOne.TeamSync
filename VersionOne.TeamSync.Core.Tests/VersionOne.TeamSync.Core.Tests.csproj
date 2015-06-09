@@ -62,8 +62,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EpicExtensionTests.cs" />
-    <Compile Include="Helpers\GetContent.cs" />
-    <Compile Include="Helpers\MockHttp.cs" />
     <Compile Include="JiraConnectorTests.cs" />
     <Compile Include="JiraInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -73,10 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ContentResponses\FullIssue.txt" />
-    <Content Include="ContentResponses\GetProjectSuccessful.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VersionOne.TeamSync.V1Connector\VersionOne.TeamSync.V1Connector.csproj">
