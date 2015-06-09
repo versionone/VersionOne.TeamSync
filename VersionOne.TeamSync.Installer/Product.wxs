@@ -9,14 +9,14 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes"/>
 
-    <!-- Installs to C:\Program Files\VersionOne TeamSync directory. -->
+    <!-- Installs to C:\Program Files (x86)\VersionOne TeamSync\ directory. -->
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="VersionOne TeamSync" />
       </Directory>
     </Directory>
 
-    <!-- List of files included in the installation. -->
+    <!-- Files included in the installation. -->
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <Component Id="HtmlAgilityPack.dll">
         <File Source="$(var.SourceDir)\HtmlAgilityPack.dll" />
@@ -26,7 +26,7 @@
       </Component>
       <Component Id="log4net.dll">
         <File Source="$(var.SourceDir)\log4net.dll" />
-      </Component>      
+      </Component>
       <Component Id="Newtonsoft.Json.dll">
         <File Source="$(var.SourceDir)\Newtonsoft.Json.dll" />
       </Component>
@@ -74,17 +74,21 @@
     <!-- Overrides the default WiX license file. -->
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
-    <!-- Icon used in Control Panel's Add/Remove Programs. -->
+    <!-- Icon used in Control Panel's Add/Remove Programs list. -->
     <Icon Id="icon.ico" SourceFile="$(var.SourceDir)\v1-icon-48x48.ico" />
     <Property Id="ARPPRODUCTICON" Value="icon.ico" />
 
     <!-- Verify the .NET Framework version. -->
     <PropertyRef Id="NETFRAMEWORK45"/>
     <Condition Message="This application requires .NET Framework 4.5.1. Please install the .NET Framework then run this installer again.">
-    <![CDATA[Installed OR NETFRAMEWORK45 >= "#378675"]]>
+      <![CDATA[Installed OR NETFRAMEWORK45 >= "#378675"]]>
+    </Condition>
     
-</Condition>
-  
+    <!-- Auto-launch the system tray application. -->
+    <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
+    <Property Id="WixShellExecTarget" Value="[#VersionOne.TeamSync.SystemTray.exe]" />
+    <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
+
   </Product>
 
 </Wix>
