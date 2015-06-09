@@ -45,7 +45,7 @@ namespace VersionOne.TeamSync.SystemTray
         private Color GetLevelColor(LogLevel level)
         {
             if (level == LogLevel.DEBUG)
-                return Color.DarkGreen;
+                return Color.Green;
             if (level == LogLevel.INFO)
                 return Color.White;
             if (level == LogLevel.WARN)
@@ -177,10 +177,10 @@ namespace VersionOne.TeamSync.SystemTray
     public enum LogLevel
     {
         ALL,
-        TRACE,
-        DEBUG,
         INFO,
+        DEBUG,
         WARN,
+        TRACE,
         ERROR
     }
 }

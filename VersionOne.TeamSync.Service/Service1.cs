@@ -2,6 +2,7 @@
 using System.ServiceProcess;
 using System.Timers;
 using log4net;
+using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Worker;
 
@@ -45,6 +46,7 @@ namespace VersionOne.TeamSync.Service
         {
             _log.Debug("The service event was raised at " + e.SignalTime);
             _worker.DoWork(_serviceDuration);
+            _log.Trace("Test trace logging...");
             _log.Info(" ************************** Finished at " + e.SignalTime + "");
         }
 
