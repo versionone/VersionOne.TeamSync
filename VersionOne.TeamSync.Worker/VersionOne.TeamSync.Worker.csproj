@@ -66,6 +66,7 @@
     <Compile Include="Domain\Epic.cs" />
     <Compile Include="Domain\Jira.cs" />
     <Compile Include="Domain\Link.cs" />
+    <Compile Include="Domain\Story.cs" />
     <Compile Include="Domain\V1.cs" />
     <Compile Include="Domain\V1JiraInfo.cs" />
     <Compile Include="Domain\Xml\IV1ApiXmlNode.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="Domain\Xml\V1SetRelationNode.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\EpicExtensions.cs" />
+    <Compile Include="Extensions\IssueExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\XDocumentExtensions.cs" />
     <Compile Include="HtmlToPlainText.cs" />

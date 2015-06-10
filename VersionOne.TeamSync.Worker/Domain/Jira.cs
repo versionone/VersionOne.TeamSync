@@ -22,6 +22,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         void SetIssueToToDo(string issueKey);
 
         string InstanceUrl { get; }
+        SearchResult GetStoriesWithNoEpicInProject(string projectKey);
     }
 
     public class Jira : IJira
@@ -95,7 +96,6 @@ namespace VersionOne.TeamSync.Worker.Domain
                 {
                     JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                     JqOperator.Equals("issuetype", "Epic"),
-                    //JqOperator.NotEquals("status", "Done")
                 },
                     new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
                 );
@@ -110,6 +110,17 @@ namespace VersionOne.TeamSync.Worker.Domain
             },
                 new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
             );
+        }
+
+        public SearchResult GetStoriesWithNoEpicInProject(string projectKey)
+        {
+            return _connector.GetSearchResults(new List<JqOperator>()
+            {
+               JqOperator.Equals("project", projectKey.QuoteReservedWord()),
+               JqOperator.Equals("issuetype", "Story"),
+               JqOperator.Equals(_epicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
+            },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", });
         }
 
         public SearchResult GetEpicByKey(string reference)

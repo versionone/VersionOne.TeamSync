@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -16,6 +17,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<List<Epic>> GetDeletedEpics(string projectId, string category);
         void CreateLink(IV1Asset asset, string title, string url);
         void RemoveReferenceOnDeletedEpic(Epic epic);
+        Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey);
+        Task<Story> CreateStory(Story story);
     }
 
     public class V1 : IV1
@@ -98,6 +101,18 @@ namespace VersionOne.TeamSync.Worker.Domain
                     string.Format(_whereProject, projectId), 
                     string.Format(_whereEpicCategory, category) 
                 }, Epic.FromQuery);
+        }
+
+        public async Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey)
+        {
+            var epic = await _connector.Query("Story", new[] {"ID.Number"}, new[] {"Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes()}, Story.FromQuery);
+            return epic.FirstOrDefault();
+        }
+
+        public async Task<Story> CreateStory(Story story)
+        {
+            var updated = await _connector.Post(story, story.CreatePayload());
+            return story;
         }
 
         public async void CreateLink(IV1Asset asset, string title, string url)

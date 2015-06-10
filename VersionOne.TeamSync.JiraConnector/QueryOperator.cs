@@ -22,6 +22,16 @@
             };
         }
 
+        public static JqOperator TimeAgo(string minutes)
+        {
+            return new JqOperator()
+            {
+                Property = "createdDate",
+                Value = "\"-" + minutes + "m\"",
+                Operator = ">="
+            };
+        }
+
         public override string ToString()
         {
             return Property + Operator + Value;

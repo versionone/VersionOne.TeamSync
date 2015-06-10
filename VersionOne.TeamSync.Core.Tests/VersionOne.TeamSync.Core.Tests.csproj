@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EpicExtensionTests.cs" />
+    <Compile Include="IssueExtensionTests.cs" />
     <Compile Include="JiraConnectorTests.cs" />
     <Compile Include="JiraInfoTests.cs" />
     <Compile Include="JsonConverter\MetaDataConverterTests.cs" />

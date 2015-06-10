@@ -22,9 +22,9 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockDateTime.Setup(x => x.UtcNow).Returns(new DateTime(2015, 1, 1, 16, 0, 0));
         }
 
-        private V1 SetApiQuery(Mock<IV1Connector> mockConnect, string[] properties, string[] whereClauses, List<Epic> epics)
+        private V1 SetApiQuery(string type, Mock<IV1Connector> mockConnect, string[] properties, string[] whereClauses, List<Epic> epics)
         {
-            mockConnect.Setup(x => x.Query("Epic", properties, whereClauses, Epic.FromQuery))
+            mockConnect.Setup(x => x.Query(type, properties, whereClauses, Epic.FromQuery))
                          .ReturnsAsync(epics)
                          .Verifiable("Query has been modified or incorrect");
 
@@ -36,7 +36,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery(mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name" }, 
+            var api = SetApiQuery("Epic", mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name" }, 
                              new[] { "Reference=\"\"", "AssetState='Active'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
@@ -51,7 +51,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery(mockConnector, 
+            var api = SetApiQuery("Epic", mockConnector, 
                 new[] { "Name", "AssetState", "Reference" },
                 new[] { "Reference!=\"\"", "AssetState='Closed'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
@@ -66,7 +66,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery(mockConnector,
+            var api = SetApiQuery("Epic", mockConnector,
                 new[] { "ID.Number", "Name", "Description", "Reference", "AssetState" },
                 new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
@@ -81,7 +81,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery(mockConnector,
+            var api = SetApiQuery("Epic", mockConnector,
                 new[] { "ID.Number", "Name", "Description", "Reference" },
                 new[] { "Reference!=\"\"", "IsDeleted='True'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
@@ -89,6 +89,23 @@ namespace VersionOne.TeamSync.Core.Tests
             await api.GetDeletedEpics("Scope:1000", "EpicCategory:1000");
 
             mockConnector.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task orphan_stories_should_check_for_existing_references_in_version_one()
+        {
+            var mockConnector = new Mock<IV1Connector>();
+            mockConnector.Setup(x => x.Query("Story",
+                new[] {"ID.Number"},
+                new[] {"Reference=\"OPC-10\"", "Scope=\"Scope:1000\""},
+                Story.FromQuery))
+                .ReturnsAsync(new List<Story>());
+            var api = new V1(mockConnector.Object, _span);
+
+            await api.GetStoryWithJiraReference("Scope:1000", "OPC-10");
+
+            mockConnector.VerifyAll();
+
         }
     }
 }

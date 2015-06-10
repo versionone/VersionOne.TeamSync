@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Worker
 {
@@ -61,6 +63,7 @@ namespace VersionOne.TeamSync.Worker
                     await UpdateEpics(jiraInfo);
                     await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
                     await DeleteEpics(jiraInfo);
+					CreateStories(jiraInfo);
                 }
                 catch (Exception ex)
                 {
@@ -69,6 +72,19 @@ namespace VersionOne.TeamSync.Worker
 
                 _log.Info("Ending sync...");
             });
+        }
+
+        private void CreateStories(V1JiraInfo jiraInfo)
+        {
+            var searchResults = jiraInfo.JiraInstance.GetStoriesWithNoEpicInProject(jiraInfo.JiraKey);
+
+            searchResults.issues.ForEach(async jiraStory =>
+            {
+                var existingStory = await _v1.GetStoryWithJiraReference(jiraInfo.V1ProjectId, jiraStory.Key);
+                if (existingStory == null)
+                    await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
+            });
+
         }
 
         public async Task DeleteEpics(V1JiraInfo jiraInfo)
@@ -103,6 +119,7 @@ namespace VersionOne.TeamSync.Worker
                 jiraInfo.JiraInstance.SetIssueToResolved(epic.Reference);
             });
         }
+
 
         public async Task UpdateEpics(V1JiraInfo jiraInfo)
         {

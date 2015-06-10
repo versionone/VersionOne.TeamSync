@@ -112,6 +112,10 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public Status Status { get; set; }
         public Priority Priority { get; set; }
         public Project Project { get; set; }
+
+        //come up with a way to use an attribute on this
+        public string StoryPoints { get; set; }
+        public string TimeTracking { get; set; }
     }
 
     public class Project
@@ -119,22 +123,4 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Key { get; set; }
     }
 
-
-    public class LateBindingConvereter : JsonConverter
-    {
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            return null;
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            return true;
-        }
-    }
 }

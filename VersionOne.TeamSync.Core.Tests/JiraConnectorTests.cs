@@ -8,8 +8,10 @@ using RestSharp;
 using Should;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Connector;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
 using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
@@ -340,6 +342,7 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         private List<JqOperator> _jqOperators;
         private List<string> _whereItems;
+        private string _epicLink = "Epic Link";
         private const string _projectKey = "AS";
 
         [TestInitialize]
@@ -356,7 +359,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Jira(mockConnector.Object, null, null);
+            var jira = new Jira(mockConnector.Object, null, new MetaProperty(){Key = "customfield_10005", Property = _epicLink});
 
             jira.GetStoriesWithNoEpicInProject(_projectKey);
         }
@@ -378,7 +381,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_have_one_segment_for_epic_link()
         {
             var op = _jqOperators.Single(x => x.Value == JiraAdvancedSearch.Empty);
-            op.Property.ShouldEqual("\"Epic Link\"");
+            op.Property.ShouldEqual(_epicLink.InQuotes());
         }
 
         [TestMethod]

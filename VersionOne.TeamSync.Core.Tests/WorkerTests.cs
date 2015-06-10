@@ -16,7 +16,6 @@ namespace VersionOne.TeamSync.Core.Tests
         protected string _projectId = "Scope:1000";
         protected string _jiraKey = "OPC";
         protected string _epicCategory = "EpicCategory:1000";
-        protected string _jiraEpicNameId = "custom_field_0001";
 
         protected void BuildContext()
         {
@@ -27,7 +26,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
         protected V1JiraInfo MakeInfo()
         {
-            return new V1JiraInfo(_projectId, _jiraKey, _epicCategory, _jiraEpicNameId, _mockJira.Object);
+            return new V1JiraInfo(_projectId, _jiraKey, _epicCategory, _mockJira.Object);
         }
     }
 
@@ -52,7 +51,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void do_not_call_the_jira_api()
         {
-            _mockJira.Verify(x => x.CreateEpic(It.IsAny<Epic>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _mockJira.Verify(x => x.CreateEpic(It.IsAny<Epic>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -79,7 +78,7 @@ namespace VersionOne.TeamSync.Core.Tests
             });
             _mockV1.Setup(x => x.UpdateEpicReference(_epic));
             _mockV1.Setup(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()));
-            _mockJira.Setup(x => x.CreateEpic(_epic, _jiraKey, _jiraEpicNameId)).Returns(() => _itemBase);
+            _mockJira.Setup(x => x.CreateEpic(_epic, _jiraKey)).Returns(() => _itemBase);
 
             _epic.Reference.ShouldBeNull();
             var jiraInfo = MakeInfo();
@@ -106,7 +105,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_call_CreateEpic_on_jira()
         {
-            _mockJira.Verify(x => x.CreateEpic(_epic, "OPC", _jiraEpicNameId), Times.Once());
+            _mockJira.Verify(x => x.CreateEpic(_epic, "OPC"), Times.Once());
         }
 
         [TestMethod]
@@ -142,7 +141,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_call_CreateEpic_on_jira_without_modifying_reserved_word()
         {
-            _mockJira.Verify(x => x.CreateEpic(_epic, "AS", _jiraEpicNameId), Times.Once());
+            _mockJira.Verify(x => x.CreateEpic(_epic, "AS"), Times.Once());
         }
 
         [TestMethod]
@@ -381,4 +380,29 @@ namespace VersionOne.TeamSync.Core.Tests
 
     }
 
+
+    [TestClass]
+    public class orphan_stories
+    {
+        private string _projectKey = "AS";
+
+        [TestInitialize]
+        public void Context()
+        {
+            var jiraConnector = new Mock<IJira>();
+            jiraConnector.Setup(x => x.GetStoriesWithNoEpicInProject(_projectKey)).Returns(new SearchResult()
+            {
+                issues = new List<Issue>()
+                {
+                    new Issue()
+                }
+            });
+        }
+
+        [TestMethod]
+        public void should_add_it_to_the_v1_project()
+        {
+
+        }
+    }
 }
