@@ -15,9 +15,9 @@ namespace VersionOne.TeamSync.Worker.Extensions
             {
                 { "description", epic.Description ?? "-"},
                 { "summary", epic.Name},
-                { "IssueType", new {name = "Epic"} },
-                { "Project", new {Key = projectKey}},
-                { jiraEpicNameId, epic.Name}
+                { "issuetype", new {name = "Epic"} },
+                { "project", new {Key = projectKey}},
+                { jiraEpicNameId, epic.Number}
             };
 
             return expando;
