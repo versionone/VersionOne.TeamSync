@@ -9,7 +9,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
     [TestClass]
     public class JiraConnectorTests
     {
-        private readonly JiraConnector.Connector.JiraConnector _connector = new JiraConnector.Connector.JiraConnector("http://jira-64.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
+        private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-64.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
 
         [TestMethod]
         public void CreateEpicTest()
