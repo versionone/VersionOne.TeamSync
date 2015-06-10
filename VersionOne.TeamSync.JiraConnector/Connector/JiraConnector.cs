@@ -20,6 +20,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         void Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
+        CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey);
     }
 
     public class JiraConnector : IJiraConnector
@@ -194,6 +195,19 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                 return new JiraLoginException("JIRA rejected the login without even checking the password, which most commonly indicates that JIRA's CAPTCHA feature has been triggered");
 
             return new JiraException(response.StatusDescription, new Exception(response.Content));
+        }
+		
+		public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
+        {
+            var request = new RestRequest(Method.GET)
+            {
+                Resource = "issue/createmeta"
+            };
+
+            request.AddQueryParameter("projectKeys", string.Join(",", projectKey));
+            request.AddQueryParameter("expand", "projects.issuetypes.fields");
+
+            return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<CreateMeta>);
         }
     }
 }

@@ -36,15 +36,15 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public void should_include_the_number()
+        public void should_include_the_summary()
         {
-            ((string)_result.fields["name"]).ShouldEqual("E-1000");
+            ((string)_result.fields["summary"]).ShouldEqual("create new features");
         }
 
         [TestMethod]
         public void should_include_the_custom_field_for_epic_name()
         {
-            ((string)_result.fields["fake_customfield_10000"]).ShouldEqual("create new features");
+            ((string)_result.fields["fake_customfield_10000"]).ShouldEqual("E-1000");
         }
 
         [Ignore]

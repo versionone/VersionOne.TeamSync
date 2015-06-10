@@ -52,6 +52,12 @@ namespace VersionOne.TeamSync.Core.Tests.JsonConverter
             _result.Projects.Single().EpicName.Key.ShouldEqual("customfield_10006");
         }
 
+        [TestMethod]
+        public void epic_link_should_have_the_property_key()
+        {
+            _result.Projects.Single().EpicLink.Key.ShouldEqual("customfield_10005");
+        }
+
         [TestInitialize]
         public void context()
         {

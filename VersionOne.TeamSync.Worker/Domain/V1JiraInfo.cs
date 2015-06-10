@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using VersionOne.TeamSync.JiraConnector.Config;
+using VersionOne.TeamSync.JiraConnector.Entities;
 
 namespace VersionOne.TeamSync.Worker.Domain
 {
@@ -26,12 +28,11 @@ namespace VersionOne.TeamSync.Worker.Domain
             }
         }
 
-        public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, string jiraEpicNameId, IJira jiraInstance)
+        public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
         {
             V1ProjectId = v1ProjectId;
             JiraKey = jiraKey;
             EpicCategory = epicCategory;
-            JiraEpicNameId = jiraEpicNameId;
             JiraInstance = jiraInstance;
         }
 
@@ -40,8 +41,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             V1ProjectId = projectMapping.V1Project;
             JiraKey = projectMapping.JiraProject;
             EpicCategory = projectMapping.EpicSyncType;
-            JiraEpicNameId = projectMapping.JiraEpicNameId;
-
             JiraInstance = jiraInstance;
         }
 
@@ -68,17 +67,27 @@ namespace VersionOne.TeamSync.Worker.Domain
                 if (!server.Enabled)
                     continue;
 
+                var connector = new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password);
+
+                var projectMappings = new List<IProjectMapping>();
+
                 for (var p = 0; p < server.ProjectMappings.Count; p++)
                 {
-                    if (server.ProjectMappings[p].Enabled)
-                        list.Add(new V1JiraInfo(
-                            server.ProjectMappings[p],
-                            new Jira(new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password))));
+                    if (!server.ProjectMappings[p].Enabled)
+                        continue;
+                    projectMappings.Add(server.ProjectMappings[p]);
                 }
+
+                var createMeta = connector.GetCreateMetaInfoForProjects(projectMappings.Select(map => map.JiraProject));
+
+                projectMappings.ForEach(map =>
+                {
+                    var projectMeta = createMeta.Projects.Single(project => project.Key == map.JiraProject);
+                    list.Add(new V1JiraInfo(map, new Jira(connector, projectMeta.EpicName, projectMeta.EpicLink)));
+                });
+
             }
             return list;
         }
-
-        public string JiraEpicNameId { get; set; }
     }
 }

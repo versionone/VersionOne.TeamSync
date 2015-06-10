@@ -49,6 +49,10 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         {
             get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Name"); }
         }
+        public MetaProperty EpicLink
+        {
+            get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Link"); }
+        }
     }
 
     public class MetaIssueType

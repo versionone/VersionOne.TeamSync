@@ -11,7 +11,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 {
     public interface IJira
     {
-        ItemBase CreateEpic(Epic epic, string projectKey, string epicNameKey);
+        ItemBase CreateEpic(Epic epic, string projectKey);
         void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance);
         void UpdateEpic(Epic epic, string issueKey);
         void DeleteEpicIfExists(string issueKey);
@@ -27,23 +27,29 @@ namespace VersionOne.TeamSync.Worker.Domain
     public class Jira : IJira
     {
         private readonly IJiraConnector _connector;
+        private readonly MetaProperty _epicName;
+        private readonly MetaProperty _epicLink;
         private static ILog _log = LogManager.GetLogger(typeof (Jira));
 
-        public Jira(JiraConnector.Connector.JiraConnector connector)
+        public Jira(JiraConnector.Connector.JiraConnector connector, MetaProperty epicName, MetaProperty epicLink)
         {
             _connector = connector;
+            _epicName = epicName;
+            _epicLink = epicLink;
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public Jira(IJiraConnector connector)
+        public Jira(IJiraConnector connector, MetaProperty epicName, MetaProperty epicLink)
         {
             _connector = connector;
+            _epicName = epicName;
+            _epicLink = epicLink;
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public ItemBase CreateEpic(Epic epic, string projectKey, string epicNameKey) // TODO: async
+        public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
-            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, epicNameKey), HttpStatusCode.Created);
+            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, _epicName.Key), HttpStatusCode.Created);
             return baseItem;
         }
 

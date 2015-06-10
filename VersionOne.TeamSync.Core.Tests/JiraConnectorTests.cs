@@ -102,7 +102,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
 
-            var jira = new Jira(mockConnector.Object);
+            var jira = new Jira(mockConnector.Object, null, null);
 
             jira.SetIssueToToDo(_issueKey);
 
@@ -131,7 +131,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Jira(mockConnector.Object);
+            var jira = new Jira(mockConnector.Object, null, null);
 
             jira.GetEpicByKey(_issueKey);
         }
@@ -180,7 +180,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
 
-            var jira = new Jira(mockConnector.Object);
+            var jira = new Jira(mockConnector.Object, null, null);
 
             jira.SetIssueToResolved(_issueKey);
 
@@ -334,4 +334,72 @@ namespace VersionOne.TeamSync.Core.Tests
 
 
     }
+
+    [TestClass]
+    public class getting_orphan_stories_in_a_jira_project
+    {
+        private List<JqOperator> _jqOperators;
+        private List<string> _whereItems;
+        private const string _projectKey = "AS";
+
+        [TestInitialize]
+        public void getting_jira_stories()
+        {
+            var mockConnector = new Mock<IJiraConnector>();
+
+            _jqOperators = new List<JqOperator>();
+            _whereItems = new List<string>();
+            mockConnector.Setup(x => x.GetSearchResults(It.IsAny<IList<JqOperator>>(), It.IsAny<IEnumerable<string>>()))
+                .Callback<IList<JqOperator>, IEnumerable<string>>((list, enumerable) =>
+                {
+                    _jqOperators.AddRange(list);
+                    _whereItems.AddRange(enumerable);
+                });
+
+            var jira = new Jira(mockConnector.Object, null, null);
+
+            jira.GetStoriesWithNoEpicInProject(_projectKey);
+        }
+
+        [TestMethod]
+        public void should_have_two_jqOperators()
+        {
+            _jqOperators.Count.ShouldEqual(3);
+        }
+
+        [TestMethod]
+        public void should_have_one_segment_for_project_key()
+        {
+            var op = _jqOperators.Single(x => x.Value == _projectKey.QuoteReservedWord());
+            op.Property.ShouldEqual("project");
+        }
+
+        [TestMethod]
+        public void should_have_one_segment_for_epic_link()
+        {
+            var op = _jqOperators.Single(x => x.Value == JiraAdvancedSearch.Empty);
+            op.Property.ShouldEqual("\"Epic Link\"");
+        }
+
+        [TestMethod]
+        public void should_have_one_segment_for_issue_type()
+        {
+            var op = _jqOperators.Single(x => x.Value == "Story");
+            op.Property.ShouldEqual("issuetype");
+        }
+
+        [TestMethod]
+        public void should_have_seven_query_items()
+        {
+            _whereItems.Count.ShouldEqual(7);
+            _whereItems.Contains("issuetype").ShouldBeTrue();
+            _whereItems.Contains("summary").ShouldBeTrue();
+            _whereItems.Contains("description").ShouldBeTrue();
+            _whereItems.Contains("priority").ShouldBeTrue();
+            _whereItems.Contains("status").ShouldBeTrue();
+            _whereItems.Contains("key").ShouldBeTrue();
+            _whereItems.Contains("self").ShouldBeTrue();
+        }
+    }
+
 }
