@@ -24,10 +24,13 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
     public class JiraConnector : IJiraConnector
     {
-        private readonly IRestClient _client;
-        private ISerializer _serializer = new JiraSerializer();
+        private const string InQuery = "{0} in ({1})";
 
-        public JiraConnector(string baseUrl) : this(baseUrl, string.Empty, string.Empty)
+        private readonly IRestClient _client;
+        private readonly ISerializer _serializer = new JiraSerializer();
+
+        public JiraConnector(string baseUrl)
+            : this(baseUrl, string.Empty, string.Empty)
         {
             _client = new RestClient(baseUrl);
             BaseUrl = _client.BaseUrl.AbsoluteUri.Replace(_client.BaseUrl.AbsolutePath, "");
@@ -56,24 +59,18 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             if (response.StatusCode.Equals(responseStatusCode))
                 return;
-            if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
-                throw new JiraLoginException();
 
-            var error = JsonConvert.DeserializeObject<BadResult>(response.Content);
-            if (error.Errors.Values.Any(x => x.Contains("It is not on the appropriate screen, or unknown.")))
-                throw new JiraException("Please expose the field " + error.Errors.First().Key + " on the screen", new Exception(error.Errors.First().Value));
-
-            throw new JiraException(response.StatusDescription, new Exception(response.Content));
+            throw ProcessResponseError(response);
         }
 
         public T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
-            if (response.StatusCode.Equals(responseStatusCode) || response.StatusCode.Equals(HttpStatusCode.BadRequest))
+
+            if (response.StatusCode.Equals(responseStatusCode))
                 return returnBuilder(response.Content);
-            if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
-                throw new JiraLoginException();
-            throw new JiraException(response.StatusDescription, new Exception(response.Content));
+
+            throw ProcessResponseError(response);
         }
 
         public ItemBase Post<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
@@ -141,7 +138,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             Execute(request, responseStatusCode);
         }
 
-        public SearchResult GetSearchResults(IList<JqOperator> query , IEnumerable<string> properties) //not entirely convinced this belongs here
+        public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties) //not entirely convinced this belongs here
         {
             var request = new RestRequest(Method.GET)
             {
@@ -154,8 +151,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<SearchResult>);
         }
-
-        private const string _inQuery = "{0} in ({1})";
 
         public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
         {
@@ -175,12 +170,30 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             {
                 if (item.Value.Count() == 1)
                     return item.Key + "=" + item.Value.First().QuoteReservedWord();
-                return string.Format(_inQuery, item.Key, string.Join(", ", item.Value));
+                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
             }));
 
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
             return request;
+        }
+
+        private static Exception ProcessResponseError(IRestResponse response)
+        {
+            if (response.StatusCode.Equals(HttpStatusCode.BadRequest))
+            {
+                var error = JsonConvert.DeserializeObject<BadResult>(response.Content);
+                if (error.Errors.Values.Any(x => x.Contains("It is not on the appropriate screen, or unknown.")))
+                    return new JiraException(string.Format("Please expose the field {0} on the screen", error.Errors.First().Key), new Exception(error.Errors.First().Value));
+            }
+
+            if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
+                return new JiraLoginException();
+
+            if (response.Headers.Any(h => h.Name.Equals("X-Seraph-LoginReason") || h.Value.Equals("AUTHENTICATION_DENIED")))
+                return new JiraLoginException("JIRA rejected the login without even checking the password, which most commonly indicates that JIRA's CAPTCHA feature has been triggered");
+
+            return new JiraException(response.StatusDescription, new Exception(response.Content));
         }
     }
 }

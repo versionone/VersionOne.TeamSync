@@ -2,8 +2,11 @@
 
 using System;
 
-namespace VersionOne.TeamSync.JiraConnector.Exceptions {
-    public class JiraException : Exception {
+namespace VersionOne.TeamSync.JiraConnector.Exceptions
+{
+    public class JiraException : Exception
+    {
+        public JiraException(string message) : base(message) { }
         public JiraException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

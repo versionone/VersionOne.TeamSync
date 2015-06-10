@@ -17,7 +17,7 @@ namespace VersionOne.TeamSync.Worker
         private HashSet<V1JiraInfo> _jiraInstances;
         private IV1 _v1;
         private IV1Connector _v1Connector;
-        private static ILog _log = LogManager.GetLogger(typeof (VersionOneToJiraWorker));
+        private static ILog _log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
 
         public VersionOneToJiraWorker()
         {
@@ -51,14 +51,22 @@ namespace VersionOne.TeamSync.Worker
         {
             _v1 = new V1(_v1Connector, serviceDuration);
 
-            _jiraInstances.ToList().ForEach(async jiraInfo => 
+            _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
                 _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
-                await CreateEpics(jiraInfo);
-                await UpdateEpics(jiraInfo);
-                await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
-                await DeleteEpics(jiraInfo);
+                try
+                {
+                    await CreateEpics(jiraInfo);
+                    await UpdateEpics(jiraInfo);
+                    await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+                    await DeleteEpics(jiraInfo);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error(ex.Message);
+                }
+
                 _log.Info("Ending sync...");
             });
         }
@@ -122,7 +130,7 @@ namespace VersionOne.TeamSync.Worker
 
                 if (relatedJiraEpic.Fields.Status.Name == "Done" && !epic.IsClosed()) //hrrmmm...
                     jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
-                
+
                 jiraInfo.JiraInstance.UpdateEpic(epic, relatedJiraEpic.Key);
                 _log.Info("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
             });
