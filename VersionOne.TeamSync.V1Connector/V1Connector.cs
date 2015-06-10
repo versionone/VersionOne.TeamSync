@@ -144,6 +144,17 @@ namespace VersionOne.TeamSync.V1Connector
             }
         }
 
+        public bool IsConnectionValid()
+        {
+            using (var client = HttpInstance)
+            {
+                var endpoint = GetResourceUrl("Member") + "?sel=Member.IsSelf";
+                var response = client.GetAsync(endpoint).Result;
+                
+                return response.IsSuccessStatusCode;
+            }
+        }
+
         private string GetResourceUrl(string resource)
         {
             if (string.IsNullOrWhiteSpace(_endpoint))

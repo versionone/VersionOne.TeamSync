@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using log4net;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -19,6 +20,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         void RemoveReferenceOnDeletedEpic(Epic epic);
         Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey);
         Task<Story> CreateStory(Story story);
+        void ValidateConnection();
     }
 
     public class V1 : IV1
@@ -27,7 +29,9 @@ namespace VersionOne.TeamSync.Worker.Domain
 	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private const string _whereProject = "Scope=\"{0}\"";
         private const string _whereEpicCategory = "Category=\"{0}\"";
+        private const int ConnectionAttempts = 3;
         private readonly string _aDayAgo;
+        private static ILog _log = LogManager.GetLogger(typeof (V1));
 
 	    public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
 		{
@@ -133,6 +137,28 @@ namespace VersionOne.TeamSync.Worker.Domain
             await _connector.Operation(epic, "Undelete");
             await _connector.Post(epic, epic.RemoveReference());
             await _connector.Operation(epic, "Delete");
+        }
+
+        public void ValidateConnection()
+        {
+            _log.Info("Attempting to connect to V1.");
+            for (var i = 0; i < ConnectionAttempts; i++)
+            {
+                _log.InfoFormat("Connection attempt {0}.", i + 1);
+
+                if (!_connector.IsConnectionValid())
+                {
+                    System.Threading.Thread.Sleep(5000);
+                }
+                else
+                {
+                    _log.Info("V1 connection verified.");
+                    return;
+                }
+            }
+
+            _log.Error("V1 connection could not be verified.");
+            throw new Exception(string.Format("Unable to validate connection to {0}.", InstanceUrl));
         }
     }
 
