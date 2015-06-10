@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension" >
 
-  <?include "config.wxi"?>
+  <?include "Config.wxi"?>
 
   <Product Id="*" Name="VersionOne TeamSync" Language="1033" Version="1.0.0.0" Manufacturer="VersionOne, Inc." UpgradeCode="3f153f56-78d8-41e5-839e-2b29b86d1a36" >
 
