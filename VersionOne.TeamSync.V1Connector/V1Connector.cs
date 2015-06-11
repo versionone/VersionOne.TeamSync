@@ -144,6 +144,28 @@ namespace VersionOne.TeamSync.V1Connector
             }
         }
 
+        public bool IsConnectionValid()
+        {
+            using (var client = HttpInstance)
+            {
+                HttpResponseMessage response;
+                try
+                {
+                    var endpoint = GetResourceUrl("Member") + "?sel=Member.IsSelf";
+                    response = client.GetAsync(endpoint).Result;
+                }
+                catch (Exception)
+                {
+                    throw new ConfigurationErrorsException("Could not connecto to V1. Bad url.");
+                }
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    throw new ConfigurationErrorsException("Could not connecto to V1. Bad credentials.");
+
+                return response.IsSuccessStatusCode;
+            }
+        }
+
         private string GetResourceUrl(string resource)
         {
             if (string.IsNullOrWhiteSpace(_endpoint))
@@ -172,7 +194,7 @@ namespace VersionOne.TeamSync.V1Connector
 
             return result;
         }
-        
+
         internal void SetUpstreamUserAgent(string userAgent)
         {
             _upstreamUserAgent = userAgent;

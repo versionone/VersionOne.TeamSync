@@ -12,7 +12,7 @@ namespace VersionOne.TeamSync.Service
     {
 	    private Timer _timer;
         private static TimeSpan _serviceDuration;
-	    private static readonly VersionOneToJiraWorker _worker = new VersionOneToJiraWorker();
+	    private static VersionOneToJiraWorker _worker;
         private static ILog _log = LogManager.GetLogger(typeof (Service1));
 
         public Service1()
@@ -28,24 +28,42 @@ namespace VersionOne.TeamSync.Service
         protected override void OnStart(string[] args)
         {
 			_serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
+            try
+            {
+                _worker = new VersionOneToJiraWorker(_serviceDuration);
+                _worker.ValidateConnections();
+              //_timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
+              //_timer.Elapsed += OnTimedEvent;
+              //_timer.Enabled = true;
+              //startMessage();
+                _worker.DoWork(); //fire immediately at start
+            }
+            catch (Exception e)
+            {
+                _log.Error(e);
+                _log.Error("Errors occurred during connection validations. Service will be stopped.");
+                OnStop();
+            }
 
-            //_timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
-            //_timer.Elapsed += OnTimedEvent;
-            //_timer.Enabled = true;
-            //startMessage();
-            _worker.DoWork(_serviceDuration); //fire immediately at start
+            _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
+            _timer.Elapsed += OnTimedEvent;
+            _timer.Enabled = true;
+            startMessage();
+            _worker.DoWork(); //fire immediately at start
         }
 
         protected override void OnStop()
         {
-            _timer.Enabled = false;
+            if (_timer != null)
+                _timer.Enabled = false;
+            
             stopMessage();
         }
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             _log.Debug("The service event was raised at " + e.SignalTime);
-            _worker.DoWork(_serviceDuration);
+            _worker.DoWork();
             _log.Trace("Test trace logging...");
             _log.Info(" ************************** Finished at " + e.SignalTime + "");
         }

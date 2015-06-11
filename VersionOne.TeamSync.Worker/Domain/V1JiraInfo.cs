@@ -89,5 +89,10 @@ namespace VersionOne.TeamSync.Worker.Domain
             }
             return list;
         }
+
+        public void ValidateConnection()
+        {
+            JiraInstance.ValidateConnection();
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace VersionOne.TeamSync.Worker
         private IV1Connector _v1Connector;
         private static ILog _log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
 
-        public VersionOneToJiraWorker()
+        public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
             _jiraInstances = new HashSet<V1JiraInfo>(V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers));
 
@@ -42,6 +42,8 @@ namespace VersionOne.TeamSync.Worker
                 default:
                     throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
             }
+
+            _v1 = new V1(_v1Connector, serviceDuration);
         }
 
         public VersionOneToJiraWorker(IV1 v1)
@@ -49,10 +51,8 @@ namespace VersionOne.TeamSync.Worker
             _v1 = v1;
         }
 
-        public async void DoWork(TimeSpan serviceDuration)
+        public async void DoWork()
         {
-            _v1 = new V1(_v1Connector, serviceDuration);
-
             _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
                 _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
@@ -76,7 +76,17 @@ namespace VersionOne.TeamSync.Worker
                 if (existingStory == null)
                     await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
             });
+        }
 
+        public void ValidateConnections()
+        {
+            _log.Info("Starting V1 connection validation.");
+            _v1.ValidateConnection();
+            foreach (var jiraInstance in _jiraInstances)
+            {
+                _log.InfoFormat("Starting Jira connection validation ({0}).", jiraInstance.JiraInstance.InstanceUrl);
+                jiraInstance.ValidateConnection();
+            }
         }
 
         public async Task DeleteEpics(V1JiraInfo jiraInfo)

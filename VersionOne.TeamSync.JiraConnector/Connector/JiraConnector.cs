@@ -26,6 +26,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
             ;
+        bool IsConnectionValid();
     }
 
     public class JiraConnector : IJiraConnector
@@ -34,6 +35,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new JiraSerializer();
+        private readonly string _username;
 
         public JiraConnector(string baseUrl)
             : this(baseUrl, string.Empty, string.Empty)
@@ -49,6 +51,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {
                 _client.Authenticator = new HttpBasicAuthenticator(username, password);
+                _username = username;
             }
         }
 
@@ -205,6 +208,27 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
             return request;
+        }
+
+        public bool IsConnectionValid()
+        {
+            var request = new RestRequest
+            {
+                Method = Method.GET,
+                Resource = "user",
+                RequestFormat = DataFormat.Json
+            };
+            request.AddQueryParameter("username", _username);
+
+            var response = _client.Execute(request);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                throw new JiraLoginException("Could not connecto to Jira. Bad credentials.");
+
+            if (!string.IsNullOrWhiteSpace(response.ErrorMessage))
+                throw new JiraException("Could not connecto to Jira. Bad url.");
+
+            return response.StatusCode.Equals(HttpStatusCode.OK);
         }
 
         private static Exception ProcessResponseError(IRestResponse response)
