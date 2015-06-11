@@ -41,7 +41,8 @@
             // 
             this.serviceInstaller1.Description = "This service manages VersionOne integrations with external systems.";
             this.serviceInstaller1.DisplayName = "VersionOne TeamSync Service";
-            this.serviceInstaller1.ServiceName = "VersionOne.TeamSync";
+            this.serviceInstaller1.ServiceName = "VersionOne.TeamSync.Service";
+            this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
             this.serviceInstaller1.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.serviceInstaller1_AfterInstall);
             // 
             // ProjectInstaller

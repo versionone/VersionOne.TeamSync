@@ -96,7 +96,7 @@
     </Condition>
     
     <!-- Auto-launch the system tray application. -->
-    <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
+    <!--<Property Id="MSIUSEREALADMINDETECTION" Value="1" />-->
     <Property Id="WixShellExecTarget" Value="[#VersionOne.TeamSync.SystemTray.exe]" />
     <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
     <InstallExecuteSequence>
