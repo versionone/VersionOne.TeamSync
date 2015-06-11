@@ -28,29 +28,27 @@ namespace VersionOne.TeamSync.Worker.Domain
     public class Jira : IJira
     {
         private readonly IJiraConnector _connector;
-        private readonly MetaProperty _epicName;
-        private readonly MetaProperty _epicLink;
+       
         private static ILog _log = LogManager.GetLogger(typeof (Jira));
+        private MetaProject _projectMeta;
 
-        public Jira(JiraConnector.Connector.JiraConnector connector, MetaProperty epicName, MetaProperty epicLink)
+        public Jira(JiraConnector.Connector.JiraConnector connector, MetaProject project)
         {
             _connector = connector;
-            _epicName = epicName;
-            _epicLink = epicLink;
+            _projectMeta = project;
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public Jira(IJiraConnector connector, MetaProperty epicName, MetaProperty epicLink)
+        public Jira(IJiraConnector connector, MetaProject project)
         {
             _connector = connector;
-            _epicName = epicName;
-            _epicLink = epicLink;
+            _projectMeta = project;
             InstanceUrl = _connector.BaseUrl;
         }
 
         public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
-            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, _epicName.Key), HttpStatusCode.Created);
+            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, _projectMeta.EpicName.Key), HttpStatusCode.Created);
             return baseItem;
         }
 
@@ -118,9 +116,14 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story"),
-               JqOperator.Equals(_epicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
+               JqOperator.Equals(_projectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", });
+            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", _projectMeta.StoryPoints.Key },
+                (fields, properties) =>
+                {
+                    if (properties.ContainsKey(_projectMeta.StoryPoints.Key))
+                        fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
+                });
         }
 
         public SearchResult GetEpicByKey(string reference)

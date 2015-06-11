@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using RestSharp.Serializers;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -21,6 +23,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
         CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey);
+
+        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
+            ;
     }
 
     public class JiraConnector : IJiraConnector
@@ -151,6 +156,29 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("fields", string.Join(",", properties));
 
             return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<SearchResult>);
+        }
+
+        public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
+        {
+            var request = new RestRequest(Method.GET)
+            {
+                Resource = "search",
+            };
+
+            var queryString = string.Join(" AND ", query.Select(item => item.ToString()));
+            request.AddQueryParameter("jql", queryString);
+            request.AddQueryParameter("fields", string.Join(",", properties));
+
+            var result = ExecuteWithReturn(request, HttpStatusCode.OK, JObject.Parse);
+            var issues = result.Property("issues").Value;
+            var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
+            foreach (var issue in issues)
+            {
+                var fields = issue["fields"].ToObject<Dictionary<string, object>>();
+                customProperties(searchResult.issues.Single(i => i.Key == issue["key"].ToString()).Fields, fields);
+            }
+
+            return searchResult;
         }
 
         public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)

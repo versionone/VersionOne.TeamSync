@@ -57,19 +57,11 @@ namespace VersionOne.TeamSync.Worker
             {
                 _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
-                try
-                {
-                    await CreateEpics(jiraInfo);
-                    await UpdateEpics(jiraInfo);
-                    await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
-                    await DeleteEpics(jiraInfo);
-					CreateStories(jiraInfo);
-                }
-                catch (Exception ex)
-                {
-                    _log.Error(ex.Message);
-                }
-
+                //await CreateEpics(jiraInfo);
+                //await UpdateEpics(jiraInfo);
+                //await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+                //await DeleteEpics(jiraInfo);
+                CreateStories(jiraInfo);
                 _log.Info("Ending sync...");
             });
         }

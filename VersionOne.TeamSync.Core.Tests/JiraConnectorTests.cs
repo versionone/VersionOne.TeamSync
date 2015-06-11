@@ -104,7 +104,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
 
-            var jira = new Jira(mockConnector.Object, null, null);
+            var jira = new Jira(mockConnector.Object, null);
 
             jira.SetIssueToToDo(_issueKey);
 
@@ -133,7 +133,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Jira(mockConnector.Object, null, null);
+            var jira = new Jira(mockConnector.Object, null);
 
             jira.GetEpicByKey(_issueKey);
         }
@@ -182,7 +182,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
 
-            var jira = new Jira(mockConnector.Object, null, null);
+            var jira = new Jira(mockConnector.Object, null);
 
             jira.SetIssueToResolved(_issueKey);
 
@@ -204,7 +204,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             _restResponse.Setup(x => x.StatusCode).Returns(toReturn);
             _restResponse.Setup(x => x.Content).Returns("{}");
-
+            _restResponse.Setup(x => x.Headers).Returns(new List<Parameter>());
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
@@ -273,6 +273,7 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         private Mock<IRestRequest> _restRequest;
         private Mock<IRestResponse> _restResponse;
+        private string _errorMessage;
 
         private JiraConnector.Connector.JiraConnector createConnect(HttpStatusCode toReturn)
         {
@@ -281,8 +282,9 @@ namespace VersionOne.TeamSync.Core.Tests
             _restResponse = new Mock<IRestResponse>();
 
             _restResponse.Setup(x => x.StatusCode).Returns(toReturn);
-            _restResponse.Setup(x => x.Content).Returns("{ empty }");
-
+            _errorMessage = "{\"errorMessages\":[\"Issue Does Not Exist\"],\"errors\":{}}";
+            _restResponse.Setup(x => x.Content).Returns(_errorMessage);
+            _restResponse.Setup(x => x.Headers).Returns(new List<Parameter>());
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
@@ -294,7 +296,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var connect = createConnect(HttpStatusCode.OK);
             var result = connect.ExecuteWithReturn(_restRequest.Object, HttpStatusCode.OK, s => s);
-            result.ShouldEqual("{ empty }");
+            result.ShouldEqual(_errorMessage);
         }
 
         [TestMethod]
@@ -302,7 +304,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var connect = createConnect(HttpStatusCode.BadRequest);
             var result = connect.ExecuteWithReturn(_restRequest.Object, HttpStatusCode.OK, s => s);
-            result.ShouldEqual("{ empty }");
+            result.ShouldEqual(_errorMessage);
         }
 
         [TestMethod]
@@ -352,20 +354,40 @@ namespace VersionOne.TeamSync.Core.Tests
 
             _jqOperators = new List<JqOperator>();
             _whereItems = new List<string>();
-            mockConnector.Setup(x => x.GetSearchResults(It.IsAny<IList<JqOperator>>(), It.IsAny<IEnumerable<string>>()))
-                .Callback<IList<JqOperator>, IEnumerable<string>>((list, enumerable) =>
+            mockConnector.Setup(x => x.GetSearchResults(It.IsAny<IList<JqOperator>>(), It.IsAny<IEnumerable<string>>(), It.IsAny<Action<Fields, Dictionary<string, object>>>()))
+                .Callback<IList<JqOperator>, IEnumerable<string>, Action<Fields, Dictionary<string, object>>>((list, enumerable, func) =>
                 {
                     _jqOperators.AddRange(list);
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Jira(mockConnector.Object, null, new MetaProperty(){Key = "customfield_10005", Property = _epicLink});
+            var jira = new Jira(mockConnector.Object, new MetaProject(){ 
+                IssueTypes = new List<MetaIssueType>
+                {
+                    new MetaIssueType()
+                    {
+                        Name = "Story", Fields = new MetaField(){ Properties = new List<MetaProperty>
+                        {
+                            new MetaProperty(){Key = "customfield_10002", Property = "Story Points", Schema = "anything"}
+                        } }
+                    },
+                    new MetaIssueType()
+                    {
+                        Name = "Epic", Fields = new MetaField(){ Properties = new List<MetaProperty>
+                        {
+                            new MetaProperty(){Key = "customfield_10005", Property = "Epic Link", Schema = "com.pyxis.greenhopper.jira:gh"},
+                            new MetaProperty(){Key = "customfield_10006", Property = "Epic Name", Schema = "com.pyxis.greenhopper.jira:gh"}
+                        } }
+                    }
+                }
+
+            });
 
             jira.GetStoriesWithNoEpicInProject(_projectKey);
         }
 
         [TestMethod]
-        public void should_have_two_jqOperators()
+        public void should_have_three_jqOperators()
         {
             _jqOperators.Count.ShouldEqual(3);
         }
@@ -394,7 +416,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_have_seven_query_items()
         {
-            _whereItems.Count.ShouldEqual(7);
+            _whereItems.Count.ShouldEqual(8);
             _whereItems.Contains("issuetype").ShouldBeTrue();
             _whereItems.Contains("summary").ShouldBeTrue();
             _whereItems.Contains("description").ShouldBeTrue();
@@ -402,6 +424,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _whereItems.Contains("status").ShouldBeTrue();
             _whereItems.Contains("key").ShouldBeTrue();
             _whereItems.Contains("self").ShouldBeTrue();
+            _whereItems.Contains("customfield_10002").ShouldBeTrue();
         }
     }
 
