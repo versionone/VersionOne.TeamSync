@@ -76,7 +76,8 @@ namespace VersionOne.TeamSync.Worker
                 if (existingStory == null)
                     await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
             });
-			
+        }
+
         public void ValidateConnections()
         {
             _log.Info("Starting V1 connection validation.");
