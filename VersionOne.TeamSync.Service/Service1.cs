@@ -29,10 +29,10 @@ namespace VersionOne.TeamSync.Service
         {
 			_serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
 
-            _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
-            _timer.Elapsed += OnTimedEvent;
-            _timer.Enabled = true;
-            startMessage();
+            //_timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
+            //_timer.Elapsed += OnTimedEvent;
+            //_timer.Enabled = true;
+            //startMessage();
             _worker.DoWork(_serviceDuration); //fire immediately at start
         }
 

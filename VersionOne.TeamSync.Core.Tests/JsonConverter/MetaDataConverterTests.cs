@@ -35,7 +35,7 @@ namespace VersionOne.TeamSync.Core.Tests.JsonConverter
             _result.Projects.Single()
                 .Epic
                 .Fields
-                .Properties.Count.ShouldEqual(15);
+                .Properties.Count.ShouldEqual(16);
         }
 
         [TestMethod]
@@ -56,6 +56,12 @@ namespace VersionOne.TeamSync.Core.Tests.JsonConverter
         public void epic_link_should_have_the_property_key()
         {
             _result.Projects.Single().EpicLink.Key.ShouldEqual("customfield_10005");
+        }
+
+        [TestMethod]
+        public void story_points_should_have_the_property_key()
+        {
+            _result.Projects.Single().StoryPoints.Key.ShouldEqual("customfield_10002");
         }
 
         [TestInitialize]

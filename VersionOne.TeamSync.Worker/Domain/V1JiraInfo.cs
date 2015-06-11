@@ -83,7 +83,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 projectMappings.ForEach(map =>
                 {
                     var projectMeta = createMeta.Projects.Single(project => project.Key == map.JiraProject);
-                    list.Add(new V1JiraInfo(map, new Jira(connector, projectMeta.EpicName, projectMeta.EpicLink)));
+                    list.Add(new V1JiraInfo(map, new Jira(connector, projectMeta)));
                 });
 
             }

@@ -29,22 +29,18 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Key { get; set; }
         public List<MetaIssueType> IssueTypes { get; set; }
 
-        public MetaIssueType Epic
-        {
+        public MetaIssueType Epic {
             get
             {
                 return IssueTypes.SingleOrDefault(x => x.Name == "Epic");
             }
         }
 
-        public List<MetaProperty> OfficialEpicCustomFields
-        {
-            get
-            {
-                return Epic.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema) && x.Schema.StartsWith("com.pyxis.greenhopper.jira:gh")).ToList();
-            }
-        }
+        public MetaIssueType Story { get { return IssueTypes.SingleOrDefault(x => x.Name == "Story"); } }
 
+        public List<MetaProperty> OfficialEpicCustomFields { get { return Epic.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema) && x.Schema.StartsWith("com.pyxis.greenhopper.jira:gh")).ToList(); } }
+        public List<MetaProperty> StoryCustomFields { get { return Story.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema)).ToList(); } }
+            
         public MetaProperty EpicName
         {
             get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Name"); }
@@ -52,6 +48,11 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public MetaProperty EpicLink
         {
             get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Link"); }
+        }
+
+        public MetaProperty StoryPoints
+        {
+            get { return StoryCustomFields.Single(x => x.Property == "Story Points"); }
         }
     }
 

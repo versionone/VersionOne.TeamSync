@@ -2,1225 +2,1371 @@
     "expand": "projects",
     "projects": [
         {
-            "avatarUrls": {
-                "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
-                "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
-                "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011",
-                "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011"
-            },
             "expand": "issuetypes",
+            "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101",
             "id": "10101",
-            "issuetypes": [
-                {
-                    "description": "A task that needs to be done.",
-                    "expand": "fields",
-                    "fields": {
-                        "assignee": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
-                            "hasDefaultValue": false,
-                            "name": "Assignee",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "assignee",
-                                "type": "user"
-                            }
-                        },
-                        "components": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Component/s",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "component",
-                                "system": "components",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10004": {
-                            "hasDefaultValue": false,
-                            "name": "Sprint",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
-                                "customId": 10004,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10005": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Link",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
-                                "customId": 10005,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10202": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Name",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
-                                "customId": 10202,
-                                "type": "string"
-                            }
-                        },
-                        "description": {
-                            "hasDefaultValue": false,
-                            "name": "Description",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "description",
-                                "type": "string"
-                            }
-                        },
-                        "fixVersions": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Fix Version/s",
-                            "operations": [
-                                "set",
-                                "add",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "version",
-                                "system": "fixVersions",
-                                "type": "array"
-                            }
-                        },
-                        "issuelinks": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true¤tIssueKey=null&query=",
-                            "hasDefaultValue": false,
-                            "name": "Linked Issues",
-                            "operations": [ "add" ],
-                            "required": false,
-                            "schema": {
-                                "items": "issuelinks",
-                                "system": "issuelinks",
-                                "type": "array"
-                            }
-                        },
-                        "issuetype": {
-                            "allowedValues": [
-                                {
-                                    "description": "A task that needs to be done.",
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/task.png",
-                                    "id": "3",
-                                    "name": "Task",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/3",
-                                    "subtask": false
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Issue Type",
-                            "operations": [ ],
-                            "required": true,
-                            "schema": {
-                                "system": "issuetype",
-                                "type": "issuetype"
-                            }
-                        },
-                        "labels": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
-                            "hasDefaultValue": false,
-                            "name": "Labels",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "string",
-                                "system": "labels",
-                                "type": "array"
-                            }
-                        },
-                        "priority": {
-                            "allowedValues": [
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
-                                    "id": "1",
-                                    "name": "Highest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
-                                    "id": "2",
-                                    "name": "High",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
-                                    "id": "3",
-                                    "name": "Medium",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
-                                    "id": "4",
-                                    "name": "Low",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
-                                    "id": "5",
-                                    "name": "Lowest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5"
-                                }
-                            ],
-                            "hasDefaultValue": true,
-                            "name": "Priority",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "priority",
-                                "type": "priority"
-                            }
-                        },
-                        "project": {
-                            "allowedValues": [
-                                {
-                                    "avatarUrls": {
-                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
-                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
-                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011",
-                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011"
-                                    },
-                                    "id": "10101",
-                                    "key": "AS",
-                                    "name": "Acey Scrum",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101"
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Project",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "project",
-                                "type": "project"
-                            }
-                        },
-                        "reporter": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
-                            "hasDefaultValue": false,
-                            "name": "Reporter",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "reporter",
-                                "type": "user"
-                            }
-                        },
-                        "summary": {
-                            "hasDefaultValue": false,
-                            "name": "Summary",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "summary",
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/task.png",
-                    "id": "3",
-                    "name": "Task",
-                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/3",
-                    "subtask": false
-                },
-                {
-                    "description": "The sub-task of the issue",
-                    "expand": "fields",
-                    "fields": {
-                        "assignee": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
-                            "hasDefaultValue": false,
-                            "name": "Assignee",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "assignee",
-                                "type": "user"
-                            }
-                        },
-                        "components": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Component/s",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "component",
-                                "system": "components",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10004": {
-                            "hasDefaultValue": false,
-                            "name": "Sprint",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
-                                "customId": 10004,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10005": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Link",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
-                                "customId": 10005,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10202": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Name",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
-                                "customId": 10202,
-                                "type": "string"
-                            }
-                        },
-                        "description": {
-                            "hasDefaultValue": false,
-                            "name": "Description",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "description",
-                                "type": "string"
-                            }
-                        },
-                        "fixVersions": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Fix Version/s",
-                            "operations": [
-                                "set",
-                                "add",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "version",
-                                "system": "fixVersions",
-                                "type": "array"
-                            }
-                        },
-                        "issuelinks": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true¤tIssueKey=null&query=",
-                            "hasDefaultValue": false,
-                            "name": "Linked Issues",
-                            "operations": [ "add" ],
-                            "required": false,
-                            "schema": {
-                                "items": "issuelinks",
-                                "system": "issuelinks",
-                                "type": "array"
-                            }
-                        },
-                        "issuetype": {
-                            "allowedValues": [
-                                {
-                                    "description": "The sub-task of the issue",
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/subtask_alternate.png",
-                                    "id": "5",
-                                    "name": "Sub-task",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/5",
-                                    "subtask": true
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Issue Type",
-                            "operations": [ ],
-                            "required": true,
-                            "schema": {
-                                "system": "issuetype",
-                                "type": "issuetype"
-                            }
-                        },
-                        "labels": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
-                            "hasDefaultValue": false,
-                            "name": "Labels",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "string",
-                                "system": "labels",
-                                "type": "array"
-                            }
-                        },
-                        "parent": {
-                            "hasDefaultValue": false,
-                            "name": "Parent",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "parent",
-                                "type": "issuelink"
-                            }
-                        },
-                        "priority": {
-                            "allowedValues": [
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
-                                    "id": "1",
-                                    "name": "Highest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
-                                    "id": "2",
-                                    "name": "High",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
-                                    "id": "3",
-                                    "name": "Medium",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
-                                    "id": "4",
-                                    "name": "Low",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
-                                    "id": "5",
-                                    "name": "Lowest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5"
-                                }
-                            ],
-                            "hasDefaultValue": true,
-                            "name": "Priority",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "priority",
-                                "type": "priority"
-                            }
-                        },
-                        "project": {
-                            "allowedValues": [
-                                {
-                                    "avatarUrls": {
-                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
-                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
-                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011",
-                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011"
-                                    },
-                                    "id": "10101",
-                                    "key": "AS",
-                                    "name": "Acey Scrum",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101"
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Project",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "project",
-                                "type": "project"
-                            }
-                        },
-                        "reporter": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
-                            "hasDefaultValue": false,
-                            "name": "Reporter",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "reporter",
-                                "type": "user"
-                            }
-                        },
-                        "summary": {
-                            "hasDefaultValue": false,
-                            "name": "Summary",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "summary",
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/subtask_alternate.png",
-                    "id": "5",
-                    "name": "Sub-task",
-                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/5",
-                    "subtask": true
-                },
-                {
-                    "description": "A problem which impairs or prevents the functions of the product.",
-                    "expand": "fields",
-                    "fields": {
-                        "assignee": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
-                            "hasDefaultValue": false,
-                            "name": "Assignee",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "assignee",
-                                "type": "user"
-                            }
-                        },
-                        "components": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Component/s",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "component",
-                                "system": "components",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10004": {
-                            "hasDefaultValue": false,
-                            "name": "Sprint",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
-                                "customId": 10004,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10005": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Link",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
-                                "customId": 10005,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "description": {
-                            "hasDefaultValue": false,
-                            "name": "Description",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "description",
-                                "type": "string"
-                            }
-                        },
-                        "environment": {
-                            "hasDefaultValue": false,
-                            "name": "Environment",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "environment",
-                                "type": "string"
-                            }
-                        },
-                        "fixVersions": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Fix Version/s",
-                            "operations": [
-                                "set",
-                                "add",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "version",
-                                "system": "fixVersions",
-                                "type": "array"
-                            }
-                        },
-                        "issuelinks": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true¤tIssueKey=null&query=",
-                            "hasDefaultValue": false,
-                            "name": "Linked Issues",
-                            "operations": [ "add" ],
-                            "required": false,
-                            "schema": {
-                                "items": "issuelinks",
-                                "system": "issuelinks",
-                                "type": "array"
-                            }
-                        },
-                        "issuetype": {
-                            "allowedValues": [
-                                {
-                                    "description": "A problem which impairs or prevents the functions of the product.",
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/bug.png",
-                                    "id": "1",
-                                    "name": "Bug",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/1",
-                                    "subtask": false
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Issue Type",
-                            "operations": [ ],
-                            "required": true,
-                            "schema": {
-                                "system": "issuetype",
-                                "type": "issuetype"
-                            }
-                        },
-                        "labels": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
-                            "hasDefaultValue": false,
-                            "name": "Labels",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "string",
-                                "system": "labels",
-                                "type": "array"
-                            }
-                        },
-                        "priority": {
-                            "allowedValues": [
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
-                                    "id": "1",
-                                    "name": "Highest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
-                                    "id": "2",
-                                    "name": "High",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
-                                    "id": "3",
-                                    "name": "Medium",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
-                                    "id": "4",
-                                    "name": "Low",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
-                                    "id": "5",
-                                    "name": "Lowest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5"
-                                }
-                            ],
-                            "hasDefaultValue": true,
-                            "name": "Priority",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "priority",
-                                "type": "priority"
-                            }
-                        },
-                        "project": {
-                            "allowedValues": [
-                                {
-                                    "avatarUrls": {
-                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
-                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
-                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011",
-                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011"
-                                    },
-                                    "id": "10101",
-                                    "key": "AS",
-                                    "name": "Acey Scrum",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101"
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Project",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "project",
-                                "type": "project"
-                            }
-                        },
-                        "reporter": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
-                            "hasDefaultValue": false,
-                            "name": "Reporter",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "reporter",
-                                "type": "user"
-                            }
-                        },
-                        "summary": {
-                            "hasDefaultValue": false,
-                            "name": "Summary",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "summary",
-                                "type": "string"
-                            }
-                        },
-                        "versions": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Affects Version/s",
-                            "operations": [
-                                "set",
-                                "add",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "version",
-                                "system": "versions",
-                                "type": "array"
-                            }
-                        }
-                    },
-                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/bug.png",
-                    "id": "1",
-                    "name": "Bug",
-                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/1",
-                    "subtask": false
-                },
-                {
-                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a big user story that needs to be broken down.",
-                    "expand": "fields",
-                    "fields": {
-                        "assignee": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
-                            "hasDefaultValue": false,
-                            "name": "Assignee",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "assignee",
-                                "type": "user"
-                            }
-                        },
-                        "components": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Component/s",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "component",
-                                "system": "components",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10004": {
-                            "hasDefaultValue": false,
-                            "name": "Sprint",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
-                                "customId": 10004,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10005": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Link",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
-                                "customId": 10005,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10006": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Name",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-epic-label",
-                                "customId": 10006,
-                                "type": "string"
-                            }
-                        },
-                        "customfield_10202": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Name",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
-                                "customId": 10202,
-                                "type": "string"
-                            }
-                        },
-                        "description": {
-                            "hasDefaultValue": false,
-                            "name": "Description",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "description",
-                                "type": "string"
-                            }
-                        },
-                        "fixVersions": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Fix Version/s",
-                            "operations": [
-                                "set",
-                                "add",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "version",
-                                "system": "fixVersions",
-                                "type": "array"
-                            }
-                        },
-                        "issuelinks": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true¤tIssueKey=null&query=",
-                            "hasDefaultValue": false,
-                            "name": "Linked Issues",
-                            "operations": [ "add" ],
-                            "required": false,
-                            "schema": {
-                                "items": "issuelinks",
-                                "system": "issuelinks",
-                                "type": "array"
-                            }
-                        },
-                        "issuetype": {
-                            "allowedValues": [
-                                {
-                                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a big user story that needs to be broken down.",
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_epic.png",
-                                    "id": "10000",
-                                    "name": "Epic",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10000",
-                                    "subtask": false
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Issue Type",
-                            "operations": [ ],
-                            "required": true,
-                            "schema": {
-                                "system": "issuetype",
-                                "type": "issuetype"
-                            }
-                        },
-                        "labels": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
-                            "hasDefaultValue": false,
-                            "name": "Labels",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "string",
-                                "system": "labels",
-                                "type": "array"
-                            }
-                        },
-                        "priority": {
-                            "allowedValues": [
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
-                                    "id": "1",
-                                    "name": "Highest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
-                                    "id": "2",
-                                    "name": "High",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
-                                    "id": "3",
-                                    "name": "Medium",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
-                                    "id": "4",
-                                    "name": "Low",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
-                                    "id": "5",
-                                    "name": "Lowest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5"
-                                }
-                            ],
-                            "hasDefaultValue": true,
-                            "name": "Priority",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "priority",
-                                "type": "priority"
-                            }
-                        },
-                        "project": {
-                            "allowedValues": [
-                                {
-                                    "avatarUrls": {
-                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
-                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
-                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011",
-                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011"
-                                    },
-                                    "id": "10101",
-                                    "key": "AS",
-                                    "name": "Acey Scrum",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101"
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Project",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "project",
-                                "type": "project"
-                            }
-                        },
-                        "reporter": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
-                            "hasDefaultValue": false,
-                            "name": "Reporter",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "reporter",
-                                "type": "user"
-                            }
-                        },
-                        "summary": {
-                            "hasDefaultValue": false,
-                            "name": "Summary",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "summary",
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_epic.png",
-                    "id": "10000",
-                    "name": "Epic",
-                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10000",
-                    "subtask": false
-                },
-                {
-                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a user story.",
-                    "expand": "fields",
-                    "fields": {
-                        "assignee": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
-                            "hasDefaultValue": false,
-                            "name": "Assignee",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "assignee",
-                                "type": "user"
-                            }
-                        },
-                        "components": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Component/s",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "component",
-                                "system": "components",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10004": {
-                            "hasDefaultValue": false,
-                            "name": "Sprint",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
-                                "customId": 10004,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10005": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Link",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
-                                "customId": 10005,
-                                "items": "string",
-                                "type": "array"
-                            }
-                        },
-                        "customfield_10202": {
-                            "hasDefaultValue": false,
-                            "name": "Epic Name",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
-                                "customId": 10202,
-                                "type": "string"
-                            }
-                        },
-                        "description": {
-                            "hasDefaultValue": false,
-                            "name": "Description",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "description",
-                                "type": "string"
-                            }
-                        },
-                        "fixVersions": {
-                            "allowedValues": [ ],
-                            "hasDefaultValue": false,
-                            "name": "Fix Version/s",
-                            "operations": [
-                                "set",
-                                "add",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "version",
-                                "system": "fixVersions",
-                                "type": "array"
-                            }
-                        },
-                        "issuelinks": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true¤tIssueKey=null&query=",
-                            "hasDefaultValue": false,
-                            "name": "Linked Issues",
-                            "operations": [ "add" ],
-                            "required": false,
-                            "schema": {
-                                "items": "issuelinks",
-                                "system": "issuelinks",
-                                "type": "array"
-                            }
-                        },
-                        "issuetype": {
-                            "allowedValues": [
-                                {
-                                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a user story.",
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_story.png",
-                                    "id": "10001",
-                                    "name": "Story",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10001",
-                                    "subtask": false
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Issue Type",
-                            "operations": [ ],
-                            "required": true,
-                            "schema": {
-                                "system": "issuetype",
-                                "type": "issuetype"
-                            }
-                        },
-                        "labels": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
-                            "hasDefaultValue": false,
-                            "name": "Labels",
-                            "operations": [
-                                "add",
-                                "set",
-                                "remove"
-                            ],
-                            "required": false,
-                            "schema": {
-                                "items": "string",
-                                "system": "labels",
-                                "type": "array"
-                            }
-                        },
-                        "priority": {
-                            "allowedValues": [
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
-                                    "id": "1",
-                                    "name": "Highest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
-                                    "id": "2",
-                                    "name": "High",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
-                                    "id": "3",
-                                    "name": "Medium",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
-                                    "id": "4",
-                                    "name": "Low",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4"
-                                },
-                                {
-                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
-                                    "id": "5",
-                                    "name": "Lowest",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5"
-                                }
-                            ],
-                            "hasDefaultValue": true,
-                            "name": "Priority",
-                            "operations": [ "set" ],
-                            "required": false,
-                            "schema": {
-                                "system": "priority",
-                                "type": "priority"
-                            }
-                        },
-                        "project": {
-                            "allowedValues": [
-                                {
-                                    "avatarUrls": {
-                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
-                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
-                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011",
-                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011"
-                                    },
-                                    "id": "10101",
-                                    "key": "AS",
-                                    "name": "Acey Scrum",
-                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101"
-                                }
-                            ],
-                            "hasDefaultValue": false,
-                            "name": "Project",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "project",
-                                "type": "project"
-                            }
-                        },
-                        "reporter": {
-                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
-                            "hasDefaultValue": false,
-                            "name": "Reporter",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "reporter",
-                                "type": "user"
-                            }
-                        },
-                        "summary": {
-                            "hasDefaultValue": false,
-                            "name": "Summary",
-                            "operations": [ "set" ],
-                            "required": true,
-                            "schema": {
-                                "system": "summary",
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_story.png",
-                    "id": "10001",
-                    "name": "Story",
-                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10001",
-                    "subtask": false
-                }
-            ],
             "key": "AS",
             "name": "Acey Scrum",
-            "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101"
+            "avatarUrls": {
+                "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011",
+                "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
+                "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
+                "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011"
+            },
+            "issuetypes": [
+                {
+                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/3",
+                    "id": "3",
+                    "description": "A task that needs to be done.",
+                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/task.png",
+                    "name": "Task",
+                    "subtask": false,
+                    "expand": "fields",
+                    "fields": {
+                        "summary": {
+                            "required": true,
+                            "schema": {
+                                "type": "string",
+                                "system": "summary"
+                            },
+                            "name": "Summary",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuetype": {
+                            "required": true,
+                            "schema": {
+                                "type": "issuetype",
+                                "system": "issuetype"
+                            },
+                            "name": "Issue Type",
+                            "hasDefaultValue": false,
+                            "operations": [
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/3",
+                                    "id": "3",
+                                    "description": "A task that needs to be done.",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/task.png",
+                                    "name": "Task",
+                                    "subtask": false
+                                }
+                            ]
+                        },
+                        "components": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "component",
+                                "system": "components"
+                            },
+                            "name": "Component/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "description": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "system": "description"
+                            },
+                            "name": "Description",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "project": {
+                            "required": true,
+                            "schema": {
+                                "type": "project",
+                                "system": "project"
+                            },
+                            "name": "Project",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101",
+                                    "id": "10101",
+                                    "key": "AS",
+                                    "name": "Acey Scrum",
+                                    "avatarUrls": {
+                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011",
+                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
+                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
+                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011"
+                                    }
+                                }
+                            ]
+                        },
+                        "reporter": {
+                            "required": true,
+                            "schema": {
+                                "type": "user",
+                                "system": "reporter"
+                            },
+                            "name": "Reporter",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "fixVersions": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "version",
+                                "system": "fixVersions"
+                            },
+                            "name": "Fix Version/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set",
+                                "add",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "priority": {
+                            "required": false,
+                            "schema": {
+                                "type": "priority",
+                                "system": "priority"
+                            },
+                            "name": "Priority",
+                            "hasDefaultValue": true,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
+                                    "name": "Highest",
+                                    "id": "1"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
+                                    "name": "High",
+                                    "id": "2"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
+                                    "name": "Medium",
+                                    "id": "3"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
+                                    "name": "Low",
+                                    "id": "4"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
+                                    "name": "Lowest",
+                                    "id": "5"
+                                }
+                            ]
+                        },
+                        "labels": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "system": "labels"
+                            },
+                            "name": "Labels",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ]
+                        },
+                        "customfield_10004": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
+                                "customId": 10004
+                            },
+                            "name": "Sprint",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10202": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+                                "customId": 10202
+                            },
+                            "name": "Epic Name",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10005": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+                                "customId": 10005
+                            },
+                            "name": "Epic Link",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuelinks": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "issuelinks",
+                                "system": "issuelinks"
+                            },
+                            "name": "Linked Issues",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add"
+                            ]
+                        },
+                        "assignee": {
+                            "required": false,
+                            "schema": {
+                                "type": "user",
+                                "system": "assignee"
+                            },
+                            "name": "Assignee",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/5",
+                    "id": "5",
+                    "description": "The sub-task of the issue",
+                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/subtask_alternate.png",
+                    "name": "Sub-task",
+                    "subtask": true,
+                    "expand": "fields",
+                    "fields": {
+                        "summary": {
+                            "required": true,
+                            "schema": {
+                                "type": "string",
+                                "system": "summary"
+                            },
+                            "name": "Summary",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuetype": {
+                            "required": true,
+                            "schema": {
+                                "type": "issuetype",
+                                "system": "issuetype"
+                            },
+                            "name": "Issue Type",
+                            "hasDefaultValue": false,
+                            "operations": [
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/5",
+                                    "id": "5",
+                                    "description": "The sub-task of the issue",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/subtask_alternate.png",
+                                    "name": "Sub-task",
+                                    "subtask": true
+                                }
+                            ]
+                        },
+                        "parent": {
+                            "required": true,
+                            "schema": {
+                                "type": "issuelink",
+                                "system": "parent"
+                            },
+                            "name": "Parent",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "components": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "component",
+                                "system": "components"
+                            },
+                            "name": "Component/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "description": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "system": "description"
+                            },
+                            "name": "Description",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "project": {
+                            "required": true,
+                            "schema": {
+                                "type": "project",
+                                "system": "project"
+                            },
+                            "name": "Project",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101",
+                                    "id": "10101",
+                                    "key": "AS",
+                                    "name": "Acey Scrum",
+                                    "avatarUrls": {
+                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011",
+                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
+                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
+                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011"
+                                    }
+                                }
+                            ]
+                        },
+                        "reporter": {
+                            "required": true,
+                            "schema": {
+                                "type": "user",
+                                "system": "reporter"
+                            },
+                            "name": "Reporter",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "fixVersions": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "version",
+                                "system": "fixVersions"
+                            },
+                            "name": "Fix Version/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set",
+                                "add",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "priority": {
+                            "required": false,
+                            "schema": {
+                                "type": "priority",
+                                "system": "priority"
+                            },
+                            "name": "Priority",
+                            "hasDefaultValue": true,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
+                                    "name": "Highest",
+                                    "id": "1"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
+                                    "name": "High",
+                                    "id": "2"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
+                                    "name": "Medium",
+                                    "id": "3"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
+                                    "name": "Low",
+                                    "id": "4"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
+                                    "name": "Lowest",
+                                    "id": "5"
+                                }
+                            ]
+                        },
+                        "labels": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "system": "labels"
+                            },
+                            "name": "Labels",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ]
+                        },
+                        "customfield_10004": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
+                                "customId": 10004
+                            },
+                            "name": "Sprint",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10202": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+                                "customId": 10202
+                            },
+                            "name": "Epic Name",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10005": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+                                "customId": 10005
+                            },
+                            "name": "Epic Link",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuelinks": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "issuelinks",
+                                "system": "issuelinks"
+                            },
+                            "name": "Linked Issues",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add"
+                            ]
+                        },
+                        "assignee": {
+                            "required": false,
+                            "schema": {
+                                "type": "user",
+                                "system": "assignee"
+                            },
+                            "name": "Assignee",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/1",
+                    "id": "1",
+                    "description": "A problem which impairs or prevents the functions of the product.",
+                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/bug.png",
+                    "name": "Bug",
+                    "subtask": false,
+                    "expand": "fields",
+                    "fields": {
+                        "summary": {
+                            "required": true,
+                            "schema": {
+                                "type": "string",
+                                "system": "summary"
+                            },
+                            "name": "Summary",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuetype": {
+                            "required": true,
+                            "schema": {
+                                "type": "issuetype",
+                                "system": "issuetype"
+                            },
+                            "name": "Issue Type",
+                            "hasDefaultValue": false,
+                            "operations": [
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/1",
+                                    "id": "1",
+                                    "description": "A problem which impairs or prevents the functions of the product.",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/issuetypes/bug.png",
+                                    "name": "Bug",
+                                    "subtask": false
+                                }
+                            ]
+                        },
+                        "components": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "component",
+                                "system": "components"
+                            },
+                            "name": "Component/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "description": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "system": "description"
+                            },
+                            "name": "Description",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "project": {
+                            "required": true,
+                            "schema": {
+                                "type": "project",
+                                "system": "project"
+                            },
+                            "name": "Project",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101",
+                                    "id": "10101",
+                                    "key": "AS",
+                                    "name": "Acey Scrum",
+                                    "avatarUrls": {
+                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011",
+                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
+                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
+                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011"
+                                    }
+                                }
+                            ]
+                        },
+                        "reporter": {
+                            "required": true,
+                            "schema": {
+                                "type": "user",
+                                "system": "reporter"
+                            },
+                            "name": "Reporter",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "fixVersions": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "version",
+                                "system": "fixVersions"
+                            },
+                            "name": "Fix Version/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set",
+                                "add",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "priority": {
+                            "required": false,
+                            "schema": {
+                                "type": "priority",
+                                "system": "priority"
+                            },
+                            "name": "Priority",
+                            "hasDefaultValue": true,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
+                                    "name": "Highest",
+                                    "id": "1"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
+                                    "name": "High",
+                                    "id": "2"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
+                                    "name": "Medium",
+                                    "id": "3"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
+                                    "name": "Low",
+                                    "id": "4"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
+                                    "name": "Lowest",
+                                    "id": "5"
+                                }
+                            ]
+                        },
+                        "labels": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "system": "labels"
+                            },
+                            "name": "Labels",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ]
+                        },
+                        "customfield_10004": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
+                                "customId": 10004
+                            },
+                            "name": "Sprint",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10005": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+                                "customId": 10005
+                            },
+                            "name": "Epic Link",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "environment": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "system": "environment"
+                            },
+                            "name": "Environment",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "versions": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "version",
+                                "system": "versions"
+                            },
+                            "name": "Affects Version/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set",
+                                "add",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "issuelinks": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "issuelinks",
+                                "system": "issuelinks"
+                            },
+                            "name": "Linked Issues",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add"
+                            ]
+                        },
+                        "assignee": {
+                            "required": false,
+                            "schema": {
+                                "type": "user",
+                                "system": "assignee"
+                            },
+                            "name": "Assignee",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10000",
+                    "id": "10000",
+                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a big user story that needs to be broken down.",
+                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_epic.png",
+                    "name": "Epic",
+                    "subtask": false,
+                    "expand": "fields",
+                    "fields": {
+                        "summary": {
+                            "required": true,
+                            "schema": {
+                                "type": "string",
+                                "system": "summary"
+                            },
+                            "name": "Summary",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuetype": {
+                            "required": true,
+                            "schema": {
+                                "type": "issuetype",
+                                "system": "issuetype"
+                            },
+                            "name": "Issue Type",
+                            "hasDefaultValue": false,
+                            "operations": [
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10000",
+                                    "id": "10000",
+                                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a big user story that needs to be broken down.",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_epic.png",
+                                    "name": "Epic",
+                                    "subtask": false
+                                }
+                            ]
+                        },
+                        "components": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "component",
+                                "system": "components"
+                            },
+                            "name": "Component/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "description": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "system": "description"
+                            },
+                            "name": "Description",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "project": {
+                            "required": true,
+                            "schema": {
+                                "type": "project",
+                                "system": "project"
+                            },
+                            "name": "Project",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101",
+                                    "id": "10101",
+                                    "key": "AS",
+                                    "name": "Acey Scrum",
+                                    "avatarUrls": {
+                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011",
+                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
+                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
+                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011"
+                                    }
+                                }
+                            ]
+                        },
+                        "reporter": {
+                            "required": true,
+                            "schema": {
+                                "type": "user",
+                                "system": "reporter"
+                            },
+                            "name": "Reporter",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "fixVersions": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "version",
+                                "system": "fixVersions"
+                            },
+                            "name": "Fix Version/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set",
+                                "add",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "priority": {
+                            "required": false,
+                            "schema": {
+                                "type": "priority",
+                                "system": "priority"
+                            },
+                            "name": "Priority",
+                            "hasDefaultValue": true,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
+                                    "name": "Highest",
+                                    "id": "1"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
+                                    "name": "High",
+                                    "id": "2"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
+                                    "name": "Medium",
+                                    "id": "3"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
+                                    "name": "Low",
+                                    "id": "4"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
+                                    "name": "Lowest",
+                                    "id": "5"
+                                }
+                            ]
+                        },
+                        "customfield_10002": {
+                            "required": false,
+                            "schema": {
+                                "type": "number",
+                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float",
+                                "customId": 10002
+                            },
+                            "name": "Story Points",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "labels": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "system": "labels"
+                            },
+                            "name": "Labels",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ]
+                        },
+                        "customfield_10004": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
+                                "customId": 10004
+                            },
+                            "name": "Sprint",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10202": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+                                "customId": 10202
+                            },
+                            "name": "Epic Name",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10005": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+                                "customId": 10005
+                            },
+                            "name": "Epic Link",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10006": {
+                            "required": true,
+                            "schema": {
+                                "type": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-epic-label",
+                                "customId": 10006
+                            },
+                            "name": "Epic Name",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuelinks": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "issuelinks",
+                                "system": "issuelinks"
+                            },
+                            "name": "Linked Issues",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add"
+                            ]
+                        },
+                        "assignee": {
+                            "required": false,
+                            "schema": {
+                                "type": "user",
+                                "system": "assignee"
+                            },
+                            "name": "Assignee",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10001",
+                    "id": "10001",
+                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a user story.",
+                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_story.png",
+                    "name": "Story",
+                    "subtask": false,
+                    "expand": "fields",
+                    "fields": {
+                        "summary": {
+                            "required": true,
+                            "schema": {
+                                "type": "string",
+                                "system": "summary"
+                            },
+                            "name": "Summary",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuetype": {
+                            "required": true,
+                            "schema": {
+                                "type": "issuetype",
+                                "system": "issuetype"
+                            },
+                            "name": "Issue Type",
+                            "hasDefaultValue": false,
+                            "operations": [
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/issuetype/10001",
+                                    "id": "10001",
+                                    "description": "Created by JIRA Agile - do not edit or delete. Issue type for a user story.",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/ico_story.png",
+                                    "name": "Story",
+                                    "subtask": false
+                                }
+                            ]
+                        },
+                        "components": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "component",
+                                "system": "components"
+                            },
+                            "name": "Component/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "description": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "system": "description"
+                            },
+                            "name": "Description",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "project": {
+                            "required": true,
+                            "schema": {
+                                "type": "project",
+                                "system": "project"
+                            },
+                            "name": "Project",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/project/10101",
+                                    "id": "10101",
+                                    "key": "AS",
+                                    "name": "Acey Scrum",
+                                    "avatarUrls": {
+                                        "48x48": "http://jira-6.cloudapp.net:8080/secure/projectavatar?avatarId=10011",
+                                        "24x24": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=small&avatarId=10011",
+                                        "16x16": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=xsmall&avatarId=10011",
+                                        "32x32": "http://jira-6.cloudapp.net:8080/secure/projectavatar?size=medium&avatarId=10011"
+                                    }
+                                }
+                            ]
+                        },
+                        "reporter": {
+                            "required": true,
+                            "schema": {
+                                "type": "user",
+                                "system": "reporter"
+                            },
+                            "name": "Reporter",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/search?username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "fixVersions": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "version",
+                                "system": "fixVersions"
+                            },
+                            "name": "Fix Version/s",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set",
+                                "add",
+                                "remove"
+                            ],
+                            "allowedValues": [
+                            ]
+                        },
+                        "priority": {
+                            "required": false,
+                            "schema": {
+                                "type": "priority",
+                                "system": "priority"
+                            },
+                            "name": "Priority",
+                            "hasDefaultValue": true,
+                            "operations": [
+                                "set"
+                            ],
+                            "allowedValues": [
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/1",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/highest.png",
+                                    "name": "Highest",
+                                    "id": "1"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/2",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/high.png",
+                                    "name": "High",
+                                    "id": "2"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/3",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/medium.png",
+                                    "name": "Medium",
+                                    "id": "3"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/4",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/low.png",
+                                    "name": "Low",
+                                    "id": "4"
+                                },
+                                {
+                                    "self": "http://jira-6.cloudapp.net:8080/rest/api/2/priority/5",
+                                    "iconUrl": "http://jira-6.cloudapp.net:8080/images/icons/priorities/lowest.png",
+                                    "name": "Lowest",
+                                    "id": "5"
+                                }
+                            ]
+                        },
+                        "customfield_10002": {
+                            "required": false,
+                            "schema": {
+                                "type": "number",
+                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:float",
+                                "customId": 10002
+                            },
+                            "name": "Story Points",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "labels": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "system": "labels"
+                            },
+                            "name": "Labels",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/1.0/labels/suggest?query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add",
+                                "set",
+                                "remove"
+                            ]
+                        },
+                        "customfield_10004": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-sprint",
+                                "customId": 10004
+                            },
+                            "name": "Sprint",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10202": {
+                            "required": false,
+                            "schema": {
+                                "type": "string",
+                                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
+                                "customId": 10202
+                            },
+                            "name": "Epic Name",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "customfield_10005": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "string",
+                                "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+                                "customId": 10005
+                            },
+                            "name": "Epic Link",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        },
+                        "issuelinks": {
+                            "required": false,
+                            "schema": {
+                                "type": "array",
+                                "items": "issuelinks",
+                                "system": "issuelinks"
+                            },
+                            "name": "Linked Issues",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "add"
+                            ]
+                        },
+                        "assignee": {
+                            "required": false,
+                            "schema": {
+                                "type": "user",
+                                "system": "assignee"
+                            },
+                            "name": "Assignee",
+                            "autoCompleteUrl": "http://jira-6.cloudapp.net:8080/rest/api/latest/user/assignable/search?issueKey=null&username=",
+                            "hasDefaultValue": false,
+                            "operations": [
+                                "set"
+                            ]
+                        }
+                    }
+                }
+            ]
         }
     ]
 }
