@@ -300,14 +300,6 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public void when_content_type_is_a_bad_request_should_return_the_func()
-        {
-            var connect = createConnect(HttpStatusCode.BadRequest);
-            var result = connect.ExecuteWithReturn(_restRequest.Object, HttpStatusCode.OK, s => s);
-            result.ShouldEqual(_errorMessage);
-        }
-
-        [TestMethod]
         [ExpectedException(typeof(JiraLoginException))]
         public void when_the_content_type_is_not_authorized_should_throw_a_jira_exception()
         {
@@ -361,7 +353,8 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Jira(mockConnector.Object, new MetaProject(){ 
+            var jira = new Jira(mockConnector.Object, new MetaProject()
+            {
                 IssueTypes = new List<MetaIssueType>
                 {
                     new MetaIssueType()

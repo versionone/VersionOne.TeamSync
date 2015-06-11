@@ -11,6 +11,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
     {
         private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-64.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
 
+        [Ignore]
         [TestMethod]
         public void CreateEpicTest()
         {
@@ -29,6 +30,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
             _connector.Post(JiraResource.Issue.Value, epic, HttpStatusCode.Created);
         }
 
+        [Ignore]
         [TestMethod]
         public void UpdateEpicTest()
         {
@@ -47,6 +49,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
             _connector.Put(JiraResource.Issue.Value + "/{issueIdOrKey}", epicUpdate, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-6"));
         }
 
+        [Ignore]
         [TestMethod]
         public void ResolveEpicTest()
         {
@@ -59,6 +62,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
             _connector.Post(JiraResource.Issue.Value + "/{issueIdOrKey}/transitions", transition, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-6"));
         }
 
+        [Ignore]
         [TestMethod]
         public void DeleteEpicTest()
         {
