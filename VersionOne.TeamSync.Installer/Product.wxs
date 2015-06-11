@@ -5,8 +5,19 @@
 
   <Product Id="*" Name="$(var.Name)" Language="1033" Version="$(var.Version)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)" >
 
-    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <Package Id="*" 
+             Description="$(var.Name)"
+             InstallerVersion="200" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             InstallPrivileges="elevated"/>
+
+    <!--
+    <Condition Message="You must be an administrator to install this product.">Privileged</Condition>
+    -->
+    
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
     <MediaTemplate EmbedCab="yes"/>
 
     <!-- Installs to C:\Program Files (x86)\VersionOne TeamSync\ directory. -->
@@ -16,7 +27,7 @@
       </Directory>
     </Directory>
 
-    <!-- Files included in the installation. -->
+    <!-- Components included in the installation. -->
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <Component Id="HtmlAgilityPack.dll">
         <File Source="$(var.SourceDir)\HtmlAgilityPack.dll" />
@@ -41,7 +52,7 @@
       </Component>
       <Component Id="VersionOne.TeamSync.Service.exe">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.Service.exe" />
-        
+
         <!-- Installs the TeamSync service. -->
         <ServiceInstall Id="ServiceInstaller"
                             Type="ownProcess"
@@ -51,7 +62,7 @@
                             Start="auto"
                             ErrorControl="normal" />
         <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="VersionOne.TeamSync.Service" Wait="yes" />
-        
+
       </Component>
       <Component Id="VersionOne.TeamSync.Service.exe.config">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.Service.exe.config" />
@@ -73,9 +84,17 @@
       </Component>
     </ComponentGroup>
 
+    <!-- Create registry entry to auto-launch system tray. -->
+    <Component Id="RegistryEntries" Directory="INSTALLFOLDER">
+      <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Action="createAndRemoveOnUninstall">
+        <RegistryValue Type="string" Name="VersionOne TeamSync System Tray" Value="[INSTALLFOLDER]VersionOne.TeamSync.SystemTray.exe"/>
+      </RegistryKey>
+    </Component>
+    
     <!-- Single feature application. -->
     <Feature Id="ProductFeature" Title="VersionOne.TeamSync.Installer" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="RegistryEntries" />
     </Feature>
 
     <!-- Displays installation path in WiX installer UI. -->
@@ -84,6 +103,10 @@
 
     <!-- Overrides the default WiX license file. -->
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+    <!-- Overrides the default WiX UI graphics. -->
+    <WixVariable Id="WixUIBannerBmp" Value="infolco.png" />
+    <WixVariable Id="WixUIDialogBmp" Value="dialogBMP.png" />
 
     <!-- Icon used in Control Panel's Add/Remove Programs list. -->
     <Icon Id="icon.ico" SourceFile="$(var.SourceDir)\v1-icon-48x48.ico" />
@@ -94,15 +117,21 @@
     <Condition Message="This application requires .NET Framework 4.5.1. Please install the correct .NET Framework version then run this installer again.">
       <![CDATA[Installed OR NETFRAMEWORK45 >= "#378675"]]>
     </Condition>
-    
+
     <!-- Auto-launch the system tray application. -->
-    <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
-    <Property Id="WixShellExecTarget" Value="[#VersionOne.TeamSync.SystemTray.exe]" />
-    <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
-    <InstallExecuteSequence>
-      <Custom Action='LaunchApplication' After='InstallFinalize'/>
-    </InstallExecuteSequence>
-    
+    <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
+    <Property Id="WixShellExecTarget" Value="[#VersionOne.TeamSync.SystemTray.exe]"/>
+    <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes"/>
+    <UI>
+      <Publish
+        Dialog="ExitDialog"
+        Control="Finish"
+        Event="DoAction"
+        Value="LaunchApplication">
+        NOT Installed
+      </Publish>
+    </UI>
+
   </Product>
 
 </Wix>
