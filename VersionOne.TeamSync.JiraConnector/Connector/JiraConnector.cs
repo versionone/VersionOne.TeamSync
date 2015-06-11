@@ -192,7 +192,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                 return new JiraLoginException();
 
             if (response.Headers.Any(h => h.Name.Equals("X-Seraph-LoginReason") || h.Value.Equals("AUTHENTICATION_DENIED")))
-                return new JiraLoginException("JIRA rejected the login without even checking the password, which most commonly indicates that JIRA's CAPTCHA feature has been triggered");
+                return new JiraLoginException("Authentication to JIRA was denied. This may be be a result of the CAPTCHA feature being triggered.");
 
             return new JiraException(response.StatusDescription, new Exception(response.Content));
         }
