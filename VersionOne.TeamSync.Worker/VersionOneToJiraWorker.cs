@@ -81,10 +81,11 @@ namespace VersionOne.TeamSync.Worker
         {
             _log.Info("Starting V1 connection validation.");
             _v1.ValidateConnection();
-            //foreach (var jiraInstance in _jiraInstances)
-            //{
-                
-            //}
+            foreach (var jiraInstance in _jiraInstances)
+            {
+                _log.InfoFormat("Starting Jira connection validation ({0}).", jiraInstance.JiraInstance.InstanceUrl);
+                jiraInstance.ValidateConnection();
+            }
         }
 
         public async Task DeleteEpics(V1JiraInfo jiraInfo)

@@ -148,9 +148,20 @@ namespace VersionOne.TeamSync.V1Connector
         {
             using (var client = HttpInstance)
             {
-                var endpoint = GetResourceUrl("Member") + "?sel=Member.IsSelf";
-                var response = client.GetAsync(endpoint).Result;
-                
+                HttpResponseMessage response;
+                try
+                {
+                    var endpoint = GetResourceUrl("Member") + "?sel=Member.IsSelf";
+                    response = client.GetAsync(endpoint).Result;
+                }
+                catch (Exception)
+                {
+                    throw new ConfigurationErrorsException("Could not connecto to V1. Bad url.");
+                }
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    throw new ConfigurationErrorsException("Could not connecto to V1. Bad credentials.");
+
                 return response.IsSuccessStatusCode;
             }
         }
@@ -183,7 +194,7 @@ namespace VersionOne.TeamSync.V1Connector
 
             return result;
         }
-        
+
         internal void SetUpstreamUserAgent(string userAgent)
         {
             _upstreamUserAgent = userAgent;

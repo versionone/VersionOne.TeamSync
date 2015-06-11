@@ -41,8 +41,15 @@ namespace VersionOne.TeamSync.Service
             catch (Exception e)
             {
                 _log.Error(e);
+                _log.Error("Errors occurred during connection validations. Service will be stopped.");
                 OnStop();
             }
+
+            _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
+            _timer.Elapsed += OnTimedEvent;
+            _timer.Enabled = true;
+            startMessage();
+            _worker.DoWork(); //fire immediately at start
         }
 
         protected override void OnStop()

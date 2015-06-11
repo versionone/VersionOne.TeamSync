@@ -146,14 +146,22 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 _log.InfoFormat("Connection attempt {0}.", i + 1);
 
-                if (!_connector.IsConnectionValid())
+                try
                 {
-                    System.Threading.Thread.Sleep(5000);
+                    if (!_connector.IsConnectionValid())
+                    {
+                        System.Threading.Thread.Sleep(5000);
+                    }
+                    else
+                    {
+                        _log.Info("V1 connection verified.");
+                        return;
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    _log.Info("V1 connection verified.");
-                    return;
+                    _log.Error(e.Message);
+                    break;
                 }
             }
 

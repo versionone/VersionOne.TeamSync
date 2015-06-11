@@ -20,6 +20,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetEpicByKey(string reference);
         void SetIssueToResolved(string issueKey);
         void SetIssueToToDo(string issueKey);
+        void ValidateConnection();
 
         string InstanceUrl { get; }
         SearchResult GetStoriesWithNoEpicInProject(string projectKey);
@@ -31,6 +32,7 @@ namespace VersionOne.TeamSync.Worker.Domain
        
         private static ILog _log = LogManager.GetLogger(typeof (Jira));
         private MetaProject _projectMeta;
+        private const int ConnectionAttempts = 3;
 
         public Jira(JiraConnector.Connector.JiraConnector connector, MetaProject project)
         {
@@ -107,7 +109,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 {"issuetype", new[] {"Epic"}},
             },
                 new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
-            );
+			);
         }
 
         public SearchResult GetStoriesWithNoEpicInProject(string projectKey)
@@ -176,5 +178,24 @@ namespace VersionOne.TeamSync.Worker.Domain
         }
 
         public string InstanceUrl { get; private set; }
+
+        public void ValidateConnection()
+        {
+            _log.Info("Attempting to connect to Jira.");
+            for (var i = 0; i < ConnectionAttempts; i++)
+            {
+                _log.InfoFormat("Connection attempt {0}.", i + 1);
+
+                if (!_connector.IsConnectionValid())
+                {
+                    System.Threading.Thread.Sleep(5000);
+                }
+                else
+                {
+                    _log.Info("Jira connection verified.");
+                    return;
+                }
+            }
+        }
     }
 }
