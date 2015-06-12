@@ -1,4 +1,6 @@
-﻿namespace VersionOne.TeamSync.V1Connector.Interfaces
+﻿using System.Xml.Linq;
+
+namespace VersionOne.TeamSync.V1Connector.Interfaces
 {
     public interface IV1Asset
     {
@@ -8,4 +10,5 @@
         string Error { get; }
         bool HasErrors { get; }
     }
+
 }

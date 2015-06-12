@@ -6,7 +6,7 @@ using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Worker.Domain
 {
-    public class Story : IV1Asset
+    public class Story : IPrimaryWorkItem
 	{
 		public string AssetType
 		{
@@ -20,6 +20,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Number { get; set; }
 
         public string ScopeId { get; set; }
+        public string ScopeName { get; set; }
         public string Description { get; set; }
         public string Estimate { get; set; }
         public string ToDo { get; set; }

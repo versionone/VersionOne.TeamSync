@@ -25,6 +25,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         string InstanceUrl { get; }
         SearchResult GetStoriesWithNoEpicInProject(string projectKey);
         void UpdateIssue(Issue issue, string issueKey);
+
+        SearchResult GetStoriesInProject(string jiraProject);
     }
 
     public class Jira : IJira
@@ -87,6 +89,22 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector.Put("issue/" + issueKey, issue, HttpStatusCode.NoContent);
         }
 
+        public SearchResult GetStoriesInProject(string jiraProject)
+        {
+            return _connector.GetSearchResults(new List<JqOperator>()
+            {
+               JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
+               JqOperator.Equals("issuetype", "Story"),
+               JqOperator.Equals(_projectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
+            },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key },
+            (fields, properties) =>
+            {
+                if (properties.ContainsKey(_projectMeta.StoryPoints.Key) && properties[_projectMeta.StoryPoints.Key] != null)
+                    fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
+            });
+        }
+
         public void DeleteEpicIfExists(string issueKey) // TODO: async
         {
             var existing = GetEpicByKey(issueKey);
@@ -121,6 +139,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
 			);
         }
+
 
         public SearchResult GetStoriesWithNoEpicInProject(string projectKey)
         {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using log4net;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -21,6 +22,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey);
         Task<Story> CreateStory(Story story);
         void ValidateConnection();
+
+        Task<List<Story>> GetStoriesWithJiraReference(string projectId);
+        Task RefreshBasicInfo(IPrimaryWorkItem workItem);
+        Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
     }
 
     public class V1 : IV1
@@ -171,6 +176,29 @@ namespace VersionOne.TeamSync.Worker.Domain
 
             _log.Error("VersionOne connection failed.");
             throw new Exception(string.Format("Unable to validate connection to {0}.", InstanceUrl));
+        }
+
+        public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
+        {
+            return await _connector.Query("Story",
+                new[] { "ID.Number", "Reference" },
+                new[] { "Reference!=\"\"", string.Format(_whereProject, projectId) }, Story.FromQuery);
+        }
+
+        public async Task RefreshBasicInfo(IPrimaryWorkItem workItem)
+        {
+            await _connector.QueryOne(workItem.AssetType, workItem.ID, new[] {"ID.Number", "Scope.Name"}, (xElement) =>
+            {
+                var attributes = xElement.Elements("Attribute")
+                    .ToDictionary(item => item.Attribute("name").Value, item => item.Value);
+                workItem.ScopeName = attributes.GetValueOrDefault("Scope.Name");
+                workItem.Number = attributes.GetValueOrDefault("ID.Number");
+            });
+        }
+
+        public async Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData)
+        {
+            return await _connector.Post(asset, updateData);
         }
     }
 

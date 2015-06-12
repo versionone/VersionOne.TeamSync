@@ -117,6 +117,18 @@ namespace VersionOne.TeamSync.V1Connector
             return result;
         }
 
+        public async Task QueryOne(string assetType, string assetId, string[] properties, Action<XElement> returnObject)
+        {
+            using (var client = HttpInstance)
+            {
+                var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?sel=" + string.Join(",", properties);
+
+                var xml = await client.GetStringAsync(endpoint);
+                var doc = XDocument.Parse(xml);
+                returnObject.Invoke(doc.Root);
+            }
+        }
+
         public async Task<List<T>> Query<T>(string asset, string[] properties, Func<XElement, T> returnObject)
         {
             var result = new List<T>();

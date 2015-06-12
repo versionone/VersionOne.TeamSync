@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
@@ -57,28 +58,50 @@ namespace VersionOne.TeamSync.Worker
             {
                 _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
-                //await CreateEpics(jiraInfo);
-                //await UpdateEpics(jiraInfo);
-                //await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
-                //await DeleteEpics(jiraInfo);
+                await CreateEpics(jiraInfo);
+                await UpdateEpics(jiraInfo);
+                await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+                await DeleteEpics(jiraInfo);
 
-                CreateStories(jiraInfo);
+                DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
                 _log.Info("Ending sync...");
             });
         }
 
-        public void CreateStories(V1JiraInfo jiraInfo)
+        public async void CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
-            var searchResults = jiraInfo.JiraInstance.GetStoriesWithNoEpicInProject(jiraInfo.JiraKey);
-            searchResults.issues.ForEach(async jiraStory =>
-            {
-                var existingStory = await _v1.GetStoryWithJiraReference(jiraInfo.V1ProjectId, jiraStory.Key);
-                if (existingStory != null) return;
-                var newStory = await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
-                jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(), jiraStory.Key);
-                jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ProjectName, _v1.InstanceUrl);
-            });
+            var newStory = await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
+
+            await _v1.RefreshBasicInfo(newStory);
+
+            jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(), jiraStory.Key);
+            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ProjectName,
+                _v1.InstanceUrl);
         }
+
+        public async void UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story)
+        {
+            var update = issue.ToV1Story(jiraInfo.V1ProjectId);
+            update.ID = story.ID;
+
+            await _v1.UpdateAsset(update, update.CreatePayload());
+        }
+
+        public async void DoStoryWork(V1JiraInfo jiraInfo)
+        {
+            var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey).issues;
+            var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
+
+            var newStories = allJiraStories.Where(jStory =>
+            {
+                return allV1Stories.SingleOrDefault(vStory => !string.IsNullOrWhiteSpace(vStory.Reference) && 
+                    vStory.Reference.Contains(jStory.Key)) == null;
+            }).ToList();
+
+            newStories.ForEach(newJStory => CreateStoryFromJira(jiraInfo, newJStory));
+        }
+
+
         public void ValidateConnections()
         {
             _v1.ValidateConnection();
@@ -171,7 +194,7 @@ namespace VersionOne.TeamSync.Worker
                 if (jiraData.IsEmpty)
                     throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraInfo.JiraKey + ") doesn't have epic type or expected custom field");
 
-                jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic.Number, epic.ProjectName, _v1.InstanceUrl);
+                jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic.Number, epic.ScopeName, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
                 _v1.CreateLink(epic, "Jira Epic", jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key);

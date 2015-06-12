@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using VersionOne.TeamSync.V1Connector.Interfaces;
@@ -92,20 +93,21 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public async Task orphan_stories_should_check_for_existing_references_in_version_one()
+        public async Task get_all_the_stories_in_a_project_with_a_reference()
         {
             var mockConnector = new Mock<IV1Connector>();
             mockConnector.Setup(x => x.Query("Story",
-                new[] {"ID.Number"},
-                new[] {"Reference=\"OPC-10\"", "Scope=\"Scope:1000\""},
+                new[] {"ID.Number", "Reference"},
+                new[] {"Reference!=\"\"", "Scope=\"Scope:1000\""},
                 Story.FromQuery))
                 .ReturnsAsync(new List<Story>());
             var api = new V1(mockConnector.Object, _span);
 
-            await api.GetStoryWithJiraReference("Scope:1000", "OPC-10");
+            await api.GetStoriesWithJiraReference("Scope:1000");
 
             mockConnector.VerifyAll();
 
         }
+   
     }
 }

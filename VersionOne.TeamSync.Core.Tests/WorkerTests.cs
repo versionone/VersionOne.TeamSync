@@ -69,7 +69,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void DataSetup()
         {
             BuildContext();
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", ProjectName = "v1" };
+            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1" };
             _itemBase = new ItemBase() { Key = _jiraKey };
 
             _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
@@ -207,7 +207,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ProjectName = "v1", AssetState = "64"};
+            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64"};
             _searchResult = new SearchResult();
             _searchResult.issues.Add(new Issue(){Key = "OPC-10", Fields = new Fields(){Status = new Status(){Name = "ToDo"}}});
 
@@ -378,109 +378,5 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Verify(x => x.DeleteEpicIfExists("OPC-10"), Times.Once());
         }
 
-    }
-
-    [TestClass]
-    public class orphan_stories_that_dont_exist_in_v1 : worker_bits
-    {
-
-        private string _issueKey = "OPC-71";
-        [TestInitialize]
-        public void Context()
-        {
-            BuildContext();
-            _mockJira.Setup(x => x.GetStoriesWithNoEpicInProject(_jiraKey)).Returns(new SearchResult()
-            {
-                issues = new List<Issue>()
-                {
-                    new Issue()
-                    {
-                        Key = _issueKey,
-                        Fields = new Fields()
-                    }
-                }
-            });
-            _mockV1.Setup(x => x.GetStoryWithJiraReference(_projectId, _issueKey))
-                .ReturnsAsync(null);
-
-            _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(new Story());
-
-            _worker.CreateStories(MakeInfo());
-        }
-
-        [TestMethod]
-        public void should_get_stories_with_no_epic()
-        {
-            _mockJira.Verify(x => x.GetStoriesWithNoEpicInProject(_jiraKey), Times.Once);
-        }
-
-        [TestMethod]
-        public void should_add_it_to_the_v1_project()
-        {
-            _mockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Once);
-        }
-
-        [TestMethod]
-        public void should_add_a_label_to_jira_with_the_newly_created_story()
-        {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Once);
-        }
-
-        [TestMethod]
-        public void should_not_add_a_comment()
-        {
-            _mockJira.Verify(x => x.AddLinkToV1InComments(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-        }
-
-    }
-    
-    [TestClass]
-    public class orphan_stories_that_already_exist_in_v1 : worker_bits
-    {
-        private string _issueKey = "OPC-71";
-        [TestInitialize]
-        public void Context()
-        {
-            BuildContext();
-            _mockJira.Setup(x => x.GetStoriesWithNoEpicInProject(_jiraKey)).Returns(new SearchResult()
-            {
-                issues = new List<Issue>()
-                {
-                    new Issue()
-                    {
-                        Key = _issueKey,
-                        Fields = new Fields()
-                    }
-                }
-            });
-            _mockV1.Setup(x => x.GetStoryWithJiraReference(_projectId, _issueKey))
-                .ReturnsAsync(new Story());
-
-            _worker.CreateStories(MakeInfo());
-        }
-
-        [TestMethod]
-        public void should_get_stories_with_no_epic()
-        {
-            _mockJira.Verify(x => x.GetStoriesWithNoEpicInProject(_jiraKey), Times.Once);
-        }
-
-        [TestMethod]
-        public void should_not_add_it_to_the_v1_project()
-        {
-            _mockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void should_add_a_label_to_jira_with_the_newly_created_story()
-        {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
-        }
-
-        [TestMethod]
-        public void should_not_add_a_comment()
-        {
-            _mockJira.Verify(x => x.AddLinkToV1InComments(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
     }
 }
