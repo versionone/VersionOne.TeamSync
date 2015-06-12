@@ -2,12 +2,15 @@
 using System.Drawing;
 using System.Runtime.Remoting;
 using System.ServiceProcess;
+using System.Timers;
 using System.Windows.Forms;
 
 namespace VersionOne.TeamSync.SystemTray
 {
     public partial class SystemTray : Form
     {
+        private System.Timers.Timer _timer;
+
         public SystemTray()
         {
             InitializeComponent();
@@ -15,7 +18,28 @@ namespace VersionOne.TeamSync.SystemTray
             RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
 
             contextMenuStrip1.Renderer = new CustomRenderer();
-            UpdateContextMenuStrip();
+            UpdateServiceControlOptions();
+            StartWatchingServiceStatus();
+        }
+
+        private void StartWatchingServiceStatus()
+        {
+            _timer = new System.Timers.Timer() { Interval = 5000 };
+            _timer.Elapsed += UpdateUIServiceControlOptions;
+            _timer.Enabled = true;
+        }
+
+        private void StopWatchingServiceStatus()
+        {
+            _timer.Enabled = false;
+        }
+
+        private void UpdateUIServiceControlOptions(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            UpdateServiceControlOptions();
+            ViewActivityForm vaForm = (ViewActivityForm)Application.OpenForms["ViewActivityForm"];
+            if (vaForm != null)
+                vaForm.UpdateServiceControlButtons();
         }
 
         private void startServiceToolStripMenuItem_Click(object sender, EventArgs e)
@@ -23,7 +47,7 @@ namespace VersionOne.TeamSync.SystemTray
             try
             {
                 TeamSyncServiceController.StartService();
-                UpdateContextMenuStrip();
+                UpdateServiceControlOptions();
             }
             catch (ServiceControllerException ex)
             {
@@ -36,7 +60,7 @@ namespace VersionOne.TeamSync.SystemTray
             try
             {
                 TeamSyncServiceController.StopService();
-                UpdateContextMenuStrip();
+                UpdateServiceControlOptions();
             }
             catch (ServiceControllerException ex)
             {
@@ -48,7 +72,7 @@ namespace VersionOne.TeamSync.SystemTray
         {
             try { 
                 TeamSyncServiceController.RecycleService();
-                UpdateContextMenuStrip();
+                UpdateServiceControlOptions();
             }
             catch (ServiceControllerException ex)
             {
@@ -71,33 +95,44 @@ namespace VersionOne.TeamSync.SystemTray
             }
         }
 
-        public void UpdateContextMenuStrip(bool updateActivityWindowButtons = true)
-        {
-            if (TeamSyncServiceController.IsServiceInstalled())
-            {
-                var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+        delegate void UpdateServiceControlOptionsCallback();
 
-                this.contextMenuStrip1.Items["startServiceToolStripMenuItem"].Enabled = 
-                    serviceStatus == ServiceControllerStatus.Stopped;
-                this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running;
-                this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running;
-                this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled =
-                    serviceStatus == ServiceControllerStatus.Running; ;
+        public void UpdateServiceControlOptions()
+        {
+            if (this.InvokeRequired)
+            {
+                UpdateServiceControlOptionsCallback d =
+                    new UpdateServiceControlOptionsCallback(UpdateServiceControlOptions);
+                Invoke(d, new object[] {});
             }
             else
             {
-                this.contextMenuStrip1.Items["startServiceToolStripMenuItem"].Enabled = false;
-                this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled = false;
-                this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = false;
+                if (TeamSyncServiceController.IsServiceInstalled())
+                {
+                    var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+
+                    this.contextMenuStrip1.Items["startServiceToolStripMenuItem"].Enabled =
+                        serviceStatus == ServiceControllerStatus.Stopped;
+                    this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled =
+                        serviceStatus == ServiceControllerStatus.Running;
+                    this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled =
+                        serviceStatus == ServiceControllerStatus.Running;
+                    this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled =
+                        serviceStatus == ServiceControllerStatus.Running;
+                    ;
+                }
+                else
+                {
+                    this.contextMenuStrip1.Items["startServiceToolStripMenuItem"].Enabled = false;
+                    this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled = false;
+                    this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = false;
+                }
             }
-            if (updateActivityWindowButtons)
-            {
-                var form = (ViewActivityForm)Application.OpenForms["ViewActivityForm"];
-                if (form != null)
-                    form.UpdateButtons(false);
-            }
+        }
+
+        private void SystemTray_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            StopWatchingServiceStatus();
         }
     }
 

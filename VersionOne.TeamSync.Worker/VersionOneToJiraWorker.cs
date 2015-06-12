@@ -75,6 +75,7 @@ namespace VersionOne.TeamSync.Worker
                 if (existingStory != null) return;
                 var newStory = await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
                 jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(), jiraStory.Key);
+                jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ProjectName, _v1.InstanceUrl);
             });
         }
         public void ValidateConnections()
@@ -169,7 +170,7 @@ namespace VersionOne.TeamSync.Worker
                 if (jiraData.IsEmpty)
                     throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraInfo.JiraKey + ") doesn't have epic type or expected custom field");
 
-                jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic, _v1.InstanceUrl);
+                jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic.Number, epic.ProjectName, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
                 _v1.CreateLink(epic, "Jira Epic", jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key);

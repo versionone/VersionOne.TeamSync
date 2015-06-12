@@ -142,6 +142,7 @@
             this.ShowInTaskbar = false;
             this.Text = "VersionOne TeamSync Service";
             this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SystemTray_FormClosing);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 

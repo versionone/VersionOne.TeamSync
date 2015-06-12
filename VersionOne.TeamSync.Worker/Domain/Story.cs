@@ -24,8 +24,9 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Estimate { get; set; }
         public string ToDo { get; set; }
         public string Reference { get; set; }
+        public string ProjectName { get; set; }
 
-        internal XDocument CreatePayload()
+        public XDocument CreatePayload()
         {
 			var doc = XDocument.Parse("<Asset></Asset>");
 			doc.AddSetNode("Name", Name)
@@ -37,6 +38,10 @@ namespace VersionOne.TeamSync.Worker.Domain
 			return doc;
         }
 
+        internal void FromCreate(XElement asset)
+        {
+            ID = asset.GetAssetID();
+        }
 
         public static Story FromQuery(XElement asset)
         {
@@ -45,10 +50,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 ID = asset.GetAssetID(),
                 Number = attributes.GetValueOrDefault("ID.Number"),
+                ProjectName = attributes.GetValueOrDefault("Scope.Name")
                 //Description = attributes.GetPlainTextFromHtmlOrDefault("Description"),
                 //Name = attributes.GetValueOrDefault("Name"),
                 //Reference = attributes.GetValueOrDefault("Reference"),
             };
         }
+
     }
 }

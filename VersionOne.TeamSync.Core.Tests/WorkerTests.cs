@@ -380,7 +380,6 @@ namespace VersionOne.TeamSync.Core.Tests
 
     }
 
-
     [TestClass]
     public class orphan_stories_that_dont_exist_in_v1 : worker_bits
     {
@@ -425,6 +424,12 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_add_a_label_to_jira_with_the_newly_created_story()
         {
             _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_not_add_a_comment()
+        {
+            _mockJira.Verify(x => x.AddLinkToV1InComments(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
     }
@@ -472,6 +477,10 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
         }
 
+        [TestMethod]
+        public void should_not_add_a_comment()
+        {
+            _mockJira.Verify(x => x.AddLinkToV1InComments(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
     }
-
 }
