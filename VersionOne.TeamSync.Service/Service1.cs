@@ -2,7 +2,6 @@
 using System.ServiceProcess;
 using System.Timers;
 using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Worker;
 
@@ -43,7 +42,7 @@ namespace VersionOne.TeamSync.Service
             {
                 _log.Error(e);
                 _log.Error("Errors occurred during connection validations. Service will be stopped.");
-                OnStop();
+                Stop();
             }
         }
 
@@ -53,6 +52,11 @@ namespace VersionOne.TeamSync.Service
                 _timer.Enabled = false;
             
             stopMessage();
+        }
+
+        private void NotifyServiceStatus()
+        {
+            
         }
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
@@ -75,5 +79,25 @@ namespace VersionOne.TeamSync.Service
             _log.DebugFormat("Stopped at {0}", DateTime.Now);
             _log.Info("");
         }
+    }
+
+    public class MyRemoteObject : MarshalByRefObject
+    {
+        public MyRemoteObject()
+        {
+
+        }
+
+        public int Addition(int a, int b)
+        {
+            return a + b;
+        }
+
+        public int Multipliation(int a, int b)
+        {
+            return a * b;
+        }
+
+
     }
 }

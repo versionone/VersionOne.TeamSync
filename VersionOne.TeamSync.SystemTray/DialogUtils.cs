@@ -7,9 +7,9 @@ namespace VersionOne.TeamSync.SystemTray
         public static void ShowServiceControllerException(ServiceControllerException ex)
         {
             MessageBox.Show(ex.Message,
-                ex.InnerException != null ? ex.InnerException.Message : "",
+                ex.InnerException != null ? ex.InnerException.Message : "Warning",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Error,
+                ex.InnerException != null ? MessageBoxIcon.Error : MessageBoxIcon.Warning,
                 MessageBoxDefaultButton.Button1);
         }
     }

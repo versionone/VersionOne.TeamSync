@@ -8,20 +8,22 @@ namespace VersionOne.TeamSync.SystemTray
     {
         private const string ServiceName = "VersionOne.TeamSync.Service";
 
-        private const string NoAdminPrivilegesReason =
-            "The VersionOne TeamSync system tray application must be running with administrator privileges to control the TeamSync service.";
-        private static readonly TimeSpan TimeOutTimeSpan = new TimeSpan(0, 0, 0, 3, 0); // 3 sec
-        private static bool? _isServiceInstaleld = null;
+        private const string NoAdminPrivilegesMessage =
+            "Unable to perform this action. The VersionOne TeamSync system tray application must be running with administrator privileges to control the TeamSync service.";
+        private const string TimeoutMessage =
+            "TeamSync service is taking too long to respond. If this problem continues, please contact your system administrator.";
+        private static readonly TimeSpan TimeOutTimeSpan = new TimeSpan(0, 0, 0, 5, 0); // 5 sec
+        private static bool? _isServiceInstalled = null;
 
         public static bool IsServiceInstalled()
         {
-            if (_isServiceInstaleld == null)
+            if (_isServiceInstalled == null)
             {
                 ServiceController[] services = ServiceController.GetServices();
-                _isServiceInstaleld = services.Any(service => service.ServiceName == ServiceName);
+                _isServiceInstalled = services.Any(service => service.ServiceName == ServiceName);
             }
 
-            return _isServiceInstaleld.Value;
+            return _isServiceInstalled.Value;
         }
 
         public static void StartService()
@@ -33,9 +35,13 @@ namespace VersionOne.TeamSync.SystemTray
                 serviceController.Start();
                 serviceController.WaitForStatus(ServiceControllerStatus.Running, TimeOutTimeSpan);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException ioex)
             {
-                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+                throw new ServiceControllerException(NoAdminPrivilegesMessage, ioex.InnerException);
+            }
+            catch (System.ServiceProcess.TimeoutException toex)
+            {
+                throw new ServiceControllerException(TimeoutMessage);
             }
         }
 
@@ -50,7 +56,11 @@ namespace VersionOne.TeamSync.SystemTray
             }
             catch (InvalidOperationException ex)
             {
-                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+                throw new ServiceControllerException(NoAdminPrivilegesMessage, ex.InnerException);
+            }
+            catch (System.ServiceProcess.TimeoutException toex)
+            {
+                throw new ServiceControllerException(TimeoutMessage);
             }
         }
 
@@ -65,7 +75,11 @@ namespace VersionOne.TeamSync.SystemTray
             }
             catch (InvalidOperationException ex)
             {
-                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+                throw new ServiceControllerException(NoAdminPrivilegesMessage, ex.InnerException);
+            }
+            catch (System.ServiceProcess.TimeoutException toex)
+            {
+                throw new ServiceControllerException(TimeoutMessage);
             }
         }
 
@@ -79,7 +93,11 @@ namespace VersionOne.TeamSync.SystemTray
             }
             catch (InvalidOperationException ex)
             {
-                throw new ServiceControllerException(NoAdminPrivilegesReason, ex.InnerException);
+                throw new ServiceControllerException(NoAdminPrivilegesMessage, ex.InnerException);
+            }
+            catch (System.ServiceProcess.TimeoutException toex)
+            {
+                throw new ServiceControllerException(TimeoutMessage);
             }
         }
 
@@ -109,7 +127,7 @@ namespace VersionOne.TeamSync.SystemTray
 
     public class ServiceControllerException : Exception
     {
-        public ServiceControllerException(string reason, Exception innerExecption = null) : base(string.Format("Unable to perform this action. {0}", reason), innerExecption) { }
+        public ServiceControllerException(string message, Exception innerExecption = null) : base(message, innerExecption) { }
         public ServiceControllerException(string message) : base(message) { }
     }
 }

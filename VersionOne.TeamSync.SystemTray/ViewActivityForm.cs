@@ -14,7 +14,7 @@ namespace VersionOne.TeamSync.SystemTray
         {
             InitializeComponent();
             InitializeLogLevelComboBox();
-            UpdateButtons();
+            UpdateServiceControlButtons();
         }
 
         delegate void AppendTextCallback(string text, LogLevel level);
@@ -42,31 +42,34 @@ namespace VersionOne.TeamSync.SystemTray
             }
         }
 
-        public void UpdateButtons(bool updateContextMenuStrip = true)
-        {
-            if (TeamSyncServiceController.IsServiceInstalled())
-            {
+        delegate void UpdateServiceControlButtonsCallback();
 
-                var serviceStatus = TeamSyncServiceController.GetServiceStatus();
-                this.toolStripStartButton.Enabled = 
-                    serviceStatus == ServiceControllerStatus.Stopped;
-                this.toolStripRecyleButton.Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running;
-                this.toolStripStopButton.Enabled = 
-                    serviceStatus == ServiceControllerStatus.Running;
+        public void UpdateServiceControlButtons()
+        {
+            if (richTextBox1.InvokeRequired)
+            {
+                UpdateServiceControlButtonsCallback d = new UpdateServiceControlButtonsCallback(UpdateServiceControlButtons);
+                Invoke(d, new object[] {});
             }
             else
             {
-                this.toolStripStartButton.Enabled = false;
-                this.toolStripStopButton.Enabled = false;
-                this.toolStripRecyleButton.Enabled = false;
-            }
+                if (TeamSyncServiceController.IsServiceInstalled())
+                {
 
-            if (updateContextMenuStrip)
-            {
-                var form = (SystemTray) Application.OpenForms["SystemTray"];
-                if (form != null)
-                    form.UpdateContextMenuStrip(false);
+                    var serviceStatus = TeamSyncServiceController.GetServiceStatus();
+                    this.toolStripStartButton.Enabled =
+                        serviceStatus == ServiceControllerStatus.Stopped;
+                    this.toolStripRecyleButton.Enabled =
+                        serviceStatus == ServiceControllerStatus.Running;
+                    this.toolStripStopButton.Enabled =
+                        serviceStatus == ServiceControllerStatus.Running;
+                }
+                else
+                {
+                    this.toolStripStartButton.Enabled = false;
+                    this.toolStripStopButton.Enabled = false;
+                    this.toolStripRecyleButton.Enabled = false;
+                }
             }
         }
 
@@ -118,7 +121,7 @@ namespace VersionOne.TeamSync.SystemTray
             try
             {
                 TeamSyncServiceController.StartService();
-                UpdateButtons();
+                UpdateServiceControlButtons();
             }
             catch (ServiceControllerException ex)
             {
@@ -131,7 +134,7 @@ namespace VersionOne.TeamSync.SystemTray
             try
             {
                 TeamSyncServiceController.RecycleService();
-                UpdateButtons();
+                UpdateServiceControlButtons();
             }
             catch (ServiceControllerException ex)
             {
@@ -144,7 +147,7 @@ namespace VersionOne.TeamSync.SystemTray
             try
             {
                 TeamSyncServiceController.StopService();
-                UpdateButtons();
+                UpdateServiceControlButtons();
             }
             catch (ServiceControllerException ex)
             {
