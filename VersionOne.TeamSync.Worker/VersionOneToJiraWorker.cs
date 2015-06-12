@@ -61,6 +61,7 @@ namespace VersionOne.TeamSync.Worker
                 //await UpdateEpics(jiraInfo);
                 //await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
                 //await DeleteEpics(jiraInfo);
+
                 CreateStories(jiraInfo);
                 _log.Info("Ending sync...");
             });
