@@ -55,7 +55,7 @@ namespace VersionOne.TeamSync.Worker
         {
             _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
-                _log.Info("Beginning sync between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
+                _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
                 //await CreateEpics(jiraInfo);
                 //await UpdateEpics(jiraInfo);
@@ -66,18 +66,17 @@ namespace VersionOne.TeamSync.Worker
             });
         }
 
-        private void CreateStories(V1JiraInfo jiraInfo)
+        public void CreateStories(V1JiraInfo jiraInfo)
         {
             var searchResults = jiraInfo.JiraInstance.GetStoriesWithNoEpicInProject(jiraInfo.JiraKey);
-
             searchResults.issues.ForEach(async jiraStory =>
             {
                 var existingStory = await _v1.GetStoryWithJiraReference(jiraInfo.V1ProjectId, jiraStory.Key);
-                if (existingStory == null)
-                    await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
+                if (existingStory != null) return;
+                var newStory = await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
+                jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(), jiraStory.Key);
             });
         }
-
         public void ValidateConnections()
         {
             _v1.ValidateConnection();
@@ -151,7 +150,7 @@ namespace VersionOne.TeamSync.Worker
                 if (relatedJiraEpic.Fields.Status.Name == "Done" && !epic.IsClosed()) //hrrmmm...
                     jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
 
-                jiraInfo.JiraInstance.UpdateEpic(epic, relatedJiraEpic.Key);
+                jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(), relatedJiraEpic.Key);
                 _log.Info("Updated " + relatedJiraEpic.Key + " with data from " + epic.Number);
             });
         }

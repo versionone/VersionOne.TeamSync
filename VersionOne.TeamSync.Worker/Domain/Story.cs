@@ -37,6 +37,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 			return doc;
         }
 
+
         public static Story FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);

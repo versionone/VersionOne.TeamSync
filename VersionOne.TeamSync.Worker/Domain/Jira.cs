@@ -13,7 +13,6 @@ namespace VersionOne.TeamSync.Worker.Domain
     {
         ItemBase CreateEpic(Epic epic, string projectKey);
         void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance);
-        void UpdateEpic(Epic epic, string issueKey);
         void DeleteEpicIfExists(string issueKey);
         SearchResult GetEpicsInProject(string projectKey);
         SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys);
@@ -24,6 +23,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         string InstanceUrl { get; }
         SearchResult GetStoriesWithNoEpicInProject(string projectKey);
+        void UpdateIssue(Issue issue, string issueKey);
     }
 
     public class Jira : IJira
@@ -72,9 +72,9 @@ namespace VersionOne.TeamSync.Worker.Domain
             };
         }
 
-        public void UpdateEpic(Epic epic, string issueKey) // TODO: async
+        public void UpdateIssue(Issue issue, string issueKey)
         {
-            _connector.Put("issue/" + issueKey, epic.UpdateJiraEpic(), HttpStatusCode.NoContent);
+            _connector.Put("issue/" + issueKey, issue, HttpStatusCode.NoContent);
         }
 
         public void DeleteEpicIfExists(string issueKey) // TODO: async
