@@ -115,7 +115,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<Story> CreateStory(Story story)
         {
-            var updated = await _connector.Post(story, story.CreatePayload());
+            var xDoc = await _connector.Post(story, story.CreatePayload());
+            story.FromCreate(xDoc.Root);
             return story;
         }
 

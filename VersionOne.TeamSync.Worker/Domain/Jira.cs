@@ -12,7 +12,8 @@ namespace VersionOne.TeamSync.Worker.Domain
     public interface IJira
     {
         ItemBase CreateEpic(Epic epic, string projectKey);
-        void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance);
+        void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
+        void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
         void DeleteEpicIfExists(string issueKey);
         SearchResult GetEpicsInProject(string projectKey);
         SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys);
@@ -54,19 +55,28 @@ namespace VersionOne.TeamSync.Worker.Domain
             return baseItem;
         }
 
-        public void AddCreatedByV1Comment(string issueKey, Epic epic, string v1Instance)
+        private string _createdFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
+        public void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
         {
-            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, CreatedByV1Comment(epic, v1Instance), HttpStatusCode.NoContent);
+            var body = string.Format(_createdFromV1Comment, v1Number, v1ProjectName, v1Instance);
+            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
         }
 
-        private object CreatedByV1Comment(Epic epic, string v1Instance)
+        private string _trackedInV1 = "Tracking Issue {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
+        public void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
+        {
+            var body = string.Format(_trackedInV1, v1Number, v1ProjectName, v1Instance);
+            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
+        }
+
+        private object AddComment(string body)
         {
             return new
             {
                 update = new {
                     comment = new[]
                     {
-                        new { add = new { body = string.Format("Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}", epic.Number, epic.ProjectName, v1Instance)} }
+                        new { add = new { body} }
                     }
                 }
             };

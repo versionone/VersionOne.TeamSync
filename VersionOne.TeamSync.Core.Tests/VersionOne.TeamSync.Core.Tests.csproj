@@ -68,6 +68,7 @@
     <Compile Include="JsonConverter\MetaDataConverterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="V1DomainTests.cs" />
+    <Compile Include="V1Tests.cs" />
     <Compile Include="WorkerTests.cs" />
     <Compile Include="Xml\SetNodeTests.cs" />
   </ItemGroup>
