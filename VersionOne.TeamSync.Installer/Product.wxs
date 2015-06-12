@@ -59,7 +59,7 @@
                             Name="VersionOne.TeamSync.Service"
                             DisplayName="VersionOne TeamSync Service"
                             Description="Manages VersionOne integrations with external team systems."
-                            Start="auto"
+                            Start="demand"
                             ErrorControl="normal" />
         <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="VersionOne.TeamSync.Service" Wait="yes" />
 
@@ -86,7 +86,7 @@
 
     <!-- Create registry entry to auto-launch system tray. -->
     <Component Id="RegistryEntries" Directory="INSTALLFOLDER">
-      <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Action="createAndRemoveOnUninstall">
+      <RegistryKey Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Action="createAndRemoveOnUninstall">
         <RegistryValue Type="string" Name="VersionOne TeamSync System Tray" Value="[INSTALLFOLDER]VersionOne.TeamSync.SystemTray.exe"/>
       </RegistryKey>
     </Component>
@@ -127,9 +127,7 @@
         Dialog="ExitDialog"
         Control="Finish"
         Event="DoAction"
-        Value="LaunchApplication">
-        NOT Installed
-      </Publish>
+        Value="LaunchApplication">NOT Installed</Publish>
     </UI>
 
   </Product>
