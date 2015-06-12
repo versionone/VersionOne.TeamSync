@@ -120,12 +120,11 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("issuetype", "Story"),
                JqOperator.Equals(_projectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", _projectMeta.StoryPoints.Key },
-                (fields, properties) =>
-                {
+            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", "labels","timetracking", _projectMeta.StoryPoints.Key },
+            (fields, properties) => {
                     if (properties.ContainsKey(_projectMeta.StoryPoints.Key))
                         fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
-                });
+            });
         }
 
         public SearchResult GetEpicByKey(string reference)

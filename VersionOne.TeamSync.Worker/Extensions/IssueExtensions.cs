@@ -1,4 +1,5 @@
-﻿using VersionOne.TeamSync.JiraConnector.Entities;
+﻿using System;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Worker.Extensions
@@ -12,7 +13,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 Name = issue.Fields.Summary,
                 Description = issue.Fields.Description,
                 Estimate = issue.Fields.StoryPoints,
-                ToDo = issue.Fields.TimeTracking,
+                ToDo = issue.Fields.TimeTracking == null ? "" : Math.Abs(issue.Fields.TimeTracking.RemainingEstimateSeconds / 3600).ToString(),
                 Reference = issue.Key,
                 ScopeId = v1ScopeId
             };

@@ -409,7 +409,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_have_seven_query_items()
         {
-            _whereItems.Count.ShouldEqual(8);
+            _whereItems.Count.ShouldEqual(10);
             _whereItems.Contains("issuetype").ShouldBeTrue();
             _whereItems.Contains("summary").ShouldBeTrue();
             _whereItems.Contains("description").ShouldBeTrue();
@@ -417,6 +417,8 @@ namespace VersionOne.TeamSync.Core.Tests
             _whereItems.Contains("status").ShouldBeTrue();
             _whereItems.Contains("key").ShouldBeTrue();
             _whereItems.Contains("self").ShouldBeTrue();
+            _whereItems.Contains("labels").ShouldBeTrue();
+            _whereItems.Contains("timetracking").ShouldBeTrue();
             _whereItems.Contains("customfield_10002").ShouldBeTrue();
         }
     }

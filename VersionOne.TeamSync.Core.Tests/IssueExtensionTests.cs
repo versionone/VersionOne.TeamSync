@@ -26,7 +26,11 @@ namespace VersionOne.TeamSync.Core.Tests
                     Summary = "issue summary",
                     Description = "issue description",
                     StoryPoints = "17",
-                    TimeTracking = "34",
+                    TimeTracking = new TimeTracking()
+                    {
+                        RemainingEstimateSeconds = 14400,
+                        TimeSpentSeconds = 28800
+                    },
                 }
             };
 
@@ -54,7 +58,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void issue_time_tracking_becomes_ToDo()
         {
-            _story.ToDo.ShouldEqual("34");
+            _story.ToDo.ShouldEqual("4");
         }
 
         [TestMethod]

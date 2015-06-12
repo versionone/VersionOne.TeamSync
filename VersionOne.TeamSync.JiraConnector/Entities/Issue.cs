@@ -99,11 +99,8 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
     {
         public string Summary { get; set; }
 
-        //public int TimeEstimate { get; set; }
-        //public int TimeOriginalEstimate { get; set; }  //in seconds, 1d == 28800s, 8 hour day
-        //public int AggregateTimeEstimate { get; set; }
-
         public string Description { get; set; }
+        public List<string> Labels { get; set; } 
 
         public ProgressObj Progress { get; set; }
         public ProgressObj AggregateProgress { get; set; }
@@ -113,14 +110,23 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public Priority Priority { get; set; }
         public Project Project { get; set; }
 
-        //come up with a way to use an attribute on this
+        public TimeTracking TimeTracking { get; set; }
+
+        //late binding properties
         public string StoryPoints { get; set; }
-        public string TimeTracking { get; set; }
     }
 
     public class Project
     {
         public string Key { get; set; }
     }
+
+    public class TimeTracking
+    {
+        public string RemainingEstimate { get;set; }
+        public string TimeSpent { get; set; }
+        public int RemainingEstimateSeconds { get; set; }
+        public int TimeSpentSeconds { get; set; }
+    } 
 
 }
