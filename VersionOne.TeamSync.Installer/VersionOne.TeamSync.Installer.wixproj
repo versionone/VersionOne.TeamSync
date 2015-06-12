@@ -40,8 +40,10 @@
   <ItemGroup>
     <Content Include="Config.wxi" />
     <Content Include="dialogBMP.png" />
-    <Content Include="infolco.png" />
+    <Content Include="dialogBMP2.png" />
     <Content Include="License.rtf" />
+    <Content Include="uibanner-transparent.png" />
+    <Content Include="uibanner.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VersionOne.TeamSync.Service\VersionOne.TeamSync.Service.csproj">
