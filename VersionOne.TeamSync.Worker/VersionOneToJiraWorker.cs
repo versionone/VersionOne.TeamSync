@@ -55,7 +55,7 @@ namespace VersionOne.TeamSync.Worker
         {
             _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
-                _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
+                _log.Info("Beginning sync between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
                 //await CreateEpics(jiraInfo);
                 //await UpdateEpics(jiraInfo);
@@ -80,11 +80,12 @@ namespace VersionOne.TeamSync.Worker
 
         public void ValidateConnections()
         {
-            _log.Info("Starting V1 connection validation.");
             _v1.ValidateConnection();
+
             foreach (var jiraInstance in _jiraInstances)
             {
-                _log.InfoFormat("Starting Jira connection validation ({0}).", jiraInstance.JiraInstance.InstanceUrl);
+                _log.InfoFormat("Verifying Jira connection...");
+                _log.DebugFormat("URL: {0}", jiraInstance.JiraInstance.InstanceUrl);
                 jiraInstance.ValidateConnection();
             }
         }

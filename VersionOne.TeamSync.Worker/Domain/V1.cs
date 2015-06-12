@@ -141,10 +141,12 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void ValidateConnection()
         {
-            _log.Info("Attempting to connect to V1.");
+            _log.Info("Verifying VersionOne connection...");
+            _log.DebugFormat("URL: {0}", InstanceUrl);
+
             for (var i = 0; i < ConnectionAttempts; i++)
             {
-                _log.InfoFormat("Connection attempt {0}.", i + 1);
+                _log.DebugFormat("Connection attempt {0}.", i + 1);
 
                 try
                 {
@@ -154,18 +156,19 @@ namespace VersionOne.TeamSync.Worker.Domain
                     }
                     else
                     {
-                        _log.Info("V1 connection verified.");
+                        _log.Info("VersionOne connection successful!");
                         return;
                     }
                 }
                 catch (Exception e)
                 {
+                    _log.Error("VersionOne connection failed.");
                     _log.Error(e.Message);
                     break;
                 }
             }
 
-            _log.Error("V1 connection could not be verified.");
+            _log.Error("VersionOne connection failed.");
             throw new Exception(string.Format("Unable to validate connection to {0}.", InstanceUrl));
         }
     }

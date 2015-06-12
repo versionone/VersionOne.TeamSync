@@ -181,10 +181,9 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void ValidateConnection()
         {
-            _log.Info("Attempting to connect to Jira.");
             for (var i = 0; i < ConnectionAttempts; i++)
             {
-                _log.InfoFormat("Connection attempt {0}.", i + 1);
+                _log.DebugFormat("Connection attempt {0}.", i + 1);
 
                 if (!_connector.IsConnectionValid())
                 {
@@ -192,7 +191,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }
                 else
                 {
-                    _log.Info("Jira connection verified.");
+                    _log.Info("Jira connection successful!");
                     return;
                 }
             }
