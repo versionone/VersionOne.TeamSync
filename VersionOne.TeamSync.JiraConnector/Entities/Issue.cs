@@ -97,6 +97,11 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
 
     public class Fields
     {
+        public Fields()
+        {
+            Labels = new List<string>();
+            TimeTracking = new TimeTracking();
+        }
         public string Summary { get; set; }
 
         public string Description { get; set; }

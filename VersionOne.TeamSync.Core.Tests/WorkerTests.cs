@@ -17,7 +17,7 @@ namespace VersionOne.TeamSync.Core.Tests
         protected string _jiraKey = "OPC";
         protected string _epicCategory = "EpicCategory:1000";
 
-        protected void BuildContext()
+        protected virtual void BuildContext()
         {
             _mockV1 = new Mock<IV1>();
             _mockJira = new Mock<IJira>();
@@ -379,4 +379,5 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
     }
+
 }

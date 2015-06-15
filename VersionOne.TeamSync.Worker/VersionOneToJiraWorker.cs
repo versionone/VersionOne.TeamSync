@@ -105,7 +105,7 @@ namespace VersionOne.TeamSync.Worker
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
         }
 
-        private void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
+        public void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             var newStories = allJiraStories.Where(jStory =>
             {
@@ -119,7 +119,7 @@ namespace VersionOne.TeamSync.Worker
             newStories.ForEach(newJStory => CreateStoryFromJira(jiraInfo, newJStory));
         }
 
-        private void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
+        public void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             var existingStories =
                 allJiraStories.Where(jStory => { return allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)); })
