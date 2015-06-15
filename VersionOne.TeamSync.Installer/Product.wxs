@@ -20,9 +20,8 @@
              InstallScope="perMachine" 
              InstallPrivileges="elevated"/>
 
-    <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service control.
+    <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service control. -->
     <Condition Message="You must be an administrator to install this product.">Privileged</Condition>
-    -->
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
