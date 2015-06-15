@@ -62,7 +62,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 Description = attributes.GetPlainTextFromHtmlOrDefault("Description"),
                 Name = attributes.GetValueOrDefault("Name"),
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
-                AssetState = attributes.GetValueOrDefault("AssetState");
+                AssetState = attributes.GetValueOrDefault("AssetState")
             };
         }
 
