@@ -28,6 +28,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
 
         Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
+
+        Task CloseStory(string storyId);
+
+        Task ReOpenStory(string storyId);
     }
 
     public class V1 : IV1
@@ -183,7 +187,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
-                new[] { "ID.Number", "Reference" },
+                new[] { "ID.Number", "Reference", "AssetState" },
                 new[] { "Reference!=\"\"", string.Format(_whereProject, projectId) }, Story.FromQuery);
         }
 
@@ -209,6 +213,16 @@ namespace VersionOne.TeamSync.Worker.Domain
                 element =>element.Attribute("id").Value);
 
             return response.FirstOrDefault();
+        }
+
+        public async Task CloseStory(string storyId)
+        {
+            await _connector.Operation("Story", storyId, "Inactivate");
+        }
+
+        public async Task ReOpenStory(string storyId)
+        {
+            await _connector.Operation("Story", storyId, "Reactivate");
         }
     }
 

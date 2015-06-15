@@ -13,7 +13,7 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
         Task<XDocument> Post(IV1Asset asset, XDocument postPayload);
         Task<List<T>> Query<T>(string asset, string[] properties, string[] wheres, Func<XElement, T> returnObject);
         Task<List<T>> Query<T>(string asset, string[] properties, Func<XElement, T> returnObject);
-        Task<XDocument> Operation(string asset, string operation);
+        Task<XDocument> Operation(string assetType, string assetId, string operation);
         bool IsConnectionValid();
         Task QueryOne(string assetType, string assetId, string[] properties, Action<XElement> assetResult);
     }
