@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,7 +25,7 @@ namespace VersionOne.TeamSync.Worker
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
-            _jiraInstances = new HashSet<V1JiraInfo>(V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers));
+            _jiraInstances = new HashSet<V1JiraInfo>(V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers, serviceDuration.TotalMinutes.ToString(CultureInfo.InvariantCulture)));
 
             switch (V1Settings.Settings.AuthenticationType)
             {
@@ -97,7 +98,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoStoryWork(V1JiraInfo jiraInfo)
         {
-            var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey).issues;
+            var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey, jiraInfo.Interval).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);

@@ -6,8 +6,8 @@ namespace VersionOne.TeamSync.Core.Config
     {
         public static readonly ServiceSettings Settings = ConfigurationManager.GetSection("serviceSettings") as ServiceSettings;
 
-        [ConfigurationProperty("syncIntervalInSeconds", DefaultValue = 5, IsRequired = true)]
-		public int syncIntervalInSeconds
+        [ConfigurationProperty("syncIntervalInMinutes", DefaultValue = 5, IsRequired = true)]
+		public int syncIntervalInMinutes
         {
 			get { return (int)this["syncIntervalInSeconds"]; }
 			set { this["syncIntervalInSeconds"] = value; }

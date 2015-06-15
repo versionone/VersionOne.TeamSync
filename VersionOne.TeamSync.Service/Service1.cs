@@ -26,7 +26,7 @@ namespace VersionOne.TeamSync.Service
 
         protected override void OnStart(string[] args)
         {
-			_serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
+			_serviceDuration = new TimeSpan(0, ServiceSettings.Settings.syncIntervalInMinutes, 0);
 
             try
             {

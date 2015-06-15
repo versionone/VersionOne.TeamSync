@@ -26,7 +26,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
         protected V1JiraInfo MakeInfo()
         {
-            return new V1JiraInfo(_projectId, _jiraKey, _epicCategory, _mockJira.Object);
+            return new V1JiraInfo(_projectId, _jiraKey, _epicCategory, 10, _mockJira.Object);
         }
     }
 

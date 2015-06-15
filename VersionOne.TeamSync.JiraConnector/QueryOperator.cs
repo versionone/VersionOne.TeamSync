@@ -22,11 +22,11 @@
             };
         }
 
-        public static JqOperator TimeAgo(string minutes)
+        public static JqOperator UpdatedTimeAgo(int minutes)
         {
             return new JqOperator()
             {
-                Property = "createdDate",
+                Property = "updated",
                 Value = "\"-" + minutes + "m\"",
                 Operator = ">="
             };

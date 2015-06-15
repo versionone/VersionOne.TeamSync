@@ -26,7 +26,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetStoriesWithNoEpicInProject(string projectKey);
         void UpdateIssue(Issue issue, string issueKey);
 
-        SearchResult GetStoriesInProject(string jiraProject);
+        SearchResult GetStoriesInProject(string jiraProject, int minuteInterval);
     }
 
     public class Jira : IJira
@@ -89,12 +89,13 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector.Put("issue/" + issueKey, issue, HttpStatusCode.NoContent);
         }
 
-        public SearchResult GetStoriesInProject(string jiraProject)
+        public SearchResult GetStoriesInProject(string jiraProject, int minuteInterval)
         {
             return _connector.GetSearchResults(new List<JqOperator>()
             {
                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story"),
+               JqOperator.UpdatedTimeAgo(minuteInterval)
                //JqOperator.Equals(_projectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
             },
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key, _projectMeta.EpicLink.Key },
