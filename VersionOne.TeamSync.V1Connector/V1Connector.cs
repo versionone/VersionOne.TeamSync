@@ -145,11 +145,11 @@ namespace VersionOne.TeamSync.V1Connector
             return result;
         }
 
-        public async Task<XDocument> Operation(string asset, string operation)
+        public async Task<XDocument> Operation(string assetType, string assetId, string operation)
         {
             using (var client = HttpInstance)
             {
-                var endpoint = GetResourceUrl(asset) + "?op=" + operation;
+                var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?op=" + operation;
                 var response = await client.PostAsync(endpoint, new StringContent(""));
                 var value = await response.Content.ReadAsStringAsync();
                 return XDocument.Parse(value);

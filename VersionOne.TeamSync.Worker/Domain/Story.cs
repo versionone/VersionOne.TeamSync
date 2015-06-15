@@ -19,6 +19,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 		public bool HasErrors { get; private set; }
         public string Name { get; set; }
         public string Number { get; set; }
+        public string AssetState { get; set; }
 
         public string ScopeId { get; set; }
         public string ScopeName { get; set; }
@@ -60,7 +61,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 Reference = attributes.GetValueOrDefault("Reference"),
                 Description = attributes.GetPlainTextFromHtmlOrDefault("Description"),
                 Name = attributes.GetValueOrDefault("Name"),
-                IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive"))
+                IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
+                AssetState = attributes.GetValueOrDefault("AssetState");
             };
         }
 

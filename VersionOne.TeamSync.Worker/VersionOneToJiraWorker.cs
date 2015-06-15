@@ -94,6 +94,12 @@ namespace VersionOne.TeamSync.Worker
             update.ID = story.ID;
 
             await _v1.UpdateAsset(update, update.CreatePayload());
+
+            if (issue.Fields.Status.Name == "Done" && story.AssetState != "128") //TODO : late bind? maybe??
+                _v1.CloseStory(story.ID);
+
+            if (issue.Fields.Status.Name != "Done" && story.AssetState == "128")
+                _v1.ReOpenStory(story.ID);
         }
 
         public async Task DoStoryWork(V1JiraInfo jiraInfo)

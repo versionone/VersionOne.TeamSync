@@ -29,6 +29,9 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
         void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey);
+        Task CloseStory(string storyId);
+
+        Task ReOpenStory(string storyId);
     }
 
     public class V1 : IV1
@@ -190,7 +193,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
-                new[] { "ID.Number", "Reference", "IsInactive" },
+                new[] { "ID.Number", "Reference", "IsInactive", "AssetState" },
                 new[] { "Reference!=\"\"", string.Format(_whereProject, projectId) }, Story.FromQuery);
         }
 
@@ -216,6 +219,16 @@ namespace VersionOne.TeamSync.Worker.Domain
                 element =>element.Attribute("id").Value);
 
             return response.FirstOrDefault();
+        }
+
+        public async Task CloseStory(string storyId)
+        {
+            await _connector.Operation("Story", storyId, "Inactivate");
+        }
+
+        public async Task ReOpenStory(string storyId)
+        {
+            await _connector.Operation("Story", storyId, "Reactivate");
         }
     }
 
