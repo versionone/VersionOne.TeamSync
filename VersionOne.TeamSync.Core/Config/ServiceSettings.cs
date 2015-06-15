@@ -9,8 +9,8 @@ namespace VersionOne.TeamSync.Core.Config
         [ConfigurationProperty("syncIntervalInMinutes", DefaultValue = 5, IsRequired = true)]
 		public int syncIntervalInMinutes
         {
-			get { return (int)this["syncIntervalInSeconds"]; }
-			set { this["syncIntervalInSeconds"] = value; }
+            get { return (int)this["syncIntervalInMinutes"]; }
+            set { this["syncIntervalInMinutes"] = value; }
         }
     }
 }
