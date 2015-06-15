@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Service", "VersionOne.TeamSync.Service\VersionOne.TeamSync.Service.csproj", "{29AE818B-33C5-4DC9-A5E8-F01D6404D94B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{40EB4891-A3E7-4E25-824E-442A98AF8F3C} = {40EB4891-A3E7-4E25-824E-442A98AF8F3C}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Core", "VersionOne.TeamSync.Core\VersionOne.TeamSync.Core.csproj", "{59DC969B-6C21-4E8A-AF90-E7B6CD4F5A1F}"
 EndProject
