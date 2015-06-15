@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Xml.Linq;
 using VersionOne.TeamSync.V1Connector.Extensions;
 using VersionOne.TeamSync.V1Connector.Interfaces;
@@ -27,17 +28,19 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Reference { get; set; }
         public string ProjectName { get; set; }
         public string Super { get; set; }
+        public bool IsInactive { get; private set; }
 
         public XDocument CreatePayload()
         {
 			var doc = XDocument.Parse("<Asset></Asset>");
-			doc.AddSetNode("Name", Name)
+            doc.AddSetNode("Name", Name)
                 .AddSetRelationNode("Scope", ScopeId)
                 .AddSetNode("Description", Description)
                 .AddSetNode("Estimate", Estimate)
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
-                .AddSetRelationNode("Super",Super);
+                .AddSetRelationNode("Super", Super)
+                .AddSetNode("IsInactive", IsInactive.ToString());
 			return doc;
         }
 
@@ -57,6 +60,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 Reference = attributes.GetValueOrDefault("Reference"),
                 Description = attributes.GetPlainTextFromHtmlOrDefault("Description"),
                 Name = attributes.GetValueOrDefault("Name"),
+                IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive"))
             };
         }
 
