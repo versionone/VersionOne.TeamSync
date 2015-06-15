@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Include>
-  <?define SourceDir = "..\VersionOne.TeamSync.Service\bin\Release" ?>
-  <?define Name = "VersionOne TeamSync" ?>
-  <?define Manufacturer = "VersionOne, Inc." ?>
-  <?define Version = "1.0.0.0" ?>
-  <?define UpgradeCode = "{3f153f56-78d8-41e5-839e-2b29b86d1a36}" ?>
-</Include>

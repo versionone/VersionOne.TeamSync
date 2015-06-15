@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension" >
 
-  <?include "Config.wxi"?>
+  <?define SourceDir = "..\VersionOne.TeamSync.Service\bin\Release" ?>
+  <?define AppName = "VersionOne TeamSync" ?>
 
-  <Product Id="*" Name="$(var.Name)" Language="1033" Version="$(var.Version)" Manufacturer="$(var.Manufacturer)" UpgradeCode="$(var.UpgradeCode)" >
+  <!-- Product settings. Change the Version attributes for a major upgrade. -->
+  <!-- Do NOT change the UpgradeCode guid! -->
+  <Product Id="*" 
+           Name="$(var.AppName)" 
+           Language="1033" 
+           Version="1.0.0" 
+           Manufacturer="VersionOne, Inc." 
+           UpgradeCode="0E001EBE-8107-4E59-955F-6AAA6238ADE0" >
 
     <Package Id="*" 
-             Description="$(var.Name)"
+             Description="$(var.AppName)"
              InstallerVersion="200" 
              Compressed="yes" 
              InstallScope="perMachine" 
              InstallPrivileges="elevated"/>
 
-    <!--
+    <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service control.
     <Condition Message="You must be an administrator to install this product.">Privileged</Condition>
     -->
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-    
+
+    <!-- Cabinet files should be embedded in the installer. -->
     <MediaTemplate EmbedCab="yes"/>
 
     <!-- Installs to C:\Program Files (x86)\VersionOne TeamSync\ directory. -->
@@ -61,7 +70,7 @@
                             Description="Manages VersionOne integrations with external team systems."
                             Start="demand"
                             ErrorControl="normal" />
-        <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="VersionOne.TeamSync.Service" Wait="yes" />
+        <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="VersionOne.TeamSync.Service" Wait="no" />
 
       </Component>
       <Component Id="VersionOne.TeamSync.Service.exe.config">
@@ -114,7 +123,7 @@
 
     <!-- Verify the .NET Framework version. -->
     <PropertyRef Id="NETFRAMEWORK45"/>
-    <Condition Message="This application requires .NET Framework 4.5.1. Please install the correct .NET Framework version then run this installer again.">
+    <Condition Message="[ProductName] requires .NET Framework 4.5.1. Please install the correct .NET Framework version then run this installer again.">
       <![CDATA[Installed OR NETFRAMEWORK45 >= "#378675"]]>
     </Condition>
 
