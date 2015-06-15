@@ -423,4 +423,26 @@ namespace VersionOne.TeamSync.Core.Tests
         }
     }
 
+
+    [TestClass]
+    public class deleting_epics_already_deleted
+    {
+        private const string _issueKey = "AKey-10";
+
+        [TestMethod]
+        public void Should_not_try_to_delete_it_again()
+        {
+            var mockConnector = new Mock<IJiraConnector>();
+            mockConnector.Setup(x => x.GetSearchResults(It.IsAny<List<JqOperator>>(), It.IsAny<IEnumerable<string>>())
+                ).Returns(new SearchResult()
+                {
+                    ErrorMessages = new List<string> { "An issue with key 'AS-25' does not exist for field 'key'." }
+                });
+            var jira = new Jira(mockConnector.Object, null);
+
+            jira.DeleteEpicIfExists(_issueKey);
+
+            mockConnector.Verify(x => x.Delete(It.IsAny<string>(), It.IsAny<HttpStatusCode>(), It.IsAny<KeyValuePair<string,string>>()), Times.Never);
+        }
+    }
 }

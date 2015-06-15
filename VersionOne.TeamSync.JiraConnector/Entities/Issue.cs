@@ -111,9 +111,10 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public Project Project { get; set; }
 
         public TimeTracking TimeTracking { get; set; }
-
         //late binding properties
         public string StoryPoints { get; set; }
+        public string EpicLink { get; set; }
+
     }
 
     public class Project

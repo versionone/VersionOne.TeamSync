@@ -26,6 +26,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<List<Story>> GetStoriesWithJiraReference(string projectId);
         Task RefreshBasicInfo(IPrimaryWorkItem workItem);
         Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
+
+        Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
     }
 
     public class V1 : IV1
@@ -199,6 +201,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData)
         {
             return await _connector.Post(asset, updateData);
+        }
+
+        public async Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey)
+        {
+            var response = await _connector.Query(assetType, new[] {"ID"}, new[] {"Reference=" + jiraEpicKey.InQuotes()},
+                element =>element.Attribute("id").Value);
+
+            return response.FirstOrDefault();
         }
     }
 

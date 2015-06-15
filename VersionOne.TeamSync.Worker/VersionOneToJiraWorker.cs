@@ -70,7 +70,15 @@ namespace VersionOne.TeamSync.Worker
 
         public async void CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
-            var newStory = await _v1.CreateStory(jiraStory.ToV1Story(jiraInfo.V1ProjectId));
+            var story = jiraStory.ToV1Story(jiraInfo.V1ProjectId);
+
+            if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
+            {
+                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic",jiraStory.Fields.EpicLink);
+                story.Super = epicId;
+            }
+
+            var newStory = await _v1.CreateStory(story);
 
             await _v1.RefreshBasicInfo(newStory);
 

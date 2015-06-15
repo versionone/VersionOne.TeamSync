@@ -26,6 +26,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string ToDo { get; set; }
         public string Reference { get; set; }
         public string ProjectName { get; set; }
+        public string Super { get; set; }
 
         public XDocument CreatePayload()
         {
@@ -35,7 +36,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("Description", Description)
                 .AddSetNode("Estimate", Estimate)
                 .AddSetNode("ToDo", ToDo)
-                .AddSetNode("Reference", Reference);
+                .AddSetNode("Reference", Reference)
+                .AddSetRelationNode("Super",Super);
 			return doc;
         }
 
