@@ -100,7 +100,6 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public Fields()
         {
             Labels = new List<string>();
-            TimeTracking = new TimeTracking();
         }
         public string Summary { get; set; }
 
