@@ -53,10 +53,10 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 ID = asset.GetAssetID(),
                 Number = attributes.GetValueOrDefault("ID.Number"),
-                ProjectName = attributes.GetValueOrDefault("Scope.Name")
-                //Description = attributes.GetPlainTextFromHtmlOrDefault("Description"),
-                //Name = attributes.GetValueOrDefault("Name"),
-                //Reference = attributes.GetValueOrDefault("Reference"),
+                ProjectName = attributes.GetValueOrDefault("Scope.Name"),
+                Reference = attributes.GetValueOrDefault("Reference"),
+                Description = attributes.GetPlainTextFromHtmlOrDefault("Description"),
+                Name = attributes.GetValueOrDefault("Name"),
             };
         }
 

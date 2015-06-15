@@ -63,12 +63,12 @@ namespace VersionOne.TeamSync.Worker
                 await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
                 await DeleteEpics(jiraInfo);
 
-                DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
+                await DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
                 _log.Info("Ending sync...");
             });
         }
 
-        public async void CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
+        public async Task CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
             var story = jiraStory.ToV1Story(jiraInfo.V1ProjectId);
 
@@ -87,7 +87,7 @@ namespace VersionOne.TeamSync.Worker
                 _v1.InstanceUrl);
         }
 
-        public async void UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story)
+        public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story)
         {
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
             update.ID = story.ID;
@@ -95,18 +95,40 @@ namespace VersionOne.TeamSync.Worker
             await _v1.UpdateAsset(update, update.CreatePayload());
         }
 
-        public async void DoStoryWork(V1JiraInfo jiraInfo)
+        public async Task DoStoryWork(V1JiraInfo jiraInfo)
         {
             var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
 
+            UpdateStories(jiraInfo, allJiraStories, allV1Stories);
+            
+            CreateStories(jiraInfo, allJiraStories, allV1Stories);
+        }
+
+        private void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
+        {
             var newStories = allJiraStories.Where(jStory =>
             {
-                return allV1Stories.SingleOrDefault(vStory => !string.IsNullOrWhiteSpace(vStory.Reference) && 
-                    vStory.Reference.Contains(jStory.Key)) == null;
+                if (allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)))
+                    return false;
+
+                return allV1Stories.SingleOrDefault(vStory => !string.IsNullOrWhiteSpace(vStory.Reference) &&
+                                                              vStory.Reference.Contains(jStory.Key)) == null;
             }).ToList();
 
             newStories.ForEach(newJStory => CreateStoryFromJira(jiraInfo, newJStory));
+        }
+
+        private void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
+        {
+            var existingStories =
+                allJiraStories.Where(jStory => { return allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)); })
+                    .ToList();
+
+            existingStories.ForEach(
+                existingJStory =>
+                    UpdateStoryFromJiraToV1(jiraInfo, existingJStory,
+                        allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number))));
         }
 
 
