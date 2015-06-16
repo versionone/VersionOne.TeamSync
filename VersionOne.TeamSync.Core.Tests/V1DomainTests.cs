@@ -97,7 +97,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
             mockConnector.Setup(x => x.Query("Story",
-                new[] { "ID.Number", "Reference", "AssetState" },
+                new[] { "ID.Number", "Reference", "IsInactive", "AssetState" },
                 new[] {"Reference!=\"\"", "Scope=\"Scope:1000\""},
                 Story.FromQuery))
                 .ReturnsAsync(new List<Story>());
