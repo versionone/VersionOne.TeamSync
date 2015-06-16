@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -24,6 +25,94 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Story>(),It.IsAny<XDocument>()), Times.Once);
         }
 
+    }
+
+    [TestClass]
+    public class story_delete : story_bits
+    {
+        private List<Issue> _allJiraStories;
+        private List<Story> _allV1Stories;
+            
+        [TestInitialize]
+        public void Context()
+            {
+                BuildContext();
+                _allJiraStories = new List<Issue>
+                {
+                    new Issue
+                    {
+                        Key = "OPC-1",
+                        Fields = new Fields()
+                    },
+                    new Issue
+                    {
+                        Key = "OPC-2",
+                        Fields = new Fields()
+                    },
+                    new Issue
+                    {
+                        Key = "OPC-3",
+                        Fields = new Fields()
+                    }
+                };
+
+                _allV1Stories = new List<Story>
+                {
+                    new Story
+                    {
+                        Name = "Story 1",
+                        Number = "S-00001"
+                    },
+                    new Story
+                    {
+                        Name = "Story 2",
+                        Number = "S-00002",
+                        Reference = "OPC-1"
+                    },
+                    new Story
+                    {
+                        Name = "Story 3",
+                        Number = "S-00003",
+                        Reference = "OPC-2"
+                    },
+                    new Story
+                    {
+                        Name = "Story 4",
+                        Number = "S-00004",
+                        Reference = "OPC-3"
+                    }
+                };
+            }
+        
+        [TestMethod]
+        public void should_never_call_delete_asset()
+        {
+            // All jira stories referenced in V1 exist in Jira - No stories should be deleted
+            var jiraInfo = MakeInfo();
+            _worker.DeleteV1Stories(jiraInfo, _allJiraStories, _allV1Stories);
+            _mockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+        }
+
+        [TestMethod]
+        public void should_call_delete_asset_just_one_time()
+        {
+            _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-2")));
+            // OPC-2 removed - Story 3 should be deleted
+            var jiraInfo = MakeInfo();
+            _worker.DeleteV1Stories(jiraInfo, _allJiraStories, _allV1Stories);
+            _mockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), "OPC-2"), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_call_delete_asset_just_two_times()
+        {
+            _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-1")));
+            _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-3")));
+            // OPC-1 and OPC-3 removed - Story 2 and Story 4 should be deleted
+            var jiraInfo = MakeInfo();
+            _worker.DeleteV1Stories(jiraInfo, _allJiraStories, _allV1Stories);
+            _mockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), It.IsIn("OPC-1", "OPC-3")), Times.Exactly(2));
+        }
     }
 
     public abstract class story_bits : worker_bits

@@ -140,10 +140,11 @@ namespace VersionOne.TeamSync.Worker
                         allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number))));
         }
 
-        private void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
+        public void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             var jiraReferencedStoriesKeys =
-                allV1Stories.Where(v1Story => !v1Story.IsInactive).Select(v1Story => v1Story.Reference);
+                allV1Stories.Where(v1Story => !v1Story.IsInactive && !string.IsNullOrWhiteSpace(v1Story.Reference))
+                    .Select(v1Story => v1Story.Reference);
             var jiraDeletedStoriesKeys =
                 jiraReferencedStoriesKeys.Where(jiraStoryKey => !allJiraStories.Any(js => js.Key.Equals(jiraStoryKey))).ToList();
 

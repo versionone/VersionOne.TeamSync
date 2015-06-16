@@ -54,11 +54,6 @@ namespace VersionOne.TeamSync.Service
             stopMessage();
         }
 
-        private void NotifyServiceStatus()
-        {
-            
-        }
-
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             _log.DebugFormat("The service event was raised at {0}", e.SignalTime);
