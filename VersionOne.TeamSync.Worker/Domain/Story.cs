@@ -40,8 +40,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("Estimate", Estimate)
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
-                .AddSetRelationNode("Super", Super)
-                .AddSetNode("IsInactive", IsInactive.ToString());
+                .AddSetRelationNode("Super", Super);
 			return doc;
         }
 
