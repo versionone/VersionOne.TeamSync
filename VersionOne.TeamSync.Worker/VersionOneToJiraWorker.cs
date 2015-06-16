@@ -110,14 +110,8 @@ namespace VersionOne.TeamSync.Worker
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
             
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
-
-            var jiraReferencedStoriesKeys =
-                allV1Stories.Where(v1Story => !v1Story.IsInactive).Select(v1Story => v1Story.Reference);
-
-            var jiraDeletedStoriesKeys =
-                jiraReferencedStoriesKeys.Where(jiraStoryKey => !allJiraStories.Any(js => js.Key.Equals(jiraStoryKey))).ToList();
-
-            DeleteV1Stories(jiraInfo, jiraDeletedStoriesKeys);
+            
+            DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
         }
 
         public void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
@@ -146,8 +140,13 @@ namespace VersionOne.TeamSync.Worker
                         allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number))));
         }
 
-        private void DeleteV1Stories(V1JiraInfo jiraInfo, List<string> jiraDeletedStoriesKeys)
+        private void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
+            var jiraReferencedStoriesKeys =
+                allV1Stories.Where(v1Story => !v1Story.IsInactive).Select(v1Story => v1Story.Reference);
+            var jiraDeletedStoriesKeys =
+                jiraReferencedStoriesKeys.Where(jiraStoryKey => !allJiraStories.Any(js => js.Key.Equals(jiraStoryKey))).ToList();
+
             jiraDeletedStoriesKeys.ForEach(key => _v1.DeleteStoryWithJiraReference(jiraInfo.V1ProjectId, key));
         }
 
