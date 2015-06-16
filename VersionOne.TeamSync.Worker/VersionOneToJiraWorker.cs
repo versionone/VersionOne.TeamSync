@@ -105,6 +105,7 @@ namespace VersionOne.TeamSync.Worker
         public async Task DoStoryWork(V1JiraInfo jiraInfo)
         {
             var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey, jiraInfo.Interval).issues;
+            _log.InfoFormat("Found {0} stories in Jira to process", allJiraStories.Count);
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
