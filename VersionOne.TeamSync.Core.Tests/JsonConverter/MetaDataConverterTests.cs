@@ -13,6 +13,7 @@ using VersionOne.TeamSync.JiraConnector.Entities;
 namespace VersionOne.TeamSync.Core.Tests.JsonConverter
 {
     [TestClass]
+    [DeploymentItem("CreateMeta.json")]
     public class MetaDataConverterTests
     {
         private CreateMeta _result;
