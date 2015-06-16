@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -49,29 +50,33 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         }
     }
 
-    [TestClass]
-    public class update_jira_story_to_v1 : worker_bits
+    public abstract class update_jira_story_to_v1 : worker_bits
     {
         private string _issueKey = "OPC-71";
         private Story _updateStory;
-        private string _storyId;
+        private string _storyId = "Story:1000";
+        protected Status _status;
+        protected Story _story = new Story();
 
-        [TestInitialize]
-        public void Context()
+        public async void Context()
         {
             BuildContext();
             _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>()))
                 .Callback<IV1Asset, XDocument>((story,doc) =>
                 {
                     _updateStory = (Story) story;
-                });
+                })
+                .ReturnsAsync(new XDocument());
 
-            _storyId = "Story:1000";
-            _worker.UpdateStoryFromJiraToV1(MakeInfo(), new Issue()
+            _story.ID = _storyId;
+            await _worker.UpdateStoryFromJiraToV1(MakeInfo(), new Issue()
             {
                 Key = _issueKey,
                 Fields = new Fields()
-            }, new Story(){ID = _storyId});
+                {
+                    Status = _status
+                }
+            }, _story);
         }
 
         [TestMethod]
@@ -85,6 +90,72 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         {
             _updateStory.ID.ShouldEqual(_storyId);
             _updateStory.Reference.ShouldEqual(_issueKey);
+        }
+    }
+
+    [TestClass]
+    public class and_the_status_is_normal : update_jira_story_to_v1
+    {
+        [TestInitialize]
+        public async void Setup()
+        {
+            _story.AssetState = "64";
+            _status = new Status(){Name = "In Progress"};
+            Context();
+        }
+
+        [TestMethod]
+        public void should_not_call_either_operations_to_close_or_reopen()
+        {
+            _mockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+            _mockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+        }
+    }
+
+    [TestClass]
+    public class and_the_status_is_closed_when_the_v1_story_is_open : update_jira_story_to_v1
+    {
+        [TestInitialize]
+        public async void Setup()
+        {
+            _story.AssetState = "64";
+            _status = new Status() { Name = "Done" }; 
+            Context();
+        }
+
+        [TestMethod]
+        public void should_call_close_story()
+        {
+            _mockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_not_call_reopen_story()
+        {
+            _mockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+        }
+    }
+    [TestClass]
+    public class and_the_status_is_not_done_when_the_v1_story_is_closed : update_jira_story_to_v1
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            _story.AssetState = "128";
+            _status = new Status(){Name = "ToDo"};
+            Context();
+        }
+
+        [TestMethod]
+        public void should_not_call_close_story()
+        {
+            _mockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_call_reopen_story()
+        {
+            _mockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Once);
         }
     }
 }

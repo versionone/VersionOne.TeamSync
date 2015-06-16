@@ -90,16 +90,16 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story)
         {
+            if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && story.AssetState == "128") //need to reopen a story first before we can update it
+                await _v1.ReOpenStory(story.ID);
+
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
             update.ID = story.ID;
 
             await _v1.UpdateAsset(update, update.CreatePayload());
 
-            if (issue.Fields.Status.Name == "Done" && story.AssetState != "128") //TODO : late bind? maybe??
-                _v1.CloseStory(story.ID);
-
-            if (issue.Fields.Status.Name != "Done" && story.AssetState == "128")
-                _v1.ReOpenStory(story.ID);
+            if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && story.AssetState != "128") //TODO : late bind? maybe??
+                await _v1.CloseStory(story.ID);
         }
 
         public async Task DoStoryWork(V1JiraInfo jiraInfo)
@@ -149,7 +149,6 @@ namespace VersionOne.TeamSync.Worker
 
             jiraDeletedStoriesKeys.ForEach(key => _v1.DeleteStoryWithJiraReference(jiraInfo.V1ProjectId, key));
         }
-
 
         public void ValidateConnections()
         {
