@@ -167,7 +167,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             BuildContext();
             _mockV1 = new Mock<IV1>();
-            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
+            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
 
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());

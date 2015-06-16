@@ -67,7 +67,7 @@ namespace VersionOne.TeamSync.Core.Tests.JsonConverter
         [TestInitialize]
         public void context()
         {
-            var jsonResult = File.ReadAllText("JsonConverter/CreateMeta.json");
+            var jsonResult = File.ReadAllText(@"CreateMeta.json");
             var jsonSerializerSettings = new JsonSerializerSettings()
             {
                 NullValueHandling = NullValueHandling.Ignore,
@@ -75,8 +75,6 @@ namespace VersionOne.TeamSync.Core.Tests.JsonConverter
             };
             //jsonSerializerSettings.Converters.Add(new MetaData());
             _result = JsonConvert.DeserializeObject<CreateMeta>(jsonResult, jsonSerializerSettings);
-
         }
-
     }
 }

@@ -76,6 +76,7 @@ namespace VersionOne.TeamSync.Core.Tests
         }
     }
 
+    [TestClass]
     public abstract class when_using_search
     {
         protected RestRequest _resultRequest;
