@@ -95,7 +95,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story"),
-               JqOperator.UpdatedTimeAgo(minuteInterval)
                //JqOperator.Equals(_projectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
             },
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key, _projectMeta.EpicLink.Key },
