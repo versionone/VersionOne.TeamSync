@@ -27,21 +27,19 @@ namespace VersionOne.TeamSync.Worker.Domain
             }
         }
 
-        public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, int interval, IJira jiraInstance)
+        public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
         {
             V1ProjectId = v1ProjectId;
             JiraKey = jiraKey;
             EpicCategory = epicCategory;
-            Interval = interval;
             JiraInstance = jiraInstance;
         }
 
-        public V1JiraInfo(IProjectMapping projectMapping, IJira jiraInstance, int interval)
+        public V1JiraInfo(IProjectMapping projectMapping, IJira jiraInstance)
         {
             V1ProjectId = projectMapping.V1Project;
             JiraKey = projectMapping.JiraProject;
             EpicCategory = projectMapping.EpicSyncType;
-            Interval = interval;
             JiraInstance = jiraInstance;
         }
 
@@ -57,7 +55,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string JiraKey { get; private set; }
         public string EpicCategory { get; set; }
         public IJira JiraInstance { get; private set; }
-        public int Interval { get; private set; }
 
         public static HashSet<V1JiraInfo> BuildJiraInfo(JiraServerCollection servers, string minuteInterval)
         {
@@ -85,7 +82,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 projectMappings.ForEach(map =>
                 {
                     var projectMeta = createMeta.Projects.Single(project => project.Key == map.JiraProject);
-                    list.Add(new V1JiraInfo(map, new Jira(connector, projectMeta), int.Parse(minuteInterval)));
+                    list.Add(new V1JiraInfo(map, new Jira(connector, projectMeta)));
                 });
 
             }
