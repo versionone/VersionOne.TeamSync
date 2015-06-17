@@ -67,6 +67,7 @@
     <Compile Include="Domain\IPrimaryWorkItem.cs" />
     <Compile Include="Domain\Jira.cs" />
     <Compile Include="Domain\Link.cs" />
+    <Compile Include="Domain\Defect.cs" />
     <Compile Include="Domain\Story.cs" />
     <Compile Include="Domain\V1.cs" />
     <Compile Include="Domain\V1JiraInfo.cs" />

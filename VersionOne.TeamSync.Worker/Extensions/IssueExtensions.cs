@@ -18,5 +18,18 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 ScopeId = v1ScopeId
             };
         }
+
+        public static Defect ToV1Defect(this Issue issue, string v1ScopeId)
+        {
+            return new Defect()
+            {
+                Name = issue.Fields.Summary,
+                Description = issue.Fields.Description,
+                Estimate = issue.Fields.StoryPoints,
+                ToDo = issue.Fields.TimeTracking == null ? "" : Math.Abs(issue.Fields.TimeTracking.RemainingEstimateSeconds / 3600).ToString(),
+                Reference = issue.Key,
+                ScopeId = v1ScopeId
+            };
+        }
     }
 }

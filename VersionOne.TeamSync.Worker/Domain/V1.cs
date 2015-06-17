@@ -32,6 +32,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task CloseStory(string storyId);
 
         Task ReOpenStory(string storyId);
+
+        Task<Defect> CreateDefect(Defect defect);
+        Task CloseDefect(string defectId);
+        Task ReOpenDefect(string defectId);
+
+        Task<List<Defect>> GetDefectsWithJiraReference(string projectId);
+
+        void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey);
     }
 
     public class V1 : IV1
@@ -124,6 +132,13 @@ namespace VersionOne.TeamSync.Worker.Domain
             return epic.FirstOrDefault();
         }
 
+
+        public async Task<Defect> GetDefectWithJiraReference(string projectId, string jiraProjectKey)
+        {
+            var defect = await _connector.Query("Defect", new[] { "ID.Number" }, new[] { "Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes() }, Defect.FromQuery);
+            return defect.FirstOrDefault();
+        }
+
         public async Task<Story> CreateStory(Story story)
         {
             var xDoc = await _connector.Post(story, story.CreatePayload());
@@ -131,10 +146,24 @@ namespace VersionOne.TeamSync.Worker.Domain
             return story;
         }
 
+        public async Task<Defect> CreateDefect(Defect defect)
+        {
+            var xDoc = await _connector.Post(defect, defect.CreatePayload());
+            defect.FromCreate(xDoc.Root);
+            return defect;
+        }
+
         public async void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey)
         {
             var story = await GetStoryWithJiraReference(projectId, jiraStoryKey);
             await _connector.Operation(story, "Delete");
+        }
+
+
+        public async void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey)
+        {
+            var defect = await GetDefectWithJiraReference(projectId, jiraStoryKey);
+            await _connector.Operation(defect, "Delete");
         }
 
         public async void CreateLink(IV1Asset asset, string title, string url)
@@ -197,6 +226,13 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { "Reference!=\"\"", string.Format(_whereProject, projectId) }, Story.FromQuery);
         }
 
+        public async Task<List<Defect>> GetDefectsWithJiraReference(string projectId)
+        {
+            return await _connector.Query("Defect",
+                new[] { "ID.Number", "Reference", "IsInactive", "AssetState" },
+                new[] { "Reference!=\"\"", string.Format(_whereProject, projectId) }, Defect.FromQuery);
+        }
+
         public async Task RefreshBasicInfo(IPrimaryWorkItem workItem)
         {
             await _connector.QueryOne(workItem.AssetType, workItem.ID, new[] {"ID.Number", "Scope.Name"}, (xElement) =>
@@ -229,6 +265,16 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task ReOpenStory(string storyId)
         {
             await _connector.Operation("Story", storyId, "Reactivate");
+        }
+
+        public async Task CloseDefect(string defectId)
+        {
+            await _connector.Operation("Defect", defectId, "Inactivate");
+        }
+
+        public async Task ReOpenDefect(string defectId)
+        {
+            await _connector.Operation("Defect", defectId, "Reactivate");
         }
     }
 

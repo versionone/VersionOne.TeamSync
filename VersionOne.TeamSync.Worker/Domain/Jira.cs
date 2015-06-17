@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using log4net;
 using VersionOne.TeamSync.Core;
@@ -27,6 +28,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         void UpdateIssue(Issue issue, string issueKey);
 
         SearchResult GetStoriesInProject(string jiraProject);
+        SearchResult GetDefectsInProject(string jiraProject);
     }
 
     public class Jira : IJira
@@ -95,11 +97,28 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story"),
-               //JqOperator.Equals(_projectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
             },
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key, _projectMeta.EpicLink.Key },
             (fields, properties) =>
             {
+                if (properties.ContainsKey(_projectMeta.StoryPoints.Key) && properties[_projectMeta.StoryPoints.Key] != null)
+                    fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
+                if (properties.ContainsKey(_projectMeta.EpicLink.Key) && properties[_projectMeta.EpicLink.Key] != null)
+                    fields.EpicLink = properties[_projectMeta.EpicLink.Key].ToString();
+            });
+        }
+
+        public SearchResult GetDefectsInProject(string jiraProject)
+        {
+            return _connector.GetSearchResults(new List<JqOperator>()
+            {
+               JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
+               JqOperator.Equals("issuetype", "Bug"),
+            },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key, _projectMeta.EpicLink.Key },
+            (fields, properties) =>
+            {
+                //exception!
                 if (properties.ContainsKey(_projectMeta.StoryPoints.Key) && properties[_projectMeta.StoryPoints.Key] != null)
                     fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
                 if (properties.ContainsKey(_projectMeta.EpicLink.Key) && properties[_projectMeta.EpicLink.Key] != null)
