@@ -128,8 +128,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey)
         {
-            var epic = await _connector.Query("Story", new[] {"ID.Number"}, new[] {"Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes()}, Story.FromQuery);
-            return epic.FirstOrDefault();
+            var story = await _connector.Query("Story", new[] {"ID.Number"}, new[] {"Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes()}, Story.FromQuery);
+            return story.FirstOrDefault();
         }
 
 
