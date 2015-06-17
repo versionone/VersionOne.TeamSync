@@ -5,8 +5,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using log4net;
+using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.V1Connector.Extensions;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 
@@ -14,6 +17,7 @@ namespace VersionOne.TeamSync.V1Connector
 {
     public class V1Connector : IV1Connector
     {
+        private static ILog _log = LogManager.GetLogger(typeof (V1Connector));
         private readonly HttpClient _client;
         private readonly HttpClientHandler _handler;
         private Uri _baseAddress;
@@ -54,8 +58,11 @@ namespace VersionOne.TeamSync.V1Connector
                 var endPoint = string.Format(_operation, GetResourceUrl(asset.AssetType), asset.ID, operation);
 
                 var response = await client.PostAsync(endPoint, new StringContent(""));
-                var value = await response.Content.ReadAsStringAsync();
-                return XDocument.Parse(value);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                LogResponse(response, responseContent);
+
+                return XDocument.Parse(responseContent);
             }
         }
 
@@ -68,8 +75,11 @@ namespace VersionOne.TeamSync.V1Connector
                     endPoint += "/" + asset.ID;
 
                 var response = await client.PostAsync(endPoint, new StringContent(postPayload.ToString()));
-                var value = await response.Content.ReadAsStringAsync();
-                return XDocument.Parse(value);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                LogResponse(response, responseContent);
+
+                return XDocument.Parse(responseContent);
             }
 
         }
@@ -108,8 +118,12 @@ namespace VersionOne.TeamSync.V1Connector
 
                 var endpoint = GetResourceUrl(asset) + "?sel=" + string.Join(",", properties) + "&where=" + whereClause;
 
-                var xml = await client.GetStringAsync(endpoint);
-                var doc = XDocument.Parse(xml);
+                var response = await client.GetAsync(endpoint);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                
+                LogResponse(response, responseContent);
+                
+                var doc = XDocument.Parse(responseContent);
                 if (doc.HasAssets())
                     result = doc.Root.Elements("Asset").ToList().Select(returnObject.Invoke).ToList();
             }
@@ -123,8 +137,12 @@ namespace VersionOne.TeamSync.V1Connector
             {
                 var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?sel=" + string.Join(",", properties);
 
-                var xml = await client.GetStringAsync(endpoint);
-                var doc = XDocument.Parse(xml);
+                var response = await client.GetAsync(endpoint);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                LogResponse(response, responseContent);
+
+                var doc = XDocument.Parse(responseContent);
                 returnObject.Invoke(doc.Root);
             }
         }
@@ -136,8 +154,12 @@ namespace VersionOne.TeamSync.V1Connector
             {
                 var endpoint = GetResourceUrl(asset) + "?sel=" + string.Join(",", properties);
 
-                var xml = await client.GetStringAsync(endpoint);
-                var doc = XDocument.Parse(xml);
+                var response = await client.GetAsync(endpoint);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                LogResponse(response, responseContent);
+
+                var doc = XDocument.Parse(responseContent);
                 if (doc.HasAssets())
                     result = doc.Root.Elements("Asset").ToList().Select(returnObject.Invoke).ToList();
             }
@@ -151,8 +173,11 @@ namespace VersionOne.TeamSync.V1Connector
             {
                 var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?op=" + operation;
                 var response = await client.PostAsync(endpoint, new StringContent(""));
-                var value = await response.Content.ReadAsStringAsync();
-                return XDocument.Parse(value);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                LogResponse(response, responseContent);
+
+                return XDocument.Parse(responseContent);
             }
         }
 
@@ -215,6 +240,40 @@ namespace VersionOne.TeamSync.V1Connector
         public static ICanSetUserAgentHeader WithInstanceUrl(string versionOneInstanceUrl)
         {
             return new Builder(versionOneInstanceUrl);
+        }
+
+        private void LogResponse(HttpResponseMessage resp, string responseBody, string requestBody = "")
+        {
+            LogRequest(resp.RequestMessage, requestBody);
+            var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("RESPONSE");
+            stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);
+            stringBuilder.AppendLine("\tHeaders: ");
+            foreach (var header in resp.Headers)
+            {
+                stringBuilder.AppendLine("\t\t" + header.Key + "=" + string.Join(", ", header.Value));
+            }
+            stringBuilder.AppendLine("\tBody: ");
+            stringBuilder.AppendLine("\t\t" + responseBody);
+
+            _log.Trace(stringBuilder.ToString());
+        }
+
+        private void LogRequest(HttpRequestMessage rm, string requestBody)
+        {
+            var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("REQUEST");
+            stringBuilder.AppendLine("\tMethod: " + rm.Method);
+            stringBuilder.AppendLine("\tRequest URL: " + rm.RequestUri);
+            stringBuilder.AppendLine("\tHeaders: ");
+            foreach (var header in rm.Headers)
+            {
+                stringBuilder.AppendLine("\t\t" + header.Key + "=" + string.Join(", ", header.Value));
+            }
+            stringBuilder.AppendLine("\tBody: ");
+            stringBuilder.AppendLine("\t\t" + requestBody);
+
+            _log.Trace(stringBuilder.ToString());
         }
 
         private class Builder : ICanSetUserAgentHeader, ICanSetAuthMethod, ICanSetProxyOrEndpointOrGetConnector, ICanSetEndpointOrGetConnector, ICanSetProxyOrGetConnector
