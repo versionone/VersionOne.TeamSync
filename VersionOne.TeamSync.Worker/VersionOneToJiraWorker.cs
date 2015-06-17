@@ -57,7 +57,8 @@ namespace VersionOne.TeamSync.Worker
         {
             _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
-                _log.Info("Beginning TeamSync(tm) between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
+                _log.Info("Beginning sync...");
+                _log.Info("Syncing between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
                 await CreateEpics(jiraInfo);
                 await UpdateEpics(jiraInfo);
@@ -174,17 +175,17 @@ namespace VersionOne.TeamSync.Worker
             var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             deletedEpics.ForEach(epic =>
             {
-                _log.Info("Attempting to delete " + epic.Reference);
+                _log.Debug("Attempting to delete " + epic.Reference);
 
                 jiraInfo.JiraInstance.DeleteEpicIfExists(epic.Reference);
 
-                _log.Info("Deleted " + epic.Reference);
+                _log.Debug("Deleted " + epic.Reference);
                 _v1.RemoveReferenceOnDeletedEpic(epic);
 
-                _log.Info("Removed reference on " + epic.Number);
+                _log.Debug("Removed reference on " + epic.Number);
             });
 
-            _log.Info("Total deleted epics processed was " + deletedEpics.Count);
+            _log.Debug("Total deleted epics processed was " + deletedEpics.Count);
         }
 
         public async Task ClosedV1EpicsSetJiraEpicsToResolved(V1JiraInfo jiraInfo)
@@ -238,6 +239,7 @@ namespace VersionOne.TeamSync.Worker
         public async Task CreateEpics(V1JiraInfo jiraInfo)
         {
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+            _log.InfoFormat("Found {0} epics to process", unassignedEpics.Count);
 
             //if (unassignedEpics.Count > 0)
             //    SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
@@ -255,14 +257,6 @@ namespace VersionOne.TeamSync.Worker
                 _v1.CreateLink(epic, "Jira Epic", jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key);
             });
         }
-
-
-
-
-
-
-
-
 
         //defect stuff
         public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
