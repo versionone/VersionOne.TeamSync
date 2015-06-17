@@ -44,6 +44,19 @@ namespace VersionOne.TeamSync.Worker.Domain
 			return doc;
         }
 
+        public XDocument CreateUpdatePayload()
+        {
+            var doc = XDocument.Parse("<Asset></Asset>");
+            doc.AddSetNode("Name", Name)
+                .AddSetRelationNode("Scope", ScopeId)
+                .AddNullableSetNode("Description", Description)
+                .AddNullableSetNode("Estimate", Estimate)
+                .AddNullableSetNode("ToDo", ToDo)
+                .AddSetNode("Reference", Reference)
+                .AddNullableSetNode("Super", Super);
+            return doc;
+        }
+
         internal void FromCreate(XElement asset)
         {
             ID = asset.GetAssetID();

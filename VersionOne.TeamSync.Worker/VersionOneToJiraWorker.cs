@@ -96,7 +96,7 @@ namespace VersionOne.TeamSync.Worker
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
             update.ID = story.ID;
 
-            await _v1.UpdateAsset(update, update.CreatePayload());
+            await _v1.UpdateAsset(update, update.CreateUpdatePayload());
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && story.AssetState != "128") //TODO : late bind? maybe??
                 await _v1.CloseStory(story.ID);
