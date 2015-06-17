@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
+using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using RestSharp.Serializers;
+using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
 
@@ -31,6 +35,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
     public class JiraConnector : IJiraConnector
     {
+        private static ILog _log = LogManager.GetLogger(typeof (JiraConnector));
         private const string InQuery = "{0} in ({1})";
 
         private readonly IRestClient _client;
@@ -66,6 +71,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
 
+            var reqBody = request.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
+            LogResponse(_client, response, reqBody != null ? reqBody.Value.ToString() : "");
+
             if (response.StatusCode.Equals(responseStatusCode))
                 return;
 
@@ -75,6 +83,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         public T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
+
+            var reqBody = request.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
+            LogResponse(_client, response, reqBody != null ? reqBody.Value.ToString() : "");
 
             if (response.StatusCode.Equals(responseStatusCode))
                 return returnBuilder(response.Content);
@@ -260,6 +271,41 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("expand", "projects.issuetypes.fields");
 
             return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<CreateMeta>);
+        }
+
+        private void LogResponse(IRestClient client, IRestResponse resp, string requestBody = "")
+        {
+            LogRequest(client, resp.Request, requestBody);
+            var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("RESPONSE");
+            stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);
+            stringBuilder.AppendLine("\tHeaders: ");
+            foreach (var header in resp.Headers)
+            {
+                stringBuilder.AppendLine("\t\t" + header.Name + "=" + string.Join(", ", header.Value));
+            }
+            stringBuilder.AppendLine("\tBody: ");
+            stringBuilder.AppendLine("\t\t" + resp.Content);
+
+            _log.Trace(stringBuilder.ToString());
+        }
+
+        private void LogRequest(IRestClient client, IRestRequest req, string requestBody)
+        {
+            var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("REQUEST");
+            stringBuilder.AppendLine("\tMethod: " + req.Method);
+            stringBuilder.AppendLine("\tRequest URL: " + Path.Combine(client.BaseUrl.ToString(), req.Resource));
+            stringBuilder.AppendLine("\tHeaders: ");
+            foreach (var parameter in req.Parameters)
+            {
+                if (parameter.Type == ParameterType.HttpHeader)
+                    stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
+            }
+            stringBuilder.AppendLine("\tBody: ");
+            stringBuilder.AppendLine("\t\t" + requestBody);
+
+            _log.Trace(stringBuilder.ToString());
         }
     }
 }
