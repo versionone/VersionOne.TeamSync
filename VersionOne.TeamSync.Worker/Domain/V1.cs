@@ -134,7 +134,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey)
         {
             var story = await GetStoryWithJiraReference(projectId, jiraStoryKey);
-            await _connector.Operation(story, "Inactivate");
+            await _connector.Operation(story, "Delete");
         }
 
         public async void CreateLink(IV1Asset asset, string title, string url)
