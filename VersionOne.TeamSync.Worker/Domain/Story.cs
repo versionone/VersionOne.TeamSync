@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Xml.Linq;
 using VersionOne.TeamSync.V1Connector.Extensions;
-using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Worker.Domain
@@ -52,8 +51,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableSetNode("Description", Description)
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
-                .AddSetNode("Reference", Reference)
-                .AddNullableSetNode("Super", Super);
+                .AddSetNode("Reference", Reference);
             return doc;
         }
 
