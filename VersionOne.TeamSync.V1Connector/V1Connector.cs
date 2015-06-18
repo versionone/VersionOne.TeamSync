@@ -60,7 +60,7 @@ namespace VersionOne.TeamSync.V1Connector
                 var response = await client.PostAsync(endPoint, new StringContent(""));
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                LogResponse(response, responseContent);
+                LogResponse(response);
 
                 return XDocument.Parse(responseContent);
             }
@@ -77,7 +77,7 @@ namespace VersionOne.TeamSync.V1Connector
                 var response = await client.PostAsync(endPoint, new StringContent(postPayload.ToString()));
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                LogResponse(response, responseContent);
+                LogResponse(response);
 
                 return XDocument.Parse(responseContent);
             }
@@ -121,7 +121,7 @@ namespace VersionOne.TeamSync.V1Connector
                 var response = await client.GetAsync(endpoint);
                 var responseContent = await response.Content.ReadAsStringAsync();
                 
-                LogResponse(response, responseContent);
+                LogResponse(response);
                 
                 var doc = XDocument.Parse(responseContent);
                 if (doc.HasAssets())
@@ -140,7 +140,7 @@ namespace VersionOne.TeamSync.V1Connector
                 var response = await client.GetAsync(endpoint);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                LogResponse(response, responseContent);
+                LogResponse(response);
 
                 var doc = XDocument.Parse(responseContent);
                 returnObject.Invoke(doc.Root);
@@ -157,7 +157,7 @@ namespace VersionOne.TeamSync.V1Connector
                 var response = await client.GetAsync(endpoint);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                LogResponse(response, responseContent);
+                LogResponse(response);
 
                 var doc = XDocument.Parse(responseContent);
                 if (doc.HasAssets())
@@ -175,7 +175,7 @@ namespace VersionOne.TeamSync.V1Connector
                 var response = await client.PostAsync(endpoint, new StringContent(""));
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                LogResponse(response, responseContent);
+                LogResponse(response);
 
                 return XDocument.Parse(responseContent);
             }
@@ -242,9 +242,9 @@ namespace VersionOne.TeamSync.V1Connector
             return new Builder(versionOneInstanceUrl);
         }
 
-        private void LogResponse(HttpResponseMessage resp, string responseBody, string requestBody = "")
+        private void LogResponse(HttpResponseMessage resp)
         {
-            LogRequest(resp.RequestMessage, requestBody);
+            LogRequest(resp.RequestMessage);
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("RESPONSE");
             stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);
@@ -254,12 +254,12 @@ namespace VersionOne.TeamSync.V1Connector
                 stringBuilder.AppendLine("\t\t" + header.Key + "=" + string.Join(", ", header.Value));
             }
             stringBuilder.AppendLine("\tBody: ");
-            stringBuilder.AppendLine("\t\t" + responseBody);
+            stringBuilder.AppendLine("\t\t" + (resp.Content != null ? resp.Content.ReadAsStringAsync().Result : string.Empty));
 
             _log.Trace(stringBuilder.ToString());
         }
 
-        private void LogRequest(HttpRequestMessage rm, string requestBody)
+        private void LogRequest(HttpRequestMessage rm)
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("REQUEST");
@@ -271,7 +271,7 @@ namespace VersionOne.TeamSync.V1Connector
                 stringBuilder.AppendLine("\t\t" + header.Key + "=" + string.Join(", ", header.Value));
             }
             stringBuilder.AppendLine("\tBody: ");
-            stringBuilder.AppendLine("\t\t" + requestBody);
+            stringBuilder.AppendLine("\t\t" + (rm.Content != null ? rm.Content.ReadAsStringAsync().Result : string.Empty));
 
             _log.Trace(stringBuilder.ToString());
         }
