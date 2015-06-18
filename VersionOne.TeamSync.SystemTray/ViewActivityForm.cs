@@ -30,7 +30,7 @@ namespace VersionOne.TeamSync.SystemTray
                 }
                 else
                 {
-                    if (_levelToShow == LogLevel.ALL || level == _levelToShow)
+                    if ((int)level >= (int)_levelToShow)
                     {
                         richTextBox1.SelectionStart = richTextBox1.TextLength;
                         richTextBox1.SelectionLength = 0;
@@ -79,8 +79,6 @@ namespace VersionOne.TeamSync.SystemTray
                 return Color.Green;
             if (level == LogLevel.INFO)
                 return Color.White;
-            if (level == LogLevel.WARN)
-                return Color.Pink;
             if (level == LogLevel.TRACE)
                 return Color.Yellow;
             if (level == LogLevel.ERROR)
@@ -183,11 +181,10 @@ namespace VersionOne.TeamSync.SystemTray
 
     public enum LogLevel
     {
-        ALL,
-        INFO,
-        DEBUG,
-        WARN,
-        TRACE,
-        ERROR
+        ALL = 0,
+        TRACE = 1,
+        DEBUG = 2,
+        INFO = 3,
+        ERROR = 4
     }
 }
