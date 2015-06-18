@@ -71,8 +71,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
 
-            var reqBody = request.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
-            LogResponse(_client, response, reqBody != null ? reqBody.Value.ToString() : "");
+            LogResponse(_client, response);
 
             if (response.StatusCode.Equals(responseStatusCode))
                 return;
@@ -83,9 +82,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         public T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
             var response = _client.Execute(request); // TODO: ExecuteAsync?
-
-            var reqBody = request.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
-            LogResponse(_client, response, reqBody != null ? reqBody.Value.ToString() : "");
+            
+            LogResponse(_client, response);
 
             if (response.StatusCode.Equals(responseStatusCode))
                 return returnBuilder(response.Content);
@@ -273,9 +271,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<CreateMeta>);
         }
 
-        private void LogResponse(IRestClient client, IRestResponse resp, string requestBody = "")
+        private void LogResponse(IRestClient client, IRestResponse resp)
         {
-            LogRequest(client, resp.Request, requestBody);
+            LogRequest(client, resp.Request);
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("RESPONSE");
             stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);
@@ -290,20 +288,26 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             _log.Trace(stringBuilder.ToString());
         }
 
-        private void LogRequest(IRestClient client, IRestRequest req, string requestBody)
+        private void LogRequest(IRestClient client, IRestRequest req)
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("REQUEST");
             stringBuilder.AppendLine("\tMethod: " + req.Method);
-            stringBuilder.AppendLine("\tRequest URL: " + Path.Combine(client.BaseUrl.ToString(), req.Resource));
+            stringBuilder.AppendLine("\tRequest URL: " + client.BaseUrl + "/" + req.Resource);
             stringBuilder.AppendLine("\tHeaders: ");
-            foreach (var parameter in req.Parameters)
+            foreach (var parameter in req.Parameters.Where(param => param.Type == ParameterType.HttpHeader))
             {
-                if (parameter.Type == ParameterType.HttpHeader)
+                stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
+            }
+            stringBuilder.AppendLine("\tQuery params: ");
+            foreach (var parameter in req.Parameters.Where(param => param.Type == ParameterType.QueryString))
+            {
                     stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
             }
+
             stringBuilder.AppendLine("\tBody: ");
-            stringBuilder.AppendLine("\t\t" + requestBody);
+            var reqBody = req.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
+            stringBuilder.AppendLine("\t\t" + reqBody);
 
             _log.Trace(stringBuilder.ToString());
         }
