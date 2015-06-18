@@ -80,7 +80,7 @@ namespace VersionOne.TeamSync.SystemTray
             if (level == LogLevel.INFO)
                 return Color.White;
             if (level == LogLevel.WARN)
-                return Color.Yellow;
+                return Color.Pink;
             if (level == LogLevel.TRACE)
                 return Color.Yellow;
             if (level == LogLevel.ERROR)
@@ -94,6 +94,7 @@ namespace VersionOne.TeamSync.SystemTray
             var defaultLocation = Settings.Default.ActivityWindowLocation;
             var defaultSize = Settings.Default.ActivityWindowSize;
             LogLevel defaultLogLevel;
+
             if (Enum.TryParse(Settings.Default.LogLevel, out defaultLogLevel))
             {
                 this.toolStripComboBox1.SelectedItem = defaultLogLevel.ToString();
