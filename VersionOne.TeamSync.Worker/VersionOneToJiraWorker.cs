@@ -60,10 +60,7 @@ namespace VersionOne.TeamSync.Worker
                 _log.Info("Beginning sync...");
                 _log.Info("Syncing between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
-                await CreateEpics(jiraInfo);
-                await UpdateEpics(jiraInfo);
-                await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
-                await DeleteEpics(jiraInfo);
+                await SyncEpics(jiraInfo);
 
                 await DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
                 await DoDefectWork(jiraInfo);
@@ -71,7 +68,15 @@ namespace VersionOne.TeamSync.Worker
             });
         }
 
-
+        public async Task SyncEpics(V1JiraInfo jiraInfo)
+        {
+            _log.Info("Epic sync started...");
+            await CreateEpics(jiraInfo);
+            await UpdateEpics(jiraInfo);
+            await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+            await DeleteEpics(jiraInfo);
+            _log.Info("Epic sync stopped...");
+        }
 
 
         public async Task CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
@@ -238,6 +243,8 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task CreateEpics(V1JiraInfo jiraInfo)
         {
+            _log.Info("Create epics started");
+            var processedEpics = 0;
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             _log.InfoFormat("Found {0} epics to process", unassignedEpics.Count);
 
@@ -246,6 +253,7 @@ namespace VersionOne.TeamSync.Worker
 
             unassignedEpics.ForEach(epic =>
             {
+                _log.DebugFormat("Epic being processed: {0}{1}", Environment.NewLine, epic);
                 var jiraData = jiraInfo.JiraInstance.CreateEpic(epic, jiraInfo.JiraKey);
 
                 if (jiraData.IsEmpty)
@@ -254,8 +262,15 @@ namespace VersionOne.TeamSync.Worker
                 jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic.Number, epic.ScopeName, _v1.InstanceUrl);
                 epic.Reference = jiraData.Key;
                 _v1.UpdateEpicReference(epic);
-                _v1.CreateLink(epic, "Jira Epic", jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key);
+                _log.DebugFormat("Added reference \"{0}\" to V1 epic.", jiraData.Key);
+                var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key;
+                _v1.CreateLink(epic, "Jira Epic", link);
+                _log.DebugFormat("Added link \"{0}\" to V1 epic.", link);
+                processedEpics++;
             });
+
+            _log.InfoFormat("{0} epics processed.", processedEpics);
+            _log.Info("Create epics stopped");
         }
 
         //defect stuff

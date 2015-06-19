@@ -32,7 +32,17 @@ namespace VersionOne.TeamSync.Service
             {
                 startMessage();
                 _worker = new VersionOneToJiraWorker(_serviceDuration);
-                _worker.ValidateConnections();
+                try
+                {
+                    _worker.ValidateConnections();
+
+                }
+                catch (Exception e)
+                {
+                    _log.Error(e);
+                    _log.Error("Errors occurred during connection validations. Service will be stopped.");
+                    Stop();
+                }
                 _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
                 _timer.Elapsed += OnTimedEvent;
                 _timer.Enabled = true;
@@ -41,9 +51,9 @@ namespace VersionOne.TeamSync.Service
             catch (Exception e)
             {
                 _log.Error(e);
-                _log.Error("Errors occurred during connection validations. Service will be stopped.");
-                Stop();
+                _log.Error("Errors occurred during sync.");
             }
+            
         }
 
         protected override void OnStop()
