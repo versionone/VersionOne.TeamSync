@@ -156,11 +156,11 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void InitializeLogLevelComboBox()
         {
-            var logLevels = Enum.GetValues(typeof(LogLevel));
-            foreach (var logLevel in logLevels)
-            {
-                toolStripComboBox1.Items.Add(logLevel.ToString());
-            }
+            toolStripComboBox1.Items.Add(LogLevel.ALL.ToString());
+            toolStripComboBox1.Items.Add(LogLevel.INFO.ToString());
+            toolStripComboBox1.Items.Add(LogLevel.DEBUG.ToString());
+            toolStripComboBox1.Items.Add(LogLevel.TRACE.ToString());
+            toolStripComboBox1.Items.Add(LogLevel.ERROR.ToString());
         }
 
         private void ViewActivityForm_FormClosing(object sender, FormClosingEventArgs e)
