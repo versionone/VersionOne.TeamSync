@@ -64,8 +64,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             var body = string.Format(_createdFromV1Comment, v1Number, v1ProjectName, v1Instance);
             _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
-
-            _log.DebugFormat("Added comment \"{0}\" to Jira epic.", body);
         }
 
         private string _trackedInV1 = "Tracking Issue {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
