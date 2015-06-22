@@ -1,4 +1,4 @@
-$path = Resolve-Path ".\VersionOne.TeamSync.Service\bin\Release\VersionOne.TeamSync.Service.exe.config"
+$path = Resolve-Path ".\VersionOne.TeamSync.Service\App.config"
 
 function Clean-ConfigFile {
     $xml = New-Object System.Xml.XmlDocument
