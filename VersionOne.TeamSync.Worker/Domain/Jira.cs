@@ -112,7 +112,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story"),
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key, _projectMeta.EpicLink.Key },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
             (fields, properties) =>
             {
                 if (properties.ContainsKey(ProjectMeta.StoryPoints.Key) && properties[ProjectMeta.StoryPoints.Key] != null)
