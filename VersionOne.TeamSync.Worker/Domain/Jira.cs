@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Connector;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -37,13 +36,29 @@ namespace VersionOne.TeamSync.Worker.Domain
        
         private static ILog _log = LogManager.GetLogger(typeof (Jira));
         private MetaProject _projectMeta;
+        private string _jiraProject;
         private const int ConnectionAttempts = 3;
 
-        public Jira(JiraConnector.Connector.JiraConnector connector, MetaProject project)
+        public Jira(JiraConnector.Connector.JiraConnector connector, string jiraProject)
         {
             _connector = connector;
-            _projectMeta = project;
+            _jiraProject = jiraProject;
             InstanceUrl = _connector.BaseUrl;
+        }
+
+        private MetaProject ProjectMeta
+        {
+            get
+            {
+                if (_projectMeta == null)
+                {
+                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string>(){_jiraProject});
+                    _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
+                }
+
+                return _projectMeta;
+            }
+                
         }
 
         public Jira(IJiraConnector connector, MetaProject project)

@@ -60,32 +60,17 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             var list = new HashSet<V1JiraInfo>();
 
-            for (var i = 0; i < JiraSettings.Settings.Servers.Count; i++)
+            foreach (var server in servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
-                var server = JiraSettings.Settings.Servers[i];
-                if (!server.Enabled)
-                    continue;
+                var connector =
+                    new JiraConnector.Connector.JiraConnector(
+                        new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password);
 
-                var connector = new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password);
+                var projectMappings = server.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled).ToList();
 
-                var projectMappings = new List<IProjectMapping>();
-
-                for (var p = 0; p < server.ProjectMappings.Count; p++)
-                {
-                    if (!server.ProjectMappings[p].Enabled)
-                        continue;
-                    projectMappings.Add(server.ProjectMappings[p]);
-                }
-
-                var createMeta = connector.GetCreateMetaInfoForProjects(projectMappings.Select(map => map.JiraProject));
-
-                projectMappings.ForEach(map =>
-                {
-                    var projectMeta = createMeta.Projects.Single(project => project.Key == map.JiraProject);
-                    list.Add(new V1JiraInfo(map, new Jira(connector, projectMeta)));
-                });
-
+                projectMappings.ForEach(map => list.Add(new V1JiraInfo(map, new Jira(connector, map.JiraProject))));
             }
+
             return list;
         }
 

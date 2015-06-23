@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Security.Policy;
 using System.Threading.Tasks;
 using log4net;
+using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -132,7 +133,7 @@ namespace VersionOne.TeamSync.Worker
         
         public async Task UpdateEpics(V1JiraInfo jiraInfo)
         {
-            _log.Info("Update Jira epics started.");
+            _log.Debug("Updating epics...");
             var processedEpics = 0;
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
@@ -143,19 +144,19 @@ namespace VersionOne.TeamSync.Worker
                 return;
             }
 
-            _log.InfoFormat("Found {0} epics to process.", assignedEpics.Count);
+            _log.InfoFormat("Found {0} epics to update", assignedEpics.Count);
 
             var jiraEpics = searchResult.issues;
             if (assignedEpics.Count > 0)
-                _log.Info("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
+                _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
 
             assignedEpics.ForEach(epic =>
             {
-                _log.DebugFormat("Attempting to update {0}.", epic.Reference);
+                _log.TraceFormat("Attempting to update {0}", epic.Reference);
                 var relatedJiraEpic = jiraEpics.FirstOrDefault(issue => issue.Key == epic.Reference);
                 if (relatedJiraEpic == null)
                 {
-                    _log.Info("No related issue found in Jira for " + epic.Reference);
+                    _log.Error("No related issue found in Jira for " + epic.Reference);
                     return;
                 }
 
@@ -163,48 +164,54 @@ namespace VersionOne.TeamSync.Worker
                     jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
 
                 jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(), relatedJiraEpic.Key);
-                _log.DebugFormat("Updated {0} with data from {1}.", relatedJiraEpic.Key, epic.Number);
+                _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
                 processedEpics++;
             });
 
-            _log.DebugFormat("Total epics processed was {0}", processedEpics);
-            _log.Info("Update Jira epics stopped.");
+            _log.InfoFormat("Total epics updated was {0}", processedEpics);
+            _log.Trace("Update epics stopped");
         }
 
         public async Task CreateEpics(V1JiraInfo jiraInfo)
         {
-            _log.Info("Create Jira epics started.");
+            _log.Info("Creating epics...");
             var processedEpics = 0;
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             
-            _log.InfoFormat("Found {0} epics to process.", unassignedEpics.Count);
+            _log.InfoFormat("Found {0} epics to create", unassignedEpics.Count);
 
             //if (unassignedEpics.Count > 0)
             //    SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
 
             unassignedEpics.ForEach(epic =>
             {
-                _log.DebugFormat("Attempting to create Jira epic from {0}.", epic.Number);
+                _log.TraceFormat("Attempting to create Jira epic from {0}", epic.Number);
                 var jiraData = jiraInfo.JiraInstance.CreateEpic(epic, jiraInfo.JiraKey);
 
-                _log.DebugFormat("Created {0}.", jiraData.Key);
+                _log.DebugFormat("Created Jira epic {0} from V1 epic {1}", jiraData.Key, epic.Number);
 
                 if (jiraData.IsEmpty)
-                    throw new InvalidDataException("Saving epic failed. Possible reasons : Jira project (" + jiraInfo.JiraKey + ") doesn't have epic type or expected custom field");
-
-                jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic.Number, epic.ScopeName, _v1.InstanceUrl);
-                _log.DebugFormat("Added comment to {0}.", jiraData.Key);
-                epic.Reference = jiraData.Key;
-                _v1.UpdateEpicReference(epic);
-                _log.DebugFormat("Added reference to V1 epic ({0}).", epic.Number);
-                var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key;
-                _v1.CreateLink(epic, "Jira Epic", link);
-                _log.DebugFormat("Added link to V1 epic ({0}).", epic.Number);
-                processedEpics++;
+                {
+                    _log.Error("Saving epic failed. Possible reasons : Jira project (" + jiraInfo.JiraKey +
+                               ") doesn't have epic type or expected custom field");
+                }
+                else
+                {
+                    jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic.Number, epic.ScopeName,
+                        _v1.InstanceUrl);
+                    _log.TraceFormat("Added comment to {0}", jiraData.Key);
+                    epic.Reference = jiraData.Key;
+                    _v1.UpdateEpicReference(epic);
+                    _log.TraceFormat("Added reference to V1 epic ({0})", epic.Number);
+                    var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key;
+                    _v1.CreateLink(epic, "Jira Epic", link);
+                    _log.TraceFormat("Added link to V1 epic ({0})", epic.Number);
+                    processedEpics++;
+                }
             });
 
-            _log.DebugFormat("Total epics processed was {0}", processedEpics);
-            _log.Info("Create Jira epics stopped.");
+            _log.InfoFormat("Total epics created was {0}", processedEpics);
+            _log.Trace("Create epics stopped");
         }
         #endregion EPICS
 
