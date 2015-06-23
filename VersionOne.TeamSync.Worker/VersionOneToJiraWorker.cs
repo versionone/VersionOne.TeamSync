@@ -82,53 +82,54 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DeleteEpics(V1JiraInfo jiraInfo)
         {
-            _log.Info("Delete Jira epics started.");
+            _log.Info("Delete epics started...");
             var processedEpics = 0;
             var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
-            _log.InfoFormat("Found {0} epics to process.", deletedEpics.Count);
+            _log.InfoFormat("Found {0} epics to delete", deletedEpics.Count);
 
             deletedEpics.ForEach(epic =>
             {
-                _log.DebugFormat("Attempting to delete {0}.", epic.Reference);
+                _log.TraceFormat("Attempting to delete Jira epic {0}", epic.Reference);
 
                 jiraInfo.JiraInstance.DeleteEpicIfExists(epic.Reference);
 
-                _log.DebugFormat("Deleted {0}.", epic.Reference);
+                _log.DebugFormat("Deleted Jira epic {0}", epic.Reference);
                 _v1.RemoveReferenceOnDeletedEpic(epic);
 
-                _log.DebugFormat("Removed reference on {0}.", epic.Number);
+                _log.TraceFormat("Removed reference on {0}", epic.Number);
                 processedEpics++;
             });
 
-            _log.DebugFormat("Total epics processed was {0}.", processedEpics);
-            _log.Info("Delete Jira epics stopped.");
+            _log.DebugFormat("Total epics deleted was {0}", processedEpics);
+            _log.Trace("Delete epics stopped");
         }
 
         public async Task ClosedV1EpicsSetJiraEpicsToResolved(V1JiraInfo jiraInfo)
         {
-            _log.Info("Resolve Jira epics started.");
+            _log.Info("Resolving epics...");
             var processedEpics = 0;
             var closedEpics = await _v1.GetClosedTrackedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
-            _log.InfoFormat("Found {0} epics to process.", closedEpics.Count);
+            _log.InfoFormat("Found {0} epics to resolve", closedEpics.Count);
 
             closedEpics.ForEach(epic =>
             {
-                _log.DebugFormat("Attempting to resolve {0}.", epic.Reference);
+                _log.TraceFormat("Attempting to resolve Jira epic {0}", epic.Reference);
                 var jiraEpic = jiraInfo.JiraInstance.GetEpicByKey(epic.Reference);
                 if (jiraEpic.HasErrors)
                 {
                     //???
+                    _log.ErrorFormat("Jira epic {0} has errors", epic.Reference);
                     return;
                 }
                 jiraInfo.JiraInstance.SetIssueToResolved(epic.Reference);
-                _log.DebugFormat("Resolved {0}.", epic.Reference);
+                _log.DebugFormat("Resolved Jira epic {0}", epic.Reference);
                 processedEpics++;
             });
 
-            _log.DebugFormat("Total epics processed was {0}", processedEpics);
-            _log.Info("Resolve Jira epics stopped.");
+            _log.InfoFormat("Total epics resolved was {0}", processedEpics);
+            _log.Trace("Resolve epics stopped");
         }
         
         public async Task UpdateEpics(V1JiraInfo jiraInfo)
@@ -192,8 +193,9 @@ namespace VersionOne.TeamSync.Worker
 
                 if (jiraData.IsEmpty)
                 {
-                    _log.Error("Saving epic failed. Possible reasons : Jira project (" + jiraInfo.JiraKey +
-                               ") doesn't have epic type or expected custom field");
+                    _log.ErrorFormat(
+                        "Saving epic failed. Possible reasons : Jira project ({0}) doesn't have epic type or expected custom field",
+                        jiraInfo.JiraKey);
                 }
                 else
                 {
