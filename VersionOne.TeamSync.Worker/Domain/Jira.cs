@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Connector;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -37,13 +36,28 @@ namespace VersionOne.TeamSync.Worker.Domain
        
         private static ILog _log = LogManager.GetLogger(typeof (Jira));
         private MetaProject _projectMeta;
+        private string _jiraProject;
         private const int ConnectionAttempts = 3;
 
-        public Jira(JiraConnector.Connector.JiraConnector connector, MetaProject project)
+        public Jira(JiraConnector.Connector.JiraConnector connector, string jiraProject)
         {
             _connector = connector;
-            _projectMeta = project;
+            _jiraProject = jiraProject;
             InstanceUrl = _connector.BaseUrl;
+        }
+
+        private MetaProject ProjectMeta
+        {
+            get
+            {
+                if (_projectMeta == null)
+                {
+                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string>(){_jiraProject});
+                    _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
+                }
+
+                return _projectMeta;
+            }
         }
 
         public Jira(IJiraConnector connector, MetaProject project)
@@ -55,7 +69,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
-            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, _projectMeta.EpicName.Key), HttpStatusCode.Created);
+            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, ProjectMeta.EpicName.Key), HttpStatusCode.Created);
             return baseItem;
         }
 
@@ -101,10 +115,10 @@ namespace VersionOne.TeamSync.Worker.Domain
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key, _projectMeta.EpicLink.Key },
             (fields, properties) =>
             {
-                if (properties.ContainsKey(_projectMeta.StoryPoints.Key) && properties[_projectMeta.StoryPoints.Key] != null)
-                    fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
-                if (properties.ContainsKey(_projectMeta.EpicLink.Key) && properties[_projectMeta.EpicLink.Key] != null)
-                    fields.EpicLink = properties[_projectMeta.EpicLink.Key].ToString();
+                if (properties.ContainsKey(ProjectMeta.StoryPoints.Key) && properties[ProjectMeta.StoryPoints.Key] != null)
+                    fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
+                if (properties.ContainsKey(ProjectMeta.EpicLink.Key) && properties[ProjectMeta.EpicLink.Key] != null)
+                    fields.EpicLink = properties[ProjectMeta.EpicLink.Key].ToString();
             });
         }
 
@@ -115,14 +129,14 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Bug"),
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", _projectMeta.StoryPoints.Key, _projectMeta.EpicLink.Key },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
             (fields, properties) =>
             {
                 //exception!
-                if (properties.ContainsKey(_projectMeta.StoryPoints.Key) && properties[_projectMeta.StoryPoints.Key] != null)
-                    fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
-                if (properties.ContainsKey(_projectMeta.EpicLink.Key) && properties[_projectMeta.EpicLink.Key] != null)
-                    fields.EpicLink = properties[_projectMeta.EpicLink.Key].ToString();
+                if (properties.ContainsKey(ProjectMeta.StoryPoints.Key) && properties[ProjectMeta.StoryPoints.Key] != null)
+                    fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
+                if (properties.ContainsKey(ProjectMeta.EpicLink.Key) && properties[ProjectMeta.EpicLink.Key] != null)
+                    fields.EpicLink = properties[ProjectMeta.EpicLink.Key].ToString();
             });
         }
 
@@ -168,12 +182,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story"),
-               JqOperator.Equals(_projectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
+               JqOperator.Equals(ProjectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", "labels","timetracking", _projectMeta.StoryPoints.Key },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", "labels","timetracking", ProjectMeta.StoryPoints.Key },
             (fields, properties) => {
-                    if (properties.ContainsKey(_projectMeta.StoryPoints.Key))
-                        fields.StoryPoints = properties[_projectMeta.StoryPoints.Key].ToString();
+                    if (properties.ContainsKey(ProjectMeta.StoryPoints.Key))
+                        fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
             });
         }
 
