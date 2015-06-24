@@ -23,6 +23,7 @@ namespace VersionOne.TeamSync.Worker
         private IV1 _v1;
         private IV1Connector _v1Connector;
         private static ILog _log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
+        private static DateTime syncTime;
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
@@ -58,6 +59,7 @@ namespace VersionOne.TeamSync.Worker
         {
             _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
+                syncTime = DateTime.Now;
                 _log.Info("Beginning sync...");
                 _log.Info("Syncing between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
@@ -66,6 +68,7 @@ namespace VersionOne.TeamSync.Worker
                 await DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
                 await DoDefectWork(jiraInfo);
                 _log.Info("Ending sync...");
+                _log.DebugFormat("Total sync time: {0}", DateTime.Now - syncTime);
             });
         }
 
