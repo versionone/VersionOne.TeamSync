@@ -17,7 +17,7 @@ namespace VersionOne.TeamSync.V1Connector
 {
     public class V1Connector : IV1Connector
     {
-        private static ILog _log = LogManager.GetLogger(typeof (V1Connector));
+        private static ILog _log = LogManager.GetLogger(typeof(V1Connector));
         private readonly HttpClient _client;
         private readonly HttpClientHandler _handler;
         private Uri _baseAddress;
@@ -77,7 +77,7 @@ namespace VersionOne.TeamSync.V1Connector
                 var response = await client.PostAsync(endPoint, new StringContent(postPayload.ToString()));
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                LogResponse(response);
+                LogResponse(response, postPayload.ToString());
 
                 return XDocument.Parse(responseContent);
             }
@@ -120,9 +120,9 @@ namespace VersionOne.TeamSync.V1Connector
 
                 var response = await client.GetAsync(endpoint);
                 var responseContent = await response.Content.ReadAsStringAsync();
-                
+
                 LogResponse(response);
-                
+
                 var doc = XDocument.Parse(responseContent);
                 if (doc.HasAssets())
                     result = doc.Root.Elements("Asset").ToList().Select(returnObject.Invoke).ToList();
@@ -242,9 +242,9 @@ namespace VersionOne.TeamSync.V1Connector
             return new Builder(versionOneInstanceUrl);
         }
 
-        private void LogResponse(HttpResponseMessage resp)
+        private void LogResponse(HttpResponseMessage resp, string rc = "")
         {
-            LogRequest(resp.RequestMessage);
+            LogRequest(resp.RequestMessage, rc);
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("RESPONSE");
             stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);
@@ -259,7 +259,7 @@ namespace VersionOne.TeamSync.V1Connector
             _log.Trace(stringBuilder.ToString());
         }
 
-        private void LogRequest(HttpRequestMessage rm)
+        private void LogRequest(HttpRequestMessage rm, string rc)
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("REQUEST");
@@ -271,7 +271,7 @@ namespace VersionOne.TeamSync.V1Connector
                 stringBuilder.AppendLine("\t\t" + header.Key + "=" + string.Join(", ", header.Value));
             }
             stringBuilder.AppendLine("\tBody: ");
-            stringBuilder.AppendLine("\t\t" + (rm.Content != null ? rm.Content.ReadAsStringAsync().Result : string.Empty));
+            stringBuilder.AppendLine("\t\t" + rc);
 
             _log.Trace(stringBuilder.ToString());
         }
