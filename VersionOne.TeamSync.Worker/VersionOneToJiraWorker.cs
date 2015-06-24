@@ -23,7 +23,6 @@ namespace VersionOne.TeamSync.Worker
         private IV1 _v1;
         private IV1Connector _v1Connector;
         private static ILog _log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
-        private static DateTime syncTime;
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
@@ -59,7 +58,6 @@ namespace VersionOne.TeamSync.Worker
         {
             _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
-                syncTime = DateTime.Now;
                 _log.Info("Beginning sync...");
                 _log.Info("Syncing between " + jiraInfo.JiraKey + " and " + jiraInfo.V1ProjectId);
 
@@ -68,7 +66,6 @@ namespace VersionOne.TeamSync.Worker
                 await DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
                 await DoDefectWork(jiraInfo);
                 _log.Info("Ending sync...");
-                _log.DebugFormat("Total sync time: {0}", DateTime.Now - syncTime);
             });
         }
 
@@ -134,7 +131,7 @@ namespace VersionOne.TeamSync.Worker
             _log.InfoFormat("Total epics resolved was {0}", processedEpics);
             _log.Trace("Resolve epics stopped");
         }
-        
+
         public async Task UpdateEpics(V1JiraInfo jiraInfo)
         {
             _log.Debug("Updating epics...");
@@ -181,7 +178,7 @@ namespace VersionOne.TeamSync.Worker
             _log.Info("Creating epics...");
             var processedEpics = 0;
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
-            
+
             _log.InfoFormat("Found {0} epics to create", unassignedEpics.Count);
 
             //if (unassignedEpics.Count > 0)
@@ -226,7 +223,7 @@ namespace VersionOne.TeamSync.Worker
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
-                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic",jiraStory.Fields.EpicLink);
+                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraStory.Fields.EpicLink);
                 story.Super = epicId;
             }
 
@@ -234,7 +231,7 @@ namespace VersionOne.TeamSync.Worker
 
             await _v1.RefreshBasicInfo(newStory);
 
-            jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(), jiraStory.Key);
+            jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
             jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ProjectName,
                 _v1.InstanceUrl);
         }
@@ -245,7 +242,7 @@ namespace VersionOne.TeamSync.Worker
                 await _v1.ReOpenStory(story.ID);
 
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
- 
+
             update.ID = story.ID;
 
             await _v1.UpdateAsset(update, update.CreateUpdatePayload());
@@ -261,9 +258,9 @@ namespace VersionOne.TeamSync.Worker
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
-            
+
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
-            
+
             DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
         }
 
@@ -315,7 +312,7 @@ namespace VersionOne.TeamSync.Worker
                 jiraInstance.ValidateConnection();
             }
         }
-        
+
         //defect stuff
         public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
         {
@@ -331,7 +328,7 @@ namespace VersionOne.TeamSync.Worker
 
             await _v1.RefreshBasicInfo(newDefect);
 
-            jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(), jiraDefect.Key);
+            jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraDefect.Fields.Labels), jiraDefect.Key);
             jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ProjectName,
                 _v1.InstanceUrl);
         }

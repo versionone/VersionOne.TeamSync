@@ -6,13 +6,13 @@ namespace VersionOne.TeamSync.Worker.Extensions
 {
     public static class StoryExtensions
     {
-        public static Issue ToIssueWithOnlyNumberAsLabel(this IPrimaryWorkItem primaryWorkItem)
+        public static Issue ToIssueWithOnlyNumberAsLabel(this IPrimaryWorkItem primaryWorkItem, IEnumerable<string> preExistingLabels)
         {
             return new Issue()
             {
                 Fields = new Fields()
                 {
-                    Labels = new List<string>() {primaryWorkItem.Number}
+                    Labels = new List<string>(preExistingLabels) { primaryWorkItem.Number }
                 }
             };
         }
