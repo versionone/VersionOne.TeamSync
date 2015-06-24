@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  
+  <?define AppName = "VersionOne TeamSync" ?>
+  <?define AppVersion = "1.0.0" ?>
+  <?define AppManufacturer = "VersionOne, Inc." ?>
+  <?define SourceDir = "..\VersionOne.TeamSync.Service\bin\Release" ?>
+
+  <?if $(var.Platform) = x64 ?>
+    <?define Win64 = "yes" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+  <?else ?>
+    <?define Win64 = "no" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+  <?endif ?>
+  
+</Include>

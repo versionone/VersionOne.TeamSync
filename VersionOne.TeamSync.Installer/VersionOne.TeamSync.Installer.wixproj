@@ -20,6 +20,15 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>  
   <ItemGroup>
     <Compile Include="Product.wxs" />
   </ItemGroup>
@@ -38,6 +47,7 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Config.wxi" />
     <Content Include="dialogBMP.png" />
     <Content Include="License.rtf" />
     <Content Include="uibanner-transparent.png" />

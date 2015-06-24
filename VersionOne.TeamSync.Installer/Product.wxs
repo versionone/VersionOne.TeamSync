@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension" >
 
-  <?define SourceDir = "..\VersionOne.TeamSync.Service\bin\Release" ?>
-  <?define AppName = "VersionOne TeamSync" ?>
+  <?include $(sys.CURRENTDIR)\Config.wxi ?>
 
   <!-- Product settings. Change the Version attributes for a major upgrade. -->
   <!-- Do NOT change the UpgradeCode guid! -->
   <Product Id="*" 
            Name="$(var.AppName)" 
            Language="1033" 
-           Version="1.0.0" 
-           Manufacturer="VersionOne, Inc." 
+           Version="$(var.AppVersion)" 
+           Manufacturer="$(var.AppManufacturer)" 
            UpgradeCode="0E001EBE-8107-4E59-955F-6AAA6238ADE0" >
 
     <Package Id="*" 
              Description="$(var.AppName)"
-             InstallerVersion="200" 
+             InstallerVersion="400" 
              Compressed="yes" 
              InstallScope="perMachine" 
-             InstallPrivileges="elevated"/>
+             InstallPrivileges="elevated" 
+             Platform="$(var.Platform)" />
 
-    <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service control. -->
-    <Condition Message="You must be an administrator to install this product.">Privileged</Condition>
+    <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service. -->
+    <!--<Condition Message="You must be an administrator to install VersionOne TeamSync.">Privileged</Condition>-->
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <!-- Cabinet files should be embedded in the installer. -->
     <MediaTemplate EmbedCab="yes"/>
 
-    <!-- Installs to C:\Program Files (x86)\VersionOne TeamSync\ directory. -->
+    <!-- Installs to C:\Program Files...\VersionOne TeamSync\ directory. -->
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="VersionOne TeamSync" />
+      <Directory Id="$(var.PlatformProgramFilesFolder)">
+        <Directory Id="INSTALLFOLDER" Name="$(var.AppName)" />
       </Directory>
     </Directory>
 
@@ -65,8 +65,8 @@
         <ServiceInstall Id="ServiceInstaller"
                             Type="ownProcess"
                             Name="VersionOne.TeamSync.Service"
-                            DisplayName="VersionOne TeamSync Service"
-                            Description="Manages VersionOne integrations with external team systems."
+                            DisplayName="[ProductName] Service"
+                            Description="Manages VersionOne integrations with external team tools."
                             Start="demand"
                             ErrorControl="normal" />
         <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="VersionOne.TeamSync.Service" Wait="no" />
@@ -95,7 +95,7 @@
     <!-- Create registry entry to auto-launch system tray. -->
     <Component Id="RegistryEntries" Directory="INSTALLFOLDER">
       <RegistryKey Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Action="createAndRemoveOnUninstall">
-        <RegistryValue Type="string" Name="VersionOne TeamSync System Tray" Value="[INSTALLFOLDER]VersionOne.TeamSync.SystemTray.exe"/>
+        <RegistryValue Type="string" Name="[ProductName] System Tray" Value="[INSTALLFOLDER]VersionOne.TeamSync.SystemTray.exe"/>
       </RegistryKey>
     </Component>
     
