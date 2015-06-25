@@ -81,7 +81,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DeleteEpics(V1JiraInfo jiraInfo)
         {
-            _log.Info("Deleting epics...");
+            _log.Info("Deleting Jira epics...");
             var processedEpics = 0;
             var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
@@ -89,24 +89,24 @@ namespace VersionOne.TeamSync.Worker
 
             deletedEpics.ForEach(epic =>
             {
-                _log.TraceFormat("Attempting to delete Jira epic {0}", epic.Reference);
+                _log.TraceFormat("Attempting to delete {0}", epic.Reference);
 
                 jiraInfo.JiraInstance.DeleteEpicIfExists(epic.Reference);
+                _log.DebugFormat("Deleted {0}", epic.Reference);
 
-                _log.DebugFormat("Deleted Jira epic {0}", epic.Reference);
                 _v1.RemoveReferenceOnDeletedEpic(epic);
+                _log.TraceFormat("Removed reference on V1 epic {0}", epic.Number);
 
-                _log.TraceFormat("Removed reference on {0}", epic.Number);
                 processedEpics++;
             });
 
             _log.DebugFormat("Total epics deleted was {0}", processedEpics);
-            _log.Trace("Delete epics stopped");
+            _log.Trace("Delete Jira epics stopped");
         }
 
         public async Task ClosedV1EpicsSetJiraEpicsToResolved(V1JiraInfo jiraInfo)
         {
-            _log.Info("Resolving epics...");
+            _log.Info("Resolving Jira epics...");
             var processedEpics = 0;
             var closedEpics = await _v1.GetClosedTrackedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
@@ -114,7 +114,7 @@ namespace VersionOne.TeamSync.Worker
 
             closedEpics.ForEach(epic =>
             {
-                _log.TraceFormat("Attempting to resolve Jira epic {0}", epic.Reference);
+                _log.TraceFormat("Attempting to resolve {0}", epic.Reference);
                 var jiraEpic = jiraInfo.JiraInstance.GetEpicByKey(epic.Reference);
                 if (jiraEpic.HasErrors)
                 {
@@ -128,12 +128,12 @@ namespace VersionOne.TeamSync.Worker
             });
 
             _log.InfoFormat("Total epics resolved was {0}", processedEpics);
-            _log.Trace("Resolve epics stopped");
+            _log.Trace("Resolve Jira epics stopped");
         }
 
         public async Task UpdateEpics(V1JiraInfo jiraInfo)
         {
-            _log.Debug("Updating epics...");
+            _log.Debug("Updating Jira epics...");
             var processedEpics = 0;
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
@@ -169,12 +169,12 @@ namespace VersionOne.TeamSync.Worker
             });
 
             _log.InfoFormat("Total epics updated was {0}", processedEpics);
-            _log.Trace("Update epics stopped");
+            _log.Trace("Update Jira epics stopped");
         }
 
         public async Task CreateEpics(V1JiraInfo jiraInfo)
         {
-            _log.Info("Creating epics...");
+            _log.Info("Creating Jira epics...");
             var processedEpics = 0;
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
@@ -203,33 +203,35 @@ namespace VersionOne.TeamSync.Worker
                     _log.TraceFormat("Added comment to {0}", jiraData.Key);
                     epic.Reference = jiraData.Key;
                     _v1.UpdateEpicReference(epic);
-                    _log.TraceFormat("Added reference to V1 epic ({0})", epic.Number);
+                    _log.TraceFormat("Added reference in V1 epic {0}", epic.Number);
                     var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key;
                     _v1.CreateLink(epic, "Jira Epic", link);
-                    _log.TraceFormat("Added link to V1 epic ({0})", epic.Number);
+                    _log.TraceFormat("Added link in V1 epic {0}", epic.Number);
                     processedEpics++;
                 }
             });
 
             _log.InfoFormat("Total epics created was {0}", processedEpics);
-            _log.Trace("Create epics stopped");
+            _log.Trace("Create Jira epics stopped");
         }
         #endregion EPICS
 
         #region STORIES
         public async Task DoStoryWork(V1JiraInfo jiraInfo)
         {
+            _log.Info("Story sync started...");
             var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
+            _log.Info("Story sync stopped...");
         }
 
         public void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
-            _log.Info("Update stories started...");
+            _log.Info("Update V1 stories started...");
             var processedStories = 0;
             var existingStories =
                 allJiraStories.Where(jStory => { return allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)); })
@@ -245,18 +247,18 @@ namespace VersionOne.TeamSync.Worker
             });
 
             _log.DebugFormat("Total stories deleted was {0}", processedStories);
-            _log.Trace("Update stories stopped");
+            _log.Trace("Update V1 stories stopped");
         }
         
         public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story)
         {
-            _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
+            _log.TraceFormat("Attempting to update {0}", story.Number);
 
             //need to reopen a story first before we can update it
             if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && story.AssetState == "128")
             {
                 await _v1.ReOpenStory(story.ID);
-                _log.TraceFormat("Reopened V1 story {0}", story.Number);
+                _log.TraceFormat("Reopened {0}", story.Number);
             } 
 
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
@@ -269,13 +271,13 @@ namespace VersionOne.TeamSync.Worker
             if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && story.AssetState != "128")
             {
                 await _v1.CloseStory(story.ID);
-                _log.TraceFormat("Closed V1 story {0}", story.Number);
+                _log.TraceFormat("Closed {0}", story.Number);
             }
         }
         
         public void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
-            _log.Info("Creating stories...");
+            _log.Info("Creating V1 stories...");
             var processedStories = 0;
             var newStories = allJiraStories.Where(jStory =>
             {
@@ -295,12 +297,12 @@ namespace VersionOne.TeamSync.Worker
             });
 
             _log.InfoFormat("Total stories created was {0}", processedStories);
-            _log.Trace("Create stories stopped");
+            _log.Trace("Create V1 stories stopped");
         }
         
         public async Task CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
-            _log.TraceFormat("Attempting to create V1 story from {0}", jiraStory.Key);
+            _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
             var story = jiraStory.ToV1Story(jiraInfo.V1ProjectId);
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
@@ -310,21 +312,21 @@ namespace VersionOne.TeamSync.Worker
             }
 
             var newStory = await _v1.CreateStory(story);
-            _log.DebugFormat("Created V1 story {0} from Jira story {1}", newStory.Number, jiraStory.Key);
+            _log.DebugFormat("Created {0} from Jira story {1}", newStory.Number, jiraStory.Key);
 
             await _v1.RefreshBasicInfo(newStory);
             
             jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
-            _log.TraceFormat("Updated Jira story labels ({0})", jiraStory.Key);
+            _log.TraceFormat("Updated labels on Jira story {0}", jiraStory.Key);
 
             jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ProjectName,
                 _v1.InstanceUrl);
-            _log.TraceFormat("Added link to V1 story to Jira story ({0})", jiraStory.Key);
+            _log.TraceFormat("Added link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
         }
         
         public void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
-            _log.Info("Deleting stories...");
+            _log.Info("Deleting V1 stories...");
             var processedStories = 0;
             var jiraReferencedStoriesKeys =
                 allV1Stories.Where(v1Story => !v1Story.IsInactive && !string.IsNullOrWhiteSpace(v1Story.Reference))
@@ -343,7 +345,140 @@ namespace VersionOne.TeamSync.Worker
             });
 
             _log.InfoFormat("Total stories deleted was {0}", processedStories);
-            _log.Trace("Delete stories stopped");
+            _log.Trace("Delete V1 stories stopped");
+        }
+        #endregion
+
+        #region DEFECTS
+        public async Task DoDefectWork(V1JiraInfo jiraInfo)
+        {
+            _log.Info("Defect sync started...");
+            var allJiraDefects = jiraInfo.JiraInstance.GetDefectsInProject(jiraInfo.JiraKey).issues;
+            var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
+
+            UpdateDefects(jiraInfo, allJiraDefects, allV1Defects);
+            CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
+            DeleteV1Defects(jiraInfo, allJiraDefects, allV1Defects);
+            _log.Info("Defect sync stopped...");
+        }
+
+        public void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
+        {
+            _log.Info("Updating V1 defects...");
+            var processedDefects = 0;
+            var existingStories =
+                allJiraStories.Where(jDefect => { return allV1Stories.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
+                    .ToList();
+
+            _log.InfoFormat("Found {0} defects to update", existingStories.Count);
+
+            existingStories.ForEach(existingJDefect =>
+            {
+                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect,
+                    allV1Stories.Single(x => existingJDefect.Fields.Labels.Contains(x.Number)));
+                processedDefects++;
+            });
+
+            _log.InfoFormat("Total defects updated was {0}", processedDefects);
+            _log.Trace("Update V1 defets stopped");
+        }
+
+        public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect)
+        {
+            //need to reopen a Defect first before we can update it
+            if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && defect.AssetState == "128")
+            {
+                await _v1.ReOpenDefect(defect.ID);
+                _log.TraceFormat("Reopened {0}", defect.Number);
+            } 
+
+            var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
+            update.ID = defect.ID;
+
+            _log.TraceFormat("Attempting to update {0}", defect.Number);
+            await _v1.UpdateAsset(update, update.CreateUpdatePayload());
+
+            _log.DebugFormat("Updated {0}", defect.Number);
+
+            //TODO : late bind? maybe??
+            if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && defect.AssetState != "128")
+            {
+                await _v1.CloseDefect(defect.ID);
+                _log.TraceFormat("Closed {0}", defect.Number);
+            }
+        }
+
+        public void CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
+        {
+            _log.Info("Creating V1 defects...");
+            var processedDefects = 0;
+            var newStories = allJiraStories.Where(jDefect =>
+            {
+                if (allV1Stories.Any(x => jDefect.Fields.Labels.Contains(x.Number)))
+                    return false;
+
+                return allV1Stories.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
+                                                              vDefect.Reference.Contains(jDefect.Key)) == null;
+            }).ToList();
+
+            _log.InfoFormat("Found {0} defects to create", newStories.Count);
+
+            newStories.ForEach(newJDefect =>
+            {
+                CreateDefectFromJira(jiraInfo, newJDefect);
+                processedDefects++;
+            });
+
+            _log.InfoFormat("Total defects created was {0}", processedDefects);
+            _log.Trace("Create V1 defects stopped");
+        }
+
+        public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
+        {
+            var defect = jiraDefect.ToV1Defect(jiraInfo.V1ProjectId);
+
+            if (!string.IsNullOrEmpty(jiraDefect.Fields.EpicLink))
+            {
+                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraDefect.Fields.EpicLink);
+                defect.Super = epicId;
+            }
+
+            _log.TraceFormat("Attempting to create V1 defect from Jira defect {0}", jiraDefect.Key);
+            var newDefect = await _v1.CreateDefect(defect);
+            _log.DebugFormat("Created {0} from Jira defect {1}", newDefect.Number, jiraDefect.Key);
+
+            await _v1.RefreshBasicInfo(newDefect);
+
+            jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraDefect.Fields.Labels), jiraDefect.Key);
+            _log.TraceFormat("Updated labels on Jira defect {0}", jiraDefect.Key);
+            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ProjectName,
+                _v1.InstanceUrl);
+            _log.TraceFormat("Added link to V1 defect {0} on Jira defect {1}", newDefect.Number, jiraDefect.Key);
+        }
+
+        public void DeleteV1Defects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
+        {
+            _log.Info("Deleting defects...");
+            var processedDefects = 0;
+            var jiraReferencedStoriesKeys =
+                allV1Stories.Where(v1Defect => !v1Defect.IsInactive && !string.IsNullOrWhiteSpace(v1Defect.Reference))
+                    .Select(v1Defect => v1Defect.Reference);
+
+            var jiraDeletedStoriesKeys =
+                jiraReferencedStoriesKeys.Where(jiraDefectKey => !allJiraStories.Any(js => js.Key.Equals(jiraDefectKey))).ToList();
+
+            _log.InfoFormat("Found {0} defects to delete", jiraDeletedStoriesKeys.Count);
+
+            jiraDeletedStoriesKeys.ForEach(key =>
+            {
+                _log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", key);
+                _v1.DeleteDefectWithJiraReference(jiraInfo.V1ProjectId, key);
+                _log.DebugFormat("Deleted V1 defect referencing jira defect {0}", key);
+                processedDefects++;
+            });
+
+            _log.InfoFormat("Total defects deleted was {0}", processedDefects);
+            _log.Trace("Delete defects stopped");
         }
         #endregion
 
@@ -358,91 +493,5 @@ namespace VersionOne.TeamSync.Worker
                 jiraInstance.ValidateConnection();
             }
         }
-
-        //defect stuff
-        public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
-        {
-            var defect = jiraDefect.ToV1Defect(jiraInfo.V1ProjectId);
-
-            if (!string.IsNullOrEmpty(jiraDefect.Fields.EpicLink))
-            {
-                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraDefect.Fields.EpicLink);
-                defect.Super = epicId;
-            }
-
-            var newDefect = await _v1.CreateDefect(defect);
-
-            await _v1.RefreshBasicInfo(newDefect);
-
-            jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraDefect.Fields.Labels), jiraDefect.Key);
-            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ProjectName,
-                _v1.InstanceUrl);
-        }
-
-        public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect)
-        {
-            if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && defect.AssetState == "128") //need to reopen a Defect first before we can update it
-                await _v1.ReOpenDefect(defect.ID);
-
-            var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
-            update.ID = defect.ID;
-
-            await _v1.UpdateAsset(update, update.CreateUpdatePayload());
-
-            if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && defect.AssetState != "128") //TODO : late bind? maybe??
-                await _v1.CloseDefect(defect.ID);
-        }
-
-        public async Task DoDefectWork(V1JiraInfo jiraInfo)
-        {
-            var allJiraDefects = jiraInfo.JiraInstance.GetDefectsInProject(jiraInfo.JiraKey).issues;
-            _log.InfoFormat("Found {0} defects in Jira to process", allJiraDefects.Count);
-            var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
-
-            UpdateDefects(jiraInfo, allJiraDefects, allV1Defects);
-
-            CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
-
-            DeleteV1Defects(jiraInfo, allJiraDefects, allV1Defects);
-        }
-
-        public void CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
-        {
-            var newStories = allJiraStories.Where(jDefect =>
-            {
-                if (allV1Stories.Any(x => jDefect.Fields.Labels.Contains(x.Number)))
-                    return false;
-
-                return allV1Stories.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
-                                                              vDefect.Reference.Contains(jDefect.Key)) == null;
-            }).ToList();
-
-            newStories.ForEach(newJDefect => CreateDefectFromJira(jiraInfo, newJDefect));
-        }
-
-        public void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
-        {
-            var existingStories =
-                allJiraStories.Where(jDefect => { return allV1Stories.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
-                    .ToList();
-
-            existingStories.ForEach(
-                existingJDefect =>
-                    UpdateDefectFromJiraToV1(jiraInfo, existingJDefect,
-                        allV1Stories.Single(x => existingJDefect.Fields.Labels.Contains(x.Number))));
-        }
-
-        public void DeleteV1Defects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
-        {
-            var jiraReferencedStoriesKeys =
-                allV1Stories.Where(v1Defect => !v1Defect.IsInactive && !string.IsNullOrWhiteSpace(v1Defect.Reference))
-                    .Select(v1Defect => v1Defect.Reference);
-            var jiraDeletedStoriesKeys =
-                jiraReferencedStoriesKeys.Where(jiraDefectKey => !allJiraStories.Any(js => js.Key.Equals(jiraDefectKey))).ToList();
-
-            jiraDeletedStoriesKeys.ForEach(key => _v1.DeleteDefectWithJiraReference(jiraInfo.V1ProjectId, key));
-        }
-
     }
-
 }
