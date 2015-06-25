@@ -69,9 +69,11 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public void Execute(IRestRequest request, HttpStatusCode responseStatusCode)
         {
+            LogRequest(_client, request);
+            
             var response = _client.Execute(request); // TODO: ExecuteAsync?
 
-            LogResponse(_client, response);
+            LogResponse(response);
 
             if (response.StatusCode.Equals(responseStatusCode))
                 return;
@@ -81,9 +83,11 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
         {
+            LogRequest(_client, request);
+
             var response = _client.Execute(request); // TODO: ExecuteAsync?
             
-            LogResponse(_client, response);
+            LogResponse(response);
 
             if (response.StatusCode.Equals(responseStatusCode))
                 return returnBuilder(response.Content);
@@ -271,9 +275,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<CreateMeta>);
         }
 
-        private void LogResponse(IRestClient client, IRestResponse resp)
+        private void LogResponse(IRestResponse resp)
         {
-            LogRequest(client, resp.Request);
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("RESPONSE");
             stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);

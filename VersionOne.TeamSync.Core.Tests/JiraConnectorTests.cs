@@ -203,6 +203,9 @@ namespace VersionOne.TeamSync.Core.Tests
             _restRequest = new Mock<IRestRequest>();
             _restResponse = new Mock<IRestResponse>();
 
+            _restRequest.Setup(x => x.Method).Returns(Method.GET);
+            _restRequest.Setup(x => x.Parameters).Returns(new List<Parameter>());
+
             _restResponse.Setup(x => x.StatusCode).Returns(toReturn);
             _restResponse.Setup(x => x.Content).Returns("{}");
             _restResponse.Setup(x => x.Headers).Returns(new List<Parameter>());
@@ -281,6 +284,8 @@ namespace VersionOne.TeamSync.Core.Tests
             var restClient = new Mock<IRestClient>();
             _restRequest = new Mock<IRestRequest>();
             _restResponse = new Mock<IRestResponse>();
+
+            _restRequest.Setup(x => x.Parameters).Returns(new List<Parameter>());
 
             _restResponse.Setup(x => x.StatusCode).Returns(toReturn);
             _errorMessage = "{\"errorMessages\":[\"Issue Does Not Exist\"],\"errors\":{}}";
