@@ -67,7 +67,7 @@
             this.exitServiceToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.contextMenuStrip1.Size = new System.Drawing.Size(170, 170);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(170, 150);
             // 
             // toolStripSeparator3
             // 
@@ -82,7 +82,8 @@
             this.viewActivityToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.viewActivityToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.viewActivityToolStripMenuItem.Name = "viewActivityToolStripMenuItem";
-            this.viewActivityToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.viewActivityToolStripMenuItem.Padding = new System.Windows.Forms.Padding(0, 2, 0, 1);
+            this.viewActivityToolStripMenuItem.Size = new System.Drawing.Size(156, 23);
             this.viewActivityToolStripMenuItem.Text = "View Activity...";
             this.viewActivityToolStripMenuItem.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.viewActivityToolStripMenuItem.Click += new System.EventHandler(this.viewActivityToolStripMenuItem_Click);
@@ -92,6 +93,7 @@
             this.configureServiceToolStripMenuItem.Name = "configureServiceToolStripMenuItem";
             this.configureServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.configureServiceToolStripMenuItem.Text = "Configure...";
+            this.configureServiceToolStripMenuItem.Visible = false;
             // 
             // toolStripSeparator1
             // 
