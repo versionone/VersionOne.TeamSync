@@ -11,7 +11,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
             return new Story()
             {
                 Name = issue.Fields.Summary,
-                Description = issue.Fields.Description,
+                Description = issue.RenderedFields.Description,
                 Estimate = issue.Fields.StoryPoints,
                 ToDo = issue.Fields.TimeTracking == null ? "" : Math.Abs(issue.Fields.TimeTracking.RemainingEstimateSeconds / 3600).ToString(),
                 Reference = issue.Key,
@@ -24,7 +24,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
             return new Defect()
             {
                 Name = issue.Fields.Summary,
-                Description = issue.Fields.Description,
+                Description = issue.RenderedFields.Description,
                 Estimate = issue.Fields.StoryPoints,
                 ToDo = issue.Fields.TimeTracking == null ? "" : Math.Abs(issue.Fields.TimeTracking.RemainingEstimateSeconds / 3600).ToString(),
                 Reference = issue.Key,

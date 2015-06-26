@@ -178,7 +178,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         {
             var request = new RestRequest(Method.GET)
             {
-                Resource = "search",
+                Resource = "search?expand=renderedFields",
             };
 
             var queryString = string.Join(" AND ", query.Select(item => item.ToString()));

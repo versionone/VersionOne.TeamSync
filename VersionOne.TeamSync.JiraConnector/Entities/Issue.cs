@@ -69,6 +69,11 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Expand { get; set; }
 
         public Fields Fields { get; set; }
+
+        /// <summary>
+        /// HTML formatted fields
+        /// </summary>
+        public RenderedFields RenderedFields { get; set; }
     }
 
     public class Priority
@@ -119,6 +124,11 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string StoryPoints { get; set; }
         public string EpicLink { get; set; }
 
+    }
+
+    public class RenderedFields
+    {
+        public string Description { get; set; }
     }
 
     public class Project
