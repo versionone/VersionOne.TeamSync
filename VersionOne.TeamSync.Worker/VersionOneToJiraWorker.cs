@@ -270,7 +270,7 @@ namespace VersionOne.TeamSync.Worker
             _log.DebugFormat("Total stories deleted was {0}", processedStories);
             _log.Trace("Update V1 stories stopped");
         }
-        
+
         public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story)
         {
             _log.TraceFormat("Attempting to update {0}", story.Number);
@@ -280,7 +280,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 await _v1.ReOpenStory(story.ID);
                 _log.TraceFormat("Reopened {0}", story.Number);
-            } 
+            }
 
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
 
@@ -295,7 +295,7 @@ namespace VersionOne.TeamSync.Worker
                 _log.TraceFormat("Closed {0}", story.Number);
             }
         }
-        
+
         public void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             _log.Info("Creating V1 stories...");
@@ -320,7 +320,7 @@ namespace VersionOne.TeamSync.Worker
             _log.InfoFormat("Total stories created was {0}", processedStories);
             _log.Trace("Create V1 stories stopped");
         }
-        
+
         public async Task CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
             _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
@@ -336,7 +336,7 @@ namespace VersionOne.TeamSync.Worker
             _log.DebugFormat("Created {0} from Jira story {1}", newStory.Number, jiraStory.Key);
 
             await _v1.RefreshBasicInfo(newStory);
-            
+
             jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
             _log.TraceFormat("Updated labels on Jira story {0}", jiraStory.Key);
 
@@ -344,7 +344,7 @@ namespace VersionOne.TeamSync.Worker
                 _v1.InstanceUrl);
             _log.TraceFormat("Added link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
         }
-        
+
         public void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             _log.Info("Deleting V1 stories...");
@@ -411,7 +411,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 await _v1.ReOpenDefect(defect.ID);
                 _log.TraceFormat("Reopened {0}", defect.Number);
-            } 
+            }
 
             var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
             update.ID = defect.ID;
@@ -502,16 +502,5 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Delete defects stopped");
         }
         #endregion DEFECTS
-        public void ValidateConnections()
-        {
-            _v1.ValidateConnection();
-
-            foreach (var jiraInstance in _jiraInstances)
-            {
-                _log.InfoFormat("Verifying Jira connection...");
-                _log.DebugFormat("URL: {0}", jiraInstance.JiraInstance.InstanceUrl);
-                jiraInstance.ValidateConnection();
-            }
-        }
     }
 }
