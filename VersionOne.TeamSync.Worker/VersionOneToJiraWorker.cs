@@ -77,15 +77,22 @@ namespace VersionOne.TeamSync.Worker
                 _log.InfoFormat("Verifying Jira connection...");
                 _log.DebugFormat("URL: {0}", jiraInstance.JiraInstance.InstanceUrl);
                 jiraInstance.ValidateConnection();
+            }
+        }
 
-                _log.InfoFormat("Verifying project mapping: JiraProjectID={0}, V1ProjectID={1}, V1EpicCategory={2}...", jiraInstance.JiraKey, jiraInstance.V1ProjectId, jiraInstance.EpicCategory);
+        public void ValidateProjectMappings()
+        {
+            foreach (var jiraInstance in _jiraInstances.ToList())
+            {
+                _log.InfoFormat("Verifying V1ProjectID={1} to JiraProjectID={0} project mapping...", jiraInstance.JiraKey, jiraInstance.V1ProjectId);
+
                 if (jiraInstance.ValidateMapping(_v1))
                 {
-                    _log.Info("Project mapping validation was successful");
+                    _log.Info("Mapping successful! Projects will be synchronized.");
                 }
                 else
                 {
-                    _log.Error("Project mapping validation error. Current mapping will be ignored");
+                    _log.Error("Mapping failed, projects will not be synchronized.");
                     ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
                 }
             }

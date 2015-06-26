@@ -35,6 +35,7 @@ namespace VersionOne.TeamSync.Service
                 try
                 {
                     _worker.ValidateConnections();
+                    _worker.ValidateProjectMappings();
                 }
                 catch (Exception e)
                 {

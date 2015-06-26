@@ -45,7 +45,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 if (projectMappings.Any())
                     projectMappings.ForEach(pm => list.Add(new V1JiraInfo(pm, new Jira(connector, pm.JiraProject))));
                 else
-                    _log.ErrorFormat("Jira server '{0}' requires that project mappings are set on the configuration file", server.name);
+                    _log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", server.name);
             }
 
             return list;
