@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -13,29 +11,13 @@ using RestSharp.Serializers;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
+using VersionOne.TeamSync.JiraConnector.Interfaces;
 
 namespace VersionOne.TeamSync.JiraConnector.Connector
 {
-    public interface IJiraConnector
-    {
-        string BaseUrl { get; }
-        void Execute(IRestRequest request, HttpStatusCode responseStatusCode);
-        T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder);
-        ItemBase Post<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
-        void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
-        void Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
-        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
-        SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
-        CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey);
-
-        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
-            ;
-        bool IsConnectionValid();
-    }
-
     public class JiraConnector : IJiraConnector
     {
-        private static ILog _log = LogManager.GetLogger(typeof (JiraConnector));
+        private static ILog _log = LogManager.GetLogger(typeof(JiraConnector));
         private const string InQuery = "{0} in ({1})";
 
         private readonly IRestClient _client;
@@ -70,7 +52,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         public void Execute(IRestRequest request, HttpStatusCode responseStatusCode)
         {
             LogRequest(_client, request);
-            
+
             var response = _client.Execute(request); // TODO: ExecuteAsync?
 
             LogResponse(response);
@@ -86,7 +68,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             LogRequest(_client, request);
 
             var response = _client.Execute(request); // TODO: ExecuteAsync?
-            
+
             LogResponse(response);
 
             if (response.StatusCode.Equals(responseStatusCode))
@@ -244,6 +226,30 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             return response.StatusCode.Equals(HttpStatusCode.OK);
         }
 
+        public bool ProjectExists(string projectIdOrKey)
+        {
+            var request = new RestRequest
+            {
+                Method = Method.GET,
+                Resource = "project/{projectIdOrKey}",
+                RequestFormat = DataFormat.Json
+            };
+            request.AddUrlSegment("projectIdOrKey", projectIdOrKey);
+
+            try
+            {
+                Execute(request, HttpStatusCode.OK);
+                return true;
+            }
+            catch (JiraException je)
+            {
+                if (je.StatusCode.Equals(HttpStatusCode.NotFound))
+                    return false;
+
+                throw;
+            }
+        }
+
         private static Exception ProcessResponseError(IRestResponse response)
         {
             if (response.StatusCode.Equals(HttpStatusCode.BadRequest))
@@ -256,13 +262,13 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 return new JiraLoginException();
 
-            if (response.Headers.Any(h => h.Name.Equals("X-Seraph-LoginReason") || h.Value.Equals("AUTHENTICATION_DENIED")))
+            if (response.Headers.Any(h => h.Name.Equals("X-Seraph-LoginReason") && h.Value.Equals("AUTHENTICATION_DENIED")))
                 return new JiraLoginException("Authentication to JIRA was denied. This may be a result of the CAPTCHA feature being triggered.");
 
-            return new JiraException(response.StatusDescription, new Exception(response.Content));
+            return new JiraException(response.StatusCode, response.StatusDescription, new Exception(response.Content));
         }
-		
-		public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
+
+        public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
         {
             var request = new RestRequest(Method.GET)
             {
@@ -305,7 +311,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             stringBuilder.AppendLine("\tQuery params: ");
             foreach (var parameter in req.Parameters.Where(param => param.Type == ParameterType.QueryString))
             {
-                    stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
+                stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
             }
 
             stringBuilder.AppendLine("\tBody: ");

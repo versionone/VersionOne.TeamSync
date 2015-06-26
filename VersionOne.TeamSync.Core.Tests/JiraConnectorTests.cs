@@ -7,9 +7,9 @@ using Moq;
 using RestSharp;
 using Should;
 using VersionOne.TeamSync.JiraConnector;
-using VersionOne.TeamSync.JiraConnector.Connector;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
+using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -105,7 +105,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
 
-            var jira = new Jira(mockConnector.Object, null);
+            var jira = new Jira(mockConnector.Object, string.Empty);
 
             jira.SetIssueToToDo(_issueKey);
 
@@ -134,7 +134,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Jira(mockConnector.Object, null);
+            var jira = new Jira(mockConnector.Object, string.Empty);
 
             jira.GetEpicByKey(_issueKey);
         }
@@ -183,7 +183,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Post("issue/" + _issueKey + "/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, default(KeyValuePair<string, string>))).Verifiable();
 
-            var jira = new Jira(mockConnector.Object, null);
+            var jira = new Jira(mockConnector.Object, string.Empty);
 
             jira.SetIssueToResolved(_issueKey);
 
@@ -444,11 +444,11 @@ namespace VersionOne.TeamSync.Core.Tests
                 {
                     ErrorMessages = new List<string> { "An issue with key 'AS-25' does not exist for field 'key'." }
                 });
-            var jira = new Jira(mockConnector.Object, null);
+            var jira = new Jira(mockConnector.Object, string.Empty);
 
             jira.DeleteEpicIfExists(_issueKey);
 
-            mockConnector.Verify(x => x.Delete(It.IsAny<string>(), It.IsAny<HttpStatusCode>(), It.IsAny<KeyValuePair<string,string>>()), Times.Never);
+            mockConnector.Verify(x => x.Delete(It.IsAny<string>(), It.IsAny<HttpStatusCode>(), It.IsAny<KeyValuePair<string, string>>()), Times.Never);
         }
     }
 }

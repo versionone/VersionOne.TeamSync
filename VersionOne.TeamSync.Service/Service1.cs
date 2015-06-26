@@ -9,16 +9,16 @@ namespace VersionOne.TeamSync.Service
 {
     public partial class Service1 : ServiceBase
     {
-	    private Timer _timer;
+        private Timer _timer;
         private static TimeSpan _serviceDuration;
-	    private static VersionOneToJiraWorker _worker;
-        private static ILog _log = LogManager.GetLogger(typeof (Service1));
+        private static VersionOneToJiraWorker _worker;
+        private static ILog _log = LogManager.GetLogger(typeof(Service1));
 
         public Service1()
         {
             InitializeComponent();
         }
-            
+
         public void OnDebugStart()
         {
             OnStart(null);
@@ -35,7 +35,6 @@ namespace VersionOne.TeamSync.Service
                 try
                 {
                     _worker.ValidateConnections();
-
                 }
                 catch (Exception e)
                 {
@@ -43,24 +42,23 @@ namespace VersionOne.TeamSync.Service
                     _log.Error("Errors occurred during connection validations. Service will be stopped.");
                     Stop();
                 }
-                _timer = new Timer() { Interval = _serviceDuration.TotalMilliseconds };
+                _timer = new Timer { Interval = _serviceDuration.TotalMilliseconds };
                 _timer.Elapsed += OnTimedEvent;
                 _timer.Enabled = true;
-                _worker.DoWork(); //fire immediately at start
+                _worker.DoWork(); //HACK: fire immediately at start. Use a different Timer control instead? (System.Threading.Timer)
             }
             catch (Exception e)
             {
                 _log.Error(e);
                 _log.Error("Errors occurred during sync.");
             }
-            
         }
 
         protected override void OnStop()
         {
             if (_timer != null)
                 _timer.Enabled = false;
-            
+
             stopMessage();
         }
 
@@ -71,7 +69,7 @@ namespace VersionOne.TeamSync.Service
             _log.DebugFormat("The service event was completed at {0}", e.SignalTime);
         }
 
-        private static void startMessage() 
+        private static void startMessage()
         {
             _log.Info("*** VersionOne TeamSync ***");
             _log.Info("Starting service...");
@@ -84,25 +82,5 @@ namespace VersionOne.TeamSync.Service
             _log.DebugFormat("Stopped at {0}", DateTime.Now);
             _log.Info("");
         }
-    }
-
-    public class MyRemoteObject : MarshalByRefObject
-    {
-        public MyRemoteObject()
-        {
-
-        }
-
-        public int Addition(int a, int b)
-        {
-            return a + b;
-        }
-
-        public int Multipliation(int a, int b)
-        {
-            return a * b;
-        }
-
-
     }
 }

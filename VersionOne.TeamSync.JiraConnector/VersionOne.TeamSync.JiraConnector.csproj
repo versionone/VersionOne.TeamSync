@@ -109,6 +109,7 @@
     <Compile Include="Exceptions\JiraLoginException.cs" />
     <Compile Include="Exceptions\JiraPermissionException.cs" />
     <Compile Include="Exceptions\JiraValidationException.cs" />
+    <Compile Include="Interfaces\IJiraConnector.cs" />
     <Compile Include="JiraAdvancedSearch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryOperator.cs" />

@@ -12,54 +12,54 @@ namespace VersionOne.TeamSync.Worker.Domain
     public interface IV1
     {
         string InstanceUrl { get; }
+        void ValidateConnection();
+        bool ValidateProjectExists(string projectId);
+        bool ValidateEpicCategoryExists(string epicCategoryId);
+
+        void CreateLink(IV1Asset asset, string title, string url);
+        Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
+        Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
+
         Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category);
-        void UpdateEpicReference(Epic epic);
         Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category);
         Task<List<Epic>> GetEpicsWithReference(string projectId, string category);
         Task<List<Epic>> GetDeletedEpics(string projectId, string category);
-        void CreateLink(IV1Asset asset, string title, string url);
+        void UpdateEpicReference(Epic epic);
         void RemoveReferenceOnDeletedEpic(Epic epic);
+
         Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey);
-        Task<Story> CreateStory(Story story);
-        void ValidateConnection();
-
         Task<List<Story>> GetStoriesWithJiraReference(string projectId);
+        Task<Story> CreateStory(Story story);
         Task RefreshBasicInfo(IPrimaryWorkItem workItem);
-        Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
-
-        Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
         void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey);
         Task CloseStory(string storyId);
-
         Task ReOpenStory(string storyId);
 
+        Task<List<Defect>> GetDefectsWithJiraReference(string projectId);
         Task<Defect> CreateDefect(Defect defect);
         Task CloseDefect(string defectId);
         Task ReOpenDefect(string defectId);
-
-        Task<List<Defect>> GetDefectsWithJiraReference(string projectId);
-
         void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey);
     }
 
     public class V1 : IV1
     {
-		private readonly IV1Connector _connector;
-	    private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
+        private readonly IV1Connector _connector;
+        private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private const string _whereProject = "Scope=\"{0}\"";
         private const string _whereEpicCategory = "Category=\"{0}\"";
         private const int ConnectionAttempts = 3;
         private readonly string _aDayAgo;
-        private static ILog _log = LogManager.GetLogger(typeof (V1));
+        private static ILog _log = LogManager.GetLogger(typeof(V1));
 
-	    public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
-		{
-			_connector = connector;
+        public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
+        {
+            _connector = connector;
 
             //need properties from the connector for this
-	        InstanceUrl = _connector.InstanceUrl;
+            InstanceUrl = _connector.InstanceUrl;
             _aDayAgo = dateTime.UtcNow.Add(-serviceDuration).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
-		}
+        }
 
         public V1(IV1Connector connector, TimeSpan serviceDuration)
         {
@@ -75,7 +75,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category)
         {
             return await _connector.Query("Epic",
-                new[] {"ID.Number", "Name", "Description", "Scope.Name"},
+                new[] { "ID.Number", "Name", "Description", "Scope.Name" },
                 new[]
                 {
                     "Reference=\"\"",
@@ -86,14 +86,14 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }, Epic.FromQuery);
         }
 
-	    public async void UpdateEpicReference(Epic epic)
+        public async void UpdateEpicReference(Epic epic)
         {
             await _connector.Post(epic, epic.UpdateReferenceXml());
         }
 
         public async Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category)
-		{
-            return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" }, 
+        {
+            return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" },
                 new[] { 
                     "Reference!=\"\"",
                     "AssetState='Closed'", 
@@ -101,11 +101,11 @@ namespace VersionOne.TeamSync.Worker.Domain
                     string.Format(_whereProject, projectId),
                     string.Format(_whereEpicCategory, category)
                 }, Epic.FromQuery);
-		}
+        }
 
-	    public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
+        public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
         {
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState"},
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState" },
                 new[] { 
                     "Reference!=\"\"", 
                     //"ChangeDateUTC>=" + _aDayAgo, 
@@ -116,7 +116,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<List<Epic>> GetDeletedEpics(string projectId, string category)
         {
-            return await _connector.Query("Epic", _numberNameDescriptRef, 
+            return await _connector.Query("Epic", _numberNameDescriptRef,
                 new[] { 
                     "Reference!=\"\"", 
                     "IsDeleted='True'",
@@ -128,10 +128,9 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey)
         {
-            var story = await _connector.Query("Story", new[] {"ID.Number"}, new[] {"Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes()}, Story.FromQuery);
+            var story = await _connector.Query("Story", new[] { "ID.Number" }, new[] { "Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes() }, Story.FromQuery);
             return story.FirstOrDefault();
         }
-
 
         public async Task<Defect> GetDefectWithJiraReference(string projectId, string jiraProjectKey)
         {
@@ -158,7 +157,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             var story = await GetStoryWithJiraReference(projectId, jiraStoryKey);
             await _connector.Operation(story, "Delete");
         }
-
 
         public async void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey)
         {
@@ -219,6 +217,16 @@ namespace VersionOne.TeamSync.Worker.Domain
             throw new Exception(string.Format("Unable to validate connection to {0}.", InstanceUrl));
         }
 
+        public bool ValidateProjectExists(string projectId)
+        {
+            return _connector.ProjectExists(projectId);
+        }
+
+        public bool ValidateEpicCategoryExists(string epicCategoryId)
+        {
+            return _connector.EpicCategoryExists(epicCategoryId);
+        }
+
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
@@ -235,7 +243,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task RefreshBasicInfo(IPrimaryWorkItem workItem)
         {
-            await _connector.QueryOne(workItem.AssetType, workItem.ID, new[] {"ID.Number", "Scope.Name"}, (xElement) =>
+            await _connector.QueryOne(workItem.AssetType, workItem.ID, new[] { "ID.Number", "Scope.Name" }, (xElement) =>
             {
                 var attributes = xElement.Elements("Attribute")
                     .ToDictionary(item => item.Attribute("name").Value, item => item.Value);
@@ -251,8 +259,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey)
         {
-            var response = await _connector.Query(assetType, new[] {"ID"}, new[] {"Reference=" + jiraEpicKey.InQuotes()},
-                element =>element.Attribute("id").Value);
+            var response = await _connector.Query(assetType, new[] { "ID" }, new[] { "Reference=" + jiraEpicKey.InQuotes() },
+                element => element.Attribute("id").Value);
 
             return response.FirstOrDefault();
         }

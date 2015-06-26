@@ -5,59 +5,53 @@ using log4net;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Connector;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Worker.Domain
 {
     public interface IJira
     {
-        ItemBase CreateEpic(Epic epic, string projectKey);
+        string InstanceUrl { get; }
+        void ValidateConnection();
+        bool ValidateProjectExists();
+
         void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
         void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
-        void DeleteEpicIfExists(string issueKey);
+
+        void UpdateIssue(Issue issue, string issueKey);
+        void SetIssueToToDo(string issueKey);
+        void SetIssueToResolved(string issueKey);
+
+        SearchResult GetEpicByKey(string reference);
         SearchResult GetEpicsInProject(string projectKey);
         SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys);
-        SearchResult GetEpicByKey(string reference);
-        void SetIssueToResolved(string issueKey);
-        void SetIssueToToDo(string issueKey);
-        void ValidateConnection();
-
-        string InstanceUrl { get; }
-        SearchResult GetStoriesWithNoEpicInProject(string projectKey);
-        void UpdateIssue(Issue issue, string issueKey);
+        ItemBase CreateEpic(Epic epic, string projectKey);
+        void DeleteEpicIfExists(string issueKey);
 
         SearchResult GetStoriesInProject(string jiraProject);
+        SearchResult GetStoriesWithNoEpicInProject(string projectKey);
+
         SearchResult GetDefectsInProject(string jiraProject);
     }
 
     public class Jira : IJira
     {
-        private readonly IJiraConnector _connector;
-       
-        private static ILog _log = LogManager.GetLogger(typeof (Jira));
-        private MetaProject _projectMeta;
-        private string _jiraProject;
+        private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
+        private const string TrackedInV1 = "Tracking Issue {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
         private const int ConnectionAttempts = 3;
 
-        public Jira(JiraConnector.Connector.JiraConnector connector, string jiraProject)
+        private readonly IJiraConnector _connector;
+
+        private static ILog _log = LogManager.GetLogger(typeof(Jira));
+        private MetaProject _projectMeta;
+        private string _jiraProject;
+
+        public Jira(IJiraConnector connector, string jiraProject)
         {
             _connector = connector;
             _jiraProject = jiraProject;
             InstanceUrl = _connector.BaseUrl;
-        }
-
-        private MetaProject ProjectMeta
-        {
-            get
-            {
-                if (_projectMeta == null)
-                {
-                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string>(){_jiraProject});
-                    _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
-                }
-
-                return _projectMeta;
-            }
         }
 
         public Jira(IJiraConnector connector, MetaProject project)
@@ -67,37 +61,50 @@ namespace VersionOne.TeamSync.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
+        private MetaProject ProjectMeta
         {
-            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, ProjectMeta.EpicName.Key), HttpStatusCode.Created);
-            return baseItem;
-        }
+            get
+            {
+                if (_projectMeta == null)
+                {
+                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string>() { _jiraProject });
+                    _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
+                }
 
-        private string _createdFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
-        public void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
-        {
-            var body = string.Format(_createdFromV1Comment, v1Number, v1ProjectName, v1Instance);
-            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
-        }
-
-        private string _trackedInV1 = "Tracking Issue {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
-        public void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
-        {
-            var body = string.Format(_trackedInV1, v1Number, v1ProjectName, v1Instance);
-            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
+                return _projectMeta;
+            }
         }
 
         private object AddComment(string body)
         {
             return new
             {
-                update = new {
+                update = new
+                {
                     comment = new[]
                     {
                         new { add = new { body} }
                     }
                 }
             };
+        }
+
+        public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
+        {
+            var baseItem = _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, ProjectMeta.EpicName.Key), HttpStatusCode.Created);
+            return baseItem;
+        }
+
+        public void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
+        {
+            var body = string.Format(CreatedFromV1Comment, v1Number, v1ProjectName, v1Instance);
+            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
+        }
+
+        public void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
+        {
+            var body = string.Format(TrackedInV1, v1Number, v1ProjectName, v1Instance);
+            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
         }
 
         public void UpdateIssue(Issue issue, string issueKey)
@@ -160,7 +167,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                     JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                     JqOperator.Equals("issuetype", "Epic"),
                 },
-                    new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
+                    new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self" }
                 );
         }
 
@@ -171,10 +178,9 @@ namespace VersionOne.TeamSync.Worker.Domain
                 {"project", projectKeys},
                 {"issuetype", new[] {"Epic"}},
             },
-                new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
-			);
+                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self" }
+            );
         }
-
 
         public SearchResult GetStoriesWithNoEpicInProject(string projectKey)
         {
@@ -184,10 +190,11 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("issuetype", "Story"),
                JqOperator.Equals(ProjectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty),
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key","self", "labels","timetracking", ProjectMeta.StoryPoints.Key },
-            (fields, properties) => {
-                    if (properties.ContainsKey(ProjectMeta.StoryPoints.Key))
-                        fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key },
+            (fields, properties) =>
+            {
+                if (properties.ContainsKey(ProjectMeta.StoryPoints.Key))
+                    fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
             });
         }
 
@@ -198,7 +205,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 JqOperator.Equals("key", reference),
                 JqOperator.Equals("issuetype", "Epic")
             },
-                new[] {"issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self"}
+                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self" }
                 );
         }
 
@@ -215,7 +222,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                         new {add = new {body = "Closed from VersionOne"}}
                     }
                 },
-                transition = new {id = "31"}
+                transition = new { id = "31" }
             }, HttpStatusCode.NoContent);
 
             _log.Info("Attempting to set status on " + issueKey);
@@ -258,6 +265,11 @@ namespace VersionOne.TeamSync.Worker.Domain
                     return;
                 }
             }
+        }
+
+        public bool ValidateProjectExists()
+        {
+            return _connector.ProjectExists(_jiraProject);
         }
     }
 }

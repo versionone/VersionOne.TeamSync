@@ -1,31 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using log4net;
 using VersionOne.TeamSync.JiraConnector.Config;
 
 namespace VersionOne.TeamSync.Worker.Domain
 {
     public class V1JiraInfo
     {
-        private Jira jira;
+        private static ILog _log = LogManager.GetLogger(typeof(V1JiraInfo));
 
-        protected bool Equals(V1JiraInfo other)
-        {
-            return string.Equals(V1ProjectId, other.V1ProjectId) && 
-                string.Equals(JiraKey, other.JiraKey) && 
-                JiraInstance.InstanceUrl.Equals(other.JiraInstance.InstanceUrl);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = V1ProjectId.GetHashCode();
-                hashCode = (hashCode*397) ^ JiraKey.GetHashCode();
-                hashCode = (hashCode*397) ^ JiraInstance.InstanceUrl.GetHashCode();
-                return hashCode;
-            }
-        }
+        public string V1ProjectId { get; private set; }
+        public string JiraKey { get; private set; }
+        public string EpicCategory { get; set; }
+        public IJira JiraInstance { get; private set; }
 
         public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
         {
@@ -43,20 +31,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             JiraInstance = jiraInstance;
         }
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((V1JiraInfo) obj);
-        }
-
-        public string V1ProjectId { get; private set; }
-        public string JiraKey { get; private set; }
-        public string EpicCategory { get; set; }
-        public IJira JiraInstance { get; private set; }
-
-        public static HashSet<V1JiraInfo> BuildJiraInfo(JiraServerCollection servers, string minuteInterval)
+        public static IEnumerable<V1JiraInfo> BuildJiraInfo(JiraServerCollection servers, string minuteInterval)
         {
             var list = new HashSet<V1JiraInfo>();
 
@@ -67,8 +42,10 @@ namespace VersionOne.TeamSync.Worker.Domain
                         new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password);
 
                 var projectMappings = server.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled).ToList();
-
-                projectMappings.ForEach(map => list.Add(new V1JiraInfo(map, new Jira(connector, map.JiraProject))));
+                if (projectMappings.Any())
+                    projectMappings.ForEach(pm => list.Add(new V1JiraInfo(pm, new Jira(connector, pm.JiraProject))));
+                else
+                    _log.ErrorFormat("Jira server '{0}' requires that project mappings are set on the configuration file", server.name);
             }
 
             return list;
@@ -77,6 +54,37 @@ namespace VersionOne.TeamSync.Worker.Domain
         public void ValidateConnection()
         {
             JiraInstance.ValidateConnection();
+        }
+
+        public bool ValidateMapping(IV1 v1)
+        {
+            return JiraInstance.ValidateProjectExists() && v1.ValidateProjectExists(V1ProjectId) && v1.ValidateEpicCategoryExists(EpicCategory);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = V1ProjectId.GetHashCode();
+                hashCode = (hashCode * 397) ^ JiraKey.GetHashCode();
+                hashCode = (hashCode * 397) ^ JiraInstance.InstanceUrl.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((V1JiraInfo)obj);
+        }
+
+        protected bool Equals(V1JiraInfo other)
+        {
+            return string.Equals(V1ProjectId, other.V1ProjectId) &&
+                string.Equals(JiraKey, other.JiraKey) &&
+                JiraInstance.InstanceUrl.Equals(other.JiraInstance.InstanceUrl);
         }
     }
 }

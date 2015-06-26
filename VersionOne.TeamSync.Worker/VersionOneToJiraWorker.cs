@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Policy;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
@@ -19,25 +17,23 @@ namespace VersionOne.TeamSync.Worker
 {
     public class VersionOneToJiraWorker
     {
-        private HashSet<V1JiraInfo> _jiraInstances;
+        private IEnumerable<V1JiraInfo> _jiraInstances;
         private IV1 _v1;
-        private IV1Connector _v1Connector;
         private static ILog _log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
-            _jiraInstances = new HashSet<V1JiraInfo>(V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers, serviceDuration.TotalMinutes.ToString(CultureInfo.InvariantCulture)));
-
+            IV1Connector v1Connector;
             switch (V1Settings.Settings.AuthenticationType)
             {
                 case 0:
-                    _v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
                         .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
                         .WithAccessToken(V1Settings.Settings.AccessToken)
                         .Build();
                     break;
                 case 1:
-                    _v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
                         .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
                         .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password)
                         .Build();
@@ -45,8 +41,9 @@ namespace VersionOne.TeamSync.Worker
                 default:
                     throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
             }
+            _v1 = new V1(v1Connector, serviceDuration);
 
-            _v1 = new V1(_v1Connector, serviceDuration);
+            _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers, serviceDuration.TotalMinutes.ToString(CultureInfo.InvariantCulture));
         }
 
         public VersionOneToJiraWorker(IV1 v1)
@@ -54,7 +51,7 @@ namespace VersionOne.TeamSync.Worker
             _v1 = v1;
         }
 
-        public async void DoWork()
+        public void DoWork()
         {
             _jiraInstances.ToList().ForEach(async jiraInfo =>
             {
@@ -64,8 +61,32 @@ namespace VersionOne.TeamSync.Worker
                 await DoEpicWork(jiraInfo);
                 await DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
                 await DoDefectWork(jiraInfo);
+
                 _log.Info("Ending sync...");
             });
+        }
+
+        public void ValidateConnections()
+        {
+            _v1.ValidateConnection();
+
+            foreach (var jiraInstance in _jiraInstances.ToList())
+            {
+                _log.InfoFormat("Verifying Jira connection...");
+                _log.DebugFormat("URL: {0}", jiraInstance.JiraInstance.InstanceUrl);
+                jiraInstance.ValidateConnection();
+
+                _log.InfoFormat("Verifying project mapping: JiraProjectID={0}, V1ProjectID={1}, V1EpicCategory={2}...", jiraInstance.JiraKey, jiraInstance.V1ProjectId, jiraInstance.EpicCategory);
+                if (jiraInstance.ValidateMapping(_v1))
+                {
+                    _log.Info("Project mapping validation was successful");
+                }
+                else
+                {
+                    _log.Error("Project mapping validation error. Current mapping will be ignored");
+                    ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                }
+            }
         }
 
         #region EPICS
@@ -347,7 +368,7 @@ namespace VersionOne.TeamSync.Worker
             _log.InfoFormat("Total stories deleted was {0}", processedStories);
             _log.Trace("Delete V1 stories stopped");
         }
-        #endregion
+        #endregion STORIES
 
         #region DEFECTS
         public async Task DoDefectWork(V1JiraInfo jiraInfo)
@@ -480,8 +501,7 @@ namespace VersionOne.TeamSync.Worker
             _log.InfoFormat("Total defects deleted was {0}", processedDefects);
             _log.Trace("Delete defects stopped");
         }
-        #endregion
-
+        #endregion DEFECTS
         public void ValidateConnections()
         {
             _v1.ValidateConnection();

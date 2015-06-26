@@ -13,8 +13,8 @@ namespace VersionOne.TeamSync.V1Connector.Extensions
                 return false;
 
             var root = doc.Root;
-            var total = int.Parse(root.Attribute("total").Value);
-            return total > 0;
+            var total = root.Attribute("total");
+            return total != null && int.Parse(total.Value) > 0;
         }
 
         public static string GetAssetID(this XElement xElement)

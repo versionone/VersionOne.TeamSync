@@ -131,22 +131,6 @@ namespace VersionOne.TeamSync.V1Connector
             return result;
         }
 
-        public async Task QueryOne(string assetType, string assetId, string[] properties, Action<XElement> returnObject)
-        {
-            using (var client = HttpInstance)
-            {
-                var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?sel=" + string.Join(",", properties);
-
-                var response = await client.GetAsync(endpoint);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                LogResponse(response);
-
-                var doc = XDocument.Parse(responseContent);
-                returnObject.Invoke(doc.Root);
-            }
-        }
-
         public async Task<List<T>> Query<T>(string asset, string[] properties, Func<XElement, T> returnObject)
         {
             var result = new List<T>();
@@ -165,6 +149,22 @@ namespace VersionOne.TeamSync.V1Connector
             }
 
             return result;
+        }
+
+        public async Task QueryOne(string assetType, string assetId, string[] properties, Action<XElement> returnObject)
+        {
+            using (var client = HttpInstance)
+            {
+                var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?sel=" + string.Join(",", properties);
+
+                var response = await client.GetAsync(endpoint);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                LogResponse(response);
+
+                var doc = XDocument.Parse(responseContent);
+                returnObject.Invoke(doc.Root);
+            }
         }
 
         public async Task<XDocument> Operation(string assetType, string assetId, string operation)
@@ -203,6 +203,36 @@ namespace VersionOne.TeamSync.V1Connector
             }
         }
 
+        public bool ProjectExists(string projectIdOrKey)
+        {
+            var result = Query("Scope", new[] { "Name" }, new[] { string.Format("ID='{0}'", projectIdOrKey) },
+                element =>
+                {
+                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null).Select(e => e.Value);
+                }).Result;
+            return result.Any();
+        }
+
+        public bool EpicCategoryExists(string epicCategoryId)
+        {
+            var result = Query("EpicCategory", new[] { "Name" }, new[] { string.Format("ID='{0}'", epicCategoryId) },
+                element =>
+                {
+                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null).Select(e => e.Value);
+                }).Result;
+            return result.Any();
+        }
+
+        public static ICanSetUserAgentHeader WithInstanceUrl(string versionOneInstanceUrl)
+        {
+            return new Builder(versionOneInstanceUrl);
+        }
+
+        internal void SetUpstreamUserAgent(string userAgent)
+        {
+            _upstreamUserAgent = userAgent;
+        }
+
         private string GetResourceUrl(string resource)
         {
             if (string.IsNullOrWhiteSpace(_endpoint))
@@ -230,16 +260,6 @@ namespace VersionOne.TeamSync.V1Connector
             }
 
             return result;
-        }
-
-        internal void SetUpstreamUserAgent(string userAgent)
-        {
-            _upstreamUserAgent = userAgent;
-        }
-
-        public static ICanSetUserAgentHeader WithInstanceUrl(string versionOneInstanceUrl)
-        {
-            return new Builder(versionOneInstanceUrl);
         }
 
         private void LogResponse(HttpResponseMessage resp, string rc = "")

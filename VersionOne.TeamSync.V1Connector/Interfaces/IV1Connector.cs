@@ -14,7 +14,9 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
         Task<List<T>> Query<T>(string asset, string[] properties, string[] wheres, Func<XElement, T> returnObject);
         Task<List<T>> Query<T>(string asset, string[] properties, Func<XElement, T> returnObject);
         Task<XDocument> Operation(string assetType, string assetId, string operation);
-        bool IsConnectionValid();
         Task QueryOne(string assetType, string assetId, string[] properties, Action<XElement> assetResult);
+        bool IsConnectionValid();
+        bool ProjectExists(string projectIdOrKey);
+        bool EpicCategoryExists(string epicCategoryId);
     }
 }
