@@ -267,10 +267,14 @@ namespace VersionOne.TeamSync.Worker
 
             _log.InfoFormat("Found {0} stories to update", existingStories.Count);
 
-            existingStories.ForEach(existingJStory =>
+            existingStories.ForEach(async existingJStory =>
             {
-                UpdateStoryFromJiraToV1(jiraInfo, existingJStory,
-                    allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number)));
+                var story = allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number));
+
+                if (existingJStory.ItMatchesStory(story))
+                    return;
+
+                await UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story);
                 processedStories++;
             });
 
@@ -318,9 +322,9 @@ namespace VersionOne.TeamSync.Worker
 
             _log.InfoFormat("Found {0} stories to create", newStories.Count);
 
-            newStories.ForEach(newJStory =>
+            newStories.ForEach(async newJStory =>
             {
-                CreateStoryFromJira(jiraInfo, newJStory);
+                await CreateStoryFromJira(jiraInfo, newJStory);
                 processedStories++;
             });
 
@@ -390,20 +394,23 @@ namespace VersionOne.TeamSync.Worker
             _log.Info("Defect sync stopped...");
         }
 
-        public void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
+        public void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraDefects, List<Defect> allV1Defects)
         {
             _log.Info("Updating V1 defects...");
             var processedDefects = 0;
             var existingStories =
-                allJiraStories.Where(jDefect => { return allV1Stories.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
+                allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
                     .ToList();
 
             _log.InfoFormat("Found {0} defects to update", existingStories.Count);
 
-            existingStories.ForEach(existingJDefect =>
+            existingStories.ForEach(async existingJDefect =>
             {
-                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect,
-                    allV1Stories.Single(x => existingJDefect.Fields.Labels.Contains(x.Number)));
+                var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
+                if (existingJDefect.ItMatchesDefect(defect))
+                    return;
+
+                await UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect);
                 processedDefects++;
             });
 

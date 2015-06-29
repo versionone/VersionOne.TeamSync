@@ -21,6 +21,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             _worker.CreateStoryFromJira(MakeInfo(), new Issue()
             {
                 Key = _issueKey,
+                RenderedFields = new RenderedFields(){Description = "descript"},
                 Fields = new Fields()
             });
         }
@@ -72,9 +73,14 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             await _worker.UpdateStoryFromJiraToV1(MakeInfo(), new Issue()
             {
                 Key = _issueKey,
+                RenderedFields = new RenderedFields()
+                {
+                    Description = "descript"
+                },
                 Fields = new Fields()
                 {
-                    Status = _status
+                    Status = _status,
+                    Summary = "summary",
                 }
             }, _story);
         }
@@ -116,7 +122,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
     public class and_the_status_is_closed_when_the_v1_story_is_open : update_jira_story_to_v1
     {
         [TestInitialize]
-        public async void Setup()
+        public void Setup()
         {
             _story.AssetState = "64";
             _status = new Status() { Name = "Done" }; 

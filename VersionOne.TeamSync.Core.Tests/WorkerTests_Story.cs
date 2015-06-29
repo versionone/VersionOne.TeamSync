@@ -28,6 +28,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var updatedIssue = new Issue()
             {
                 Key = "J-100",
+                RenderedFields = new RenderedFields(),
                 Fields = new Fields()
                 {
                     Summary = _johnnyIsAlive,
@@ -164,6 +165,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _existingIssue = new Issue()
             {
                 Key = _existingIssueKey,
+                RenderedFields = new RenderedFields(){Description = "descript"},
                 Fields = new Fields()
                 {
                     Labels = new List<string> { _storyNumber },
@@ -174,7 +176,8 @@ namespace VersionOne.TeamSync.Core.Tests
             _newIssue = new Issue()
             {
                 Key = _newIssueKey,
-                Fields = new Fields()
+                Fields = new Fields(),
+                RenderedFields = new RenderedFields()
             };
             _fakeCreatedStory = new Story() {Number = "S-8900"};
             _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(_fakeCreatedStory);

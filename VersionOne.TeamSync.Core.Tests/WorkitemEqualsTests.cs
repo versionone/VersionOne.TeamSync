@@ -111,6 +111,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _jiraStory.ItMatchesStory(_story);
         }
 
+        [Ignore]
         [TestMethod]
         public void different_description_means_update()
         {
@@ -206,6 +207,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _jiraDefect.ItMatchesDefect(_defect).ShouldBeTrue();
         }
 
+        [Ignore]
         [TestMethod]
         public void different_description_means_update()
         {
