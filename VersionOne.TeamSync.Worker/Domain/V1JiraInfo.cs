@@ -41,7 +41,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                     new JiraConnector.Connector.JiraConnector(
                         new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password);
 
-                var projectMappings = server.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled).ToList();
+                var projectMappings = server.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())
                     projectMappings.ForEach(pm => list.Add(new V1JiraInfo(pm, new Jira(connector, pm.JiraProject))));
                 else
@@ -58,7 +58,23 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public bool ValidateMapping(IV1 v1)
         {
-            return JiraInstance.ValidateProjectExists() && v1.ValidateProjectExists(V1ProjectId) && v1.ValidateEpicCategoryExists(EpicCategory);
+            var result = true;
+            if (!JiraInstance.ValidateProjectExists())
+            {
+                _log.ErrorFormat("Jira project '{0}' does not exists. Current project mapping will be ignored", JiraKey);
+                result = false;
+            }
+            if (!v1.ValidateProjectExists(V1ProjectId))
+            {
+                _log.ErrorFormat("VersionOne project '{0}' does not exists. Current project mapping will be ignored", V1ProjectId);
+                result = false;
+            }
+            if (!v1.ValidateEpicCategoryExists(EpicCategory))
+            {
+                _log.ErrorFormat("VersionOne Epic Category '{0}' does not exists. Current project mapping will be ignored", EpicCategory);
+                result = false;
+            }
+            return result;
         }
 
         public override int GetHashCode()

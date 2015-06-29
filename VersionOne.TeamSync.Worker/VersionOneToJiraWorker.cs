@@ -177,7 +177,7 @@ namespace VersionOne.TeamSync.Worker
 
             assignedEpics.RemoveAll(epic => searchResult.issues.SingleOrDefault(epic.ItMatches) != null);
             _log.InfoFormat("Found {0} epics to update", assignedEpics.Count);
-            
+
             if (assignedEpics.Count > 0)
                 _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
 
