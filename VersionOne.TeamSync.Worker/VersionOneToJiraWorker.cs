@@ -173,10 +173,11 @@ namespace VersionOne.TeamSync.Worker
                 searchResult.ErrorMessages.ForEach(_log.Error);
                 return;
             }
-
-            _log.InfoFormat("Found {0} epics to update", assignedEpics.Count);
-
             var jiraEpics = searchResult.issues;
+
+            assignedEpics.RemoveAll(epic => searchResult.issues.SingleOrDefault(epic.ItMatches) != null);
+            _log.InfoFormat("Found {0} epics to update", assignedEpics.Count);
+            
             if (assignedEpics.Count > 0)
                 _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
 
@@ -209,9 +210,6 @@ namespace VersionOne.TeamSync.Worker
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             _log.InfoFormat("Found {0} epics to create", unassignedEpics.Count);
-
-            //if (unassignedEpics.Count > 0)
-            //    SimpleLogger.WriteLogMessage("New epics found : " + string.Join(", ", unassignedEpics.Select(epic => epic.Number)));
 
             unassignedEpics.ForEach(epic =>
             {

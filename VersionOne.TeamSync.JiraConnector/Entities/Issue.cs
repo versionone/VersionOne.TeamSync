@@ -67,7 +67,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
     public class Issue : ItemBase
     {
         public string Expand { get; set; }
-
+        
         public Fields Fields { get; set; }
 
         /// <summary>
@@ -75,6 +75,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         /// </summary>
         public RenderedFields RenderedFields { get; set; }
     }
+
 
     public class Priority
     {
@@ -120,6 +121,12 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public Project Project { get; set; }
 
         public TimeTracking TimeTracking { get; set; }
+
+        public string RemainingInDays
+        {
+            get { return TimeTracking == null ? null : Math.Abs(TimeTracking.RemainingEstimateSeconds/3600).ToString(); }
+        }
+
         //late binding properties
         public string StoryPoints { get; set; }
         public string EpicLink { get; set; }
@@ -142,6 +149,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string TimeSpent { get; set; }
         public int RemainingEstimateSeconds { get; set; }
         public int TimeSpentSeconds { get; set; }
+
     } 
 
 }

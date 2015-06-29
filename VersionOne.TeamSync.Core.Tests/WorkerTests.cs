@@ -198,6 +198,62 @@ namespace VersionOne.TeamSync.Core.Tests
     }
 
     [TestClass]
+    public class Worker_when_there_are_no_updated_epics : worker_bits
+    {
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+            _mockV1 = new Mock<IV1>();
+            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
+            {
+                new Epic(){Name = "Name", Description = "Description", Reference = "key"},
+                new Epic(){Name = "Name1", Description = "Description", Reference = "key1"},
+                new Epic(){Name = "Name2", Description = "Description", Reference = "key2"},
+                new Epic(){Name = "Name3", Description = "Description", Reference = "key3"},
+                new Epic(){Name = "Name4", Description = "Description", Reference = "key4"},
+            });
+
+            _mockJira = new Mock<IJira>();
+            _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult()
+            {
+                issues = new List<Issue>()
+                {
+                    new Issue(){Key = "key", Fields = new Fields(){Summary = "Name", Description = "Description", Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key1", Fields = new Fields(){Summary = "Name1", Description = "Description1", Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key2", Fields = new Fields(){Summary = "Name2", Description = "Description", Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key3", Fields = new Fields(){Summary = "Name3", Description = "Description3", Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key4", Fields = new Fields(){Summary = "Name4", Description = "Description", Status = new Status(){Name = "Not done!"}}}
+                }
+            });
+
+            _worker = new VersionOneToJiraWorker(_mockV1.Object);
+            var jiraInfo = MakeInfo();
+
+            await _worker.UpdateEpics(jiraInfo);
+        }
+
+        [TestMethod]
+        public void calls_GetEpicWithReference_once()
+        {
+            _mockV1.Verify(x => x.GetEpicsWithReference(_projectId, _epicCategory), Times.Once);
+        }
+
+        [TestMethod]
+        public void calls_GetEpicsInProject_once()
+        {
+            _mockJira.Verify(x => x.GetEpicsInProject(_jiraKey), Times.Once);
+        }
+
+        [TestMethod]
+        public void never_calls_UpdateEpic()
+        {
+            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), It.IsAny<string>()), Times.Exactly(2));
+        }
+    }
+
+
+    [TestClass]
     public class Worker_when_there_is_1_epic_to_update_matching_one_in_jira : worker_bits
     {
         private Epic _epic;

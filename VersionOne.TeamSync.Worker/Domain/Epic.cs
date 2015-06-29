@@ -8,7 +8,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 {
     public class Epic : IPrimaryWorkItem
 	{
-		public string AssetType
+        public string AssetType
 		{
 			get { return "Epic"; }
 		}

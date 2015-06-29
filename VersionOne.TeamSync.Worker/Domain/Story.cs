@@ -8,7 +8,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 {
     public class Story : IPrimaryWorkItem
 	{
-		public string AssetType
+        public string AssetType
 		{
 			get { return "Story"; }
 		}
@@ -76,5 +76,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             };
         }
 
-    }
+
+	}
 }

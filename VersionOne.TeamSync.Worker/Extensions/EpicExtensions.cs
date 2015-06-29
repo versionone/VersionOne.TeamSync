@@ -7,6 +7,13 @@ namespace VersionOne.TeamSync.Worker.Extensions
 {
     public static class EpicExtensions
     {
+        public static bool ItMatches(this Epic epic, Issue other)
+        {
+            return string.Equals(epic.Name, other.Fields.Summary) && 
+                string.Equals(epic.Description, other.Fields.Description) && 
+                string.Equals(epic.Reference, other.Key);
+        }
+
         public static dynamic CreateJiraEpic(this Epic epic, string projectKey, string jiraEpicNameId)
         {
             dynamic expando = new ExpandoObject(); //not sure if this is entirely necessary ... ?

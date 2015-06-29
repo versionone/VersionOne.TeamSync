@@ -3,7 +3,9 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
@@ -11,18 +13,46 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class story_update : story_bits
     {
+        private Story _updatedStory;
+        private Story _storySentToUpdate;
+        private string _johnnyIsAlive;
+
         [TestInitialize]
         public void Context()
         {
             BuildContext();
+            var jiraInfo = MakeInfo();
+
+            _updatedStory = new Story() { Reference = "J-100", Name = "Johnny", Number = "S-9000" };
+            _johnnyIsAlive = "Johnny 5 is alive";
+            var updatedIssue = new Issue()
+            {
+                Key = "J-100",
+                Fields = new Fields()
+                {
+                    Summary = _johnnyIsAlive,
+                    Labels = new List<string> { "S-9000" }
+                }
+            };
+            
+            _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>())).Callback(
+                (IV1Asset asset, XDocument xDocument) =>
+                {
+                    _storySentToUpdate = (Story)asset;
+                });
+            _worker.UpdateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Story> { _existingStory, _updatedStory });
         }
 
         [TestMethod]
         public void should_call_update_asset_just_one_time()
         {
-            var jiraInfo = MakeInfo();
-            _worker.UpdateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue }, new List<Story> { _existingStory });
-            _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Story>(),It.IsAny<XDocument>()), Times.Once);
+            _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_send_the_right_story_to_be_updated()
+        {
+            _storySentToUpdate.Name.ShouldEqual(_johnnyIsAlive);
         }
 
     }
@@ -134,7 +164,11 @@ namespace VersionOne.TeamSync.Core.Tests
             _existingIssue = new Issue()
             {
                 Key = _existingIssueKey,
-                Fields = new Fields() { Labels = new List<string> { _storyNumber } }
+                Fields = new Fields()
+                {
+                    Labels = new List<string> { _storyNumber },
+                    Summary = "Johnny"
+                }
             };
 
             _newIssue = new Issue()

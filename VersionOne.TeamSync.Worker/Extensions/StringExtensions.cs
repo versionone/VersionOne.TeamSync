@@ -10,5 +10,10 @@ namespace VersionOne.TeamSync.Worker.Extensions
         {
             return String.Format(_inQuotes, value);
         }
+
+        public static string ToEmptyIfNull(this string value)
+        {
+            return value ?? "";
+        }
     }
 }
