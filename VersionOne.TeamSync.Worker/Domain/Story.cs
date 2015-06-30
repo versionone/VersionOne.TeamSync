@@ -48,7 +48,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             var doc = XDocument.Parse("<Asset></Asset>");
             doc.AddSetNode("Name", Name)
                 .AddSetRelationNode("Scope", ScopeId)
-                .AddNullableSetNode("Description", Description)
+                .AddNullableCDataSetNode("Description", Description)
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference);
@@ -69,7 +69,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 Number = attributes.GetValueOrDefault("ID.Number"),
                 ProjectName = attributes.GetValueOrDefault("Scope.Name"),
                 Reference = attributes.GetValueOrDefault("Reference"),
-                Description = attributes.GetPlainTextFromHtmlOrDefault("Description"),
+                Description = attributes.GetValueOrDefault("Description"),
                 Name = attributes.GetValueOrDefault("Name"),
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
                 AssetState = attributes.GetValueOrDefault("AssetState")

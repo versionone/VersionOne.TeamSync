@@ -25,5 +25,12 @@ namespace VersionOne.TeamSync.Worker.Extensions
             node.AddNode(doc);
             return doc;
         }
+
+        public static XDocument AddNullableCDataSetNode(this XDocument doc, string attributeName, string value)
+        {
+            var node = new V1NullableCDataSetNode(attributeName, value);
+            node.AddNode(doc);
+            return doc;
+        }
     }
 }

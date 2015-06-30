@@ -28,7 +28,10 @@ namespace VersionOne.TeamSync.Core.Tests
             var updatedIssue = new Issue()
             {
                 Key = "J-100",
-                RenderedFields = new RenderedFields(),
+                RenderedFields = new RenderedFields()
+                {
+                    Description = "a new description"
+                },
                 Fields = new Fields()
                 {
                     Summary = _johnnyIsAlive,
@@ -161,7 +164,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             base.BuildContext();
             _existingIssueKey = "OPC-10";
-            _existingStory = new Story() { Reference = _existingIssueKey, Name = "Johnny", Number = _storyNumber };
+            _existingStory = new Story() { Reference = _existingIssueKey, Name = "Johnny", Number = _storyNumber, Description = "descript"};
             _existingIssue = new Issue()
             {
                 Key = _existingIssueKey,

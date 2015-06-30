@@ -45,7 +45,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static bool ItMatchesStory(this Issue issue, Story story)
         {
             return string.Equals(story.Name, issue.Fields.Summary) &&
-                //string.Equals(story.Description, issue.Fields.Description) &&
+                string.Equals(story.Description, issue.RenderedFields.Description) &&
                 string.Equals(story.Estimate, issue.Fields.StoryPoints) &&
                 string.Equals(story.ToDo, issue.Fields.RemainingInDays) &&
                 string.Equals(story.Reference, issue.Key) &&
@@ -56,7 +56,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static bool ItMatchesDefect(this Issue issue, Defect defect)
         {
             return string.Equals(defect.Name, issue.Fields.Summary) &&
-                //string.Equals(defect.Description, issue.Fields.Description.ToEmptyIfNull()) &&
+                string.Equals(defect.Description, issue.RenderedFields.Description.ToEmptyIfNull()) &&
                 string.Equals(defect.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
                 string.Equals(defect.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
                 string.Equals(defect.Reference, issue.Key) &&

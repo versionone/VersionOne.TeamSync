@@ -91,10 +91,13 @@ namespace VersionOne.TeamSync.Core.Tests
             _jiraStory = new Issue()
             {
                 Key = _reference,
+                RenderedFields = new RenderedFields()
+                {
+                    Description = "Description"
+                },
                 Fields = new Fields()
                 {
                     Summary = "Name",
-                    Description = "Description",
                     EpicLink = "Epic:1000",
                     TimeTracking = new TimeTracking()
                     {
@@ -111,7 +114,6 @@ namespace VersionOne.TeamSync.Core.Tests
             _jiraStory.ItMatchesStory(_story);
         }
 
-        [Ignore]
         [TestMethod]
         public void different_description_means_update()
         {
@@ -186,10 +188,13 @@ namespace VersionOne.TeamSync.Core.Tests
             _jiraDefect = new Issue()
             {
                 Key = _reference,
+                RenderedFields = new RenderedFields()
+                {
+                    Description = "Description"
+                },
                 Fields = new Fields()
                 {
                     Summary = "Name",
-                    Description = "Description",
                     EpicLink = "Epic:1000",
                     TimeTracking = new TimeTracking()
                     {
@@ -207,7 +212,6 @@ namespace VersionOne.TeamSync.Core.Tests
             _jiraDefect.ItMatchesDefect(_defect).ShouldBeTrue();
         }
 
-        [Ignore]
         [TestMethod]
         public void different_description_means_update()
         {
