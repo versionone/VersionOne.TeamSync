@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
@@ -15,22 +10,26 @@ namespace VersionOne.TeamSync.Core.Tests
     public class IssueExtensionTests
     {
         private Story _story;
+
         [TestInitialize]
         public void Context()
         {
-            var issue = new Issue()
+            var issue = new Issue
             {
                 Key = "OPC-10",
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Summary = "issue summary",
-                    Description = "issue description",
                     StoryPoints = "17",
-                    TimeTracking = new TimeTracking()
+                    TimeTracking = new TimeTracking
                     {
                         RemainingEstimateSeconds = 14400,
                         TimeSpentSeconds = 28800
-                    },
+                    }
+                },
+                RenderedFields = new RenderedFields
+                {
+                    Description = "issue description"
                 }
             };
 
