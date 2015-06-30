@@ -398,13 +398,13 @@ namespace VersionOne.TeamSync.Worker
         {
             _log.Info("Updating V1 defects...");
             var processedDefects = 0;
-            var existingStories =
+            var existingDefects =
                 allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
                     .ToList();
 
-            _log.InfoFormat("Found {0} defects to update", existingStories.Count);
+            _log.InfoFormat("Found {0} defects to update", existingDefects.Count);
 
-            existingStories.ForEach(async existingJDefect =>
+            existingDefects.ForEach(async existingJDefect =>
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
                 if (existingJDefect.ItMatchesDefect(defect))
