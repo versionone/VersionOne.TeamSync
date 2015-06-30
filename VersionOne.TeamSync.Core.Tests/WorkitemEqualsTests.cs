@@ -24,10 +24,13 @@ namespace VersionOne.TeamSync.Core.Tests
             _secondEpic = new Issue()
             {
                 Key = "Reference",
+                RenderedFields = new RenderedFields()
+                {
+                    Description = "Description"
+                },
                 Fields = new Fields()
                 {
                     Summary = "Name",
-                    Description = "Description",
                 }
             };
         }
