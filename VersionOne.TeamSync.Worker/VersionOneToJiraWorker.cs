@@ -101,12 +101,12 @@ namespace VersionOne.TeamSync.Worker
         #region EPICS
         public async Task DoEpicWork(V1JiraInfo jiraInfo)
         {
-            _log.Debug("Epic sync started...");
+            _log.Trace("Epic sync started...");
             await CreateEpics(jiraInfo);
             await UpdateEpics(jiraInfo);
             await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
             await DeleteEpics(jiraInfo);
-            _log.Debug("Epic sync stopped...");
+            _log.Trace("Epic sync stopped...");
         }
 
         public async Task DeleteEpics(V1JiraInfo jiraInfo)
@@ -246,14 +246,14 @@ namespace VersionOne.TeamSync.Worker
         #region STORIES
         public async Task DoStoryWork(V1JiraInfo jiraInfo)
         {
-            _log.Debug("Story sync started...");
+            _log.Trace("Story sync started...");
             var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
-            _log.Debug("Story sync stopped...");
+            _log.Trace("Story sync stopped...");
         }
 
         public void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
@@ -383,19 +383,19 @@ namespace VersionOne.TeamSync.Worker
         #region DEFECTS
         public async Task DoDefectWork(V1JiraInfo jiraInfo)
         {
-            _log.Debug("Defect sync started...");
+            _log.Trace("Defect sync started...");
             var allJiraDefects = jiraInfo.JiraInstance.GetDefectsInProject(jiraInfo.JiraKey).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateDefects(jiraInfo, allJiraDefects, allV1Defects);
             CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
             DeleteV1Defects(jiraInfo, allJiraDefects, allV1Defects);
-            _log.Debug("Defect sync stopped...");
+            _log.Trace("Defect sync stopped...");
         }
 
         public void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraDefects, List<Defect> allV1Defects)
         {
-            _log.Info("Updating V1 defects...");
+            _log.Trace("Updating V1 defects...");
             var processedDefects = 0;
             var existingDefects =
                 allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
@@ -444,7 +444,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
         {
-            _log.Info("Creating V1 defects...");
+            _log.Trace("Creating V1 defects...");
             var processedDefects = 0;
             var newStories = allJiraStories.Where(jDefect =>
             {
@@ -491,7 +491,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void DeleteV1Defects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
         {
-            _log.Debug("Deleting defects...");
+            _log.Trace("Deleting defects...");
             var processedDefects = 0;
             var jiraReferencedStoriesKeys =
                 allV1Stories.Where(v1Defect => !v1Defect.IsInactive && !string.IsNullOrWhiteSpace(v1Defect.Reference))
