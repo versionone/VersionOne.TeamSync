@@ -78,6 +78,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 ProjectName = attributes.GetValueOrDefault("Scope.Name"),
                 Reference = attributes.GetValueOrDefault("Reference"),
                 Description = attributes.GetValueOrDefault("Description"),
+                Estimate = attributes.GetValueOrDefault("Estimate"),
+                ToDo = attributes.GetValueOrDefault("ToDo"),
                 Name = attributes.GetValueOrDefault("Name"),
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
                 AssetState = attributes.GetValueOrDefault("AssetState")
