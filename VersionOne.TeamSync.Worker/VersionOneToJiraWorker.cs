@@ -270,9 +270,6 @@ namespace VersionOne.TeamSync.Worker
             {
                 var story = allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number));
 
-                if (existingJStory.ItMatchesStory(story))
-                    return;
-
                 UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story).Wait();
                 processedStories++;
             });
@@ -296,8 +293,11 @@ namespace VersionOne.TeamSync.Worker
 
             update.ID = story.ID;
 
-            await _v1.UpdateAsset(update, update.CreateUpdatePayload());
-            _log.DebugFormat("Updated story V1 {0}", story.Number);
+            if (!issue.ItMatchesStory(story))
+            {
+                await _v1.UpdateAsset(update, update.CreateUpdatePayload());
+                _log.DebugFormat("Updated story V1 {0}", story.Number);
+            }
 
             //TODO : late bind? maybe??
             if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && story.AssetState != "128")
@@ -412,9 +412,6 @@ namespace VersionOne.TeamSync.Worker
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-                if (existingJDefect.ItMatchesDefect(defect))
-                    return;
-
                 UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect).Wait();
                 processedDefects++;
             });
@@ -435,8 +432,11 @@ namespace VersionOne.TeamSync.Worker
             var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
             update.ID = defect.ID;
 
-            _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
-            await _v1.UpdateAsset(update, update.CreateUpdatePayload());
+            if (!issue.ItMatchesDefect(defect))
+            {
+                _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
+                await _v1.UpdateAsset(update, update.CreateUpdatePayload());
+            }
 
             _log.DebugFormat("Updated V1 defect {0}", defect.Number);
 
