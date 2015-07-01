@@ -297,7 +297,7 @@ namespace VersionOne.TeamSync.Worker
             update.ID = story.ID;
 
             await _v1.UpdateAsset(update, update.CreateUpdatePayload());
-            _log.DebugFormat("Updated V1 story {0} from Jira story {1}", story.Number, issue.Key);
+            _log.DebugFormat("Updated story {0}", story.Number);
 
             //TODO : late bind? maybe??
             if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && story.AssetState != "128")
