@@ -155,12 +155,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey)
         {
             var story = await GetStoryWithJiraReference(projectId, jiraStoryKey);
+            await _connector.Post(story, story.RemoveReference());
             await _connector.Operation(story, "Delete");
         }
 
         public async void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey)
         {
             var defect = await GetDefectWithJiraReference(projectId, jiraStoryKey);
+            await _connector.Post(defect, defect.RemoveReference());
             await _connector.Operation(defect, "Delete");
         }
 

@@ -60,6 +60,14 @@ namespace VersionOne.TeamSync.Worker.Domain
             ID = asset.GetAssetID();
         }
 
+        public XDocument RemoveReference()
+        {
+            Reference = string.Empty;
+            var doc = XDocument.Parse("<Asset></Asset>");
+            doc.AddNullableSetNode("Reference", Reference);
+            return doc;
+        }
+
         public static Story FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
