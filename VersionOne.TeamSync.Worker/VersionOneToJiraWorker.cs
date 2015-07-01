@@ -266,14 +266,14 @@ namespace VersionOne.TeamSync.Worker
 
             _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
-            existingStories.ForEach(async existingJStory =>
+            existingStories.ForEach(existingJStory =>
             {
                 var story = allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number));
 
                 if (existingJStory.ItMatchesStory(story))
                     return;
 
-                await UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story);
+                UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story).Wait();
                 processedStories++;
             });
 
@@ -404,14 +404,14 @@ namespace VersionOne.TeamSync.Worker
 
             _log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
 
-            existingDefects.ForEach(async existingJDefect =>
+            existingDefects.ForEach(existingJDefect =>
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
                 
                 if (existingJDefect.ItMatchesDefect(defect))
                     return;
 
-                await UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect);
+                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect).Wait();
                 processedDefects++;
             });
 
