@@ -219,11 +219,11 @@ namespace VersionOne.TeamSync.Core.Tests
             {
                 issues = new List<Issue>()
                 {
-                    new Issue(){Key = "key", Fields = new Fields(){Summary = "Name", Status = new Status(){Name = "Not done!"}}, RenderedFields = new RenderedFields()  {Description = "Description" }},
-                    new Issue(){Key = "key1", Fields = new Fields(){Summary = "Name1", Status = new Status(){Name = "Not done!"}}, RenderedFields = new RenderedFields(){Description = "Description1"}},
-                    new Issue(){Key = "key2", Fields = new Fields(){Summary = "Name2", Status = new Status(){Name = "Not done!"}}, RenderedFields = new RenderedFields(){Description = "Description" }},
-                    new Issue(){Key = "key3", Fields = new Fields(){Summary = "Name3", Status = new Status(){Name = "Not done!"}}, RenderedFields = new RenderedFields(){Description = "Description3"}},
-                    new Issue(){Key = "key4", Fields = new Fields(){Summary = "Name4", Status = new Status(){Name = "Not done!"}}, RenderedFields = new RenderedFields(){Description = "Description" }},
+                    new Issue(){Key = "key", Fields = new Fields(){Summary = "Name", Description = "Description", Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key1", Fields = new Fields(){Summary = "Name1", Description = "Description1", Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key2", Fields = new Fields(){Summary = "Name2", Description = "Description" , Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key3", Fields = new Fields(){Summary = "Name3", Description = "Description3", Status = new Status(){Name = "Not done!"}}},
+                    new Issue(){Key = "key4", Fields = new Fields(){Summary = "Name4", Description = "Description" , Status = new Status(){Name = "Not done!"}}},
                 }
             });
             

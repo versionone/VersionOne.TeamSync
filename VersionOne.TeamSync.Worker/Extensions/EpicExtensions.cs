@@ -10,7 +10,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static bool ItMatches(this Epic epic, Issue other)
         {
             return string.Equals(epic.Name, other.Fields.Summary) && 
-                string.Equals(epic.Description, other.RenderedFields.Description) && 
+                string.Equals(epic.Description, other.Fields.Description) && 
                 string.Equals(epic.Reference, other.Key);
         }
 
