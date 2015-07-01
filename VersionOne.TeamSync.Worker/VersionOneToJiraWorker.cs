@@ -456,7 +456,7 @@ namespace VersionOne.TeamSync.Worker
                                                               vDefect.Reference.Contains(jDefect.Key)) == null;
             }).ToList();
 
-            _log.DebugFormat("Found {0} defects to check for    create", newStories.Count);
+            _log.DebugFormat("Found {0} defects to check for create", newStories.Count);
 
             newStories.ForEach(newJDefect =>
             {
