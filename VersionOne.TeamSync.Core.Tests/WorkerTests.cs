@@ -77,12 +77,12 @@ namespace VersionOne.TeamSync.Core.Tests
                 _epic
             });
             _mockV1.Setup(x => x.UpdateEpicReference(_epic));
-            _mockV1.Setup(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()));
+            _mockV1.Setup(x => x.CreateLink(_epic, string.Format("Jira {0}", _jiraKey), It.IsAny<string>()));
             _mockJira.Setup(x => x.CreateEpic(_epic, _jiraKey)).Returns(() => _itemBase);
 
             _epic.Reference.ShouldBeNull();
             var jiraInfo = MakeInfo();
-            
+
             await _worker.CreateEpics(jiraInfo);
         }
     }
@@ -117,9 +117,8 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_create_a_link_on_v1_epic()
         {
-            _mockV1.Verify(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()), Times.Once);
+            _mockV1.Verify(x => x.CreateLink(_epic, string.Format("Jira {0}", _jiraKey), It.IsAny<string>()), Times.Once);
         }
-
     }
 
     [TestClass]
@@ -153,10 +152,8 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_create_a_link_on_v1_epic()
         {
-            _mockV1.Verify(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()), Times.Once);
+            _mockV1.Verify(x => x.CreateLink(_epic, string.Format("Jira {0}", _jiraKey), It.IsAny<string>()), Times.Once);
         }
-
-
     }
 
     [TestClass]
@@ -172,7 +169,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
 
-			_worker = new VersionOneToJiraWorker(_mockV1.Object);
+            _worker = new VersionOneToJiraWorker(_mockV1.Object);
             var jiraInfo = MakeInfo();
 
             await _worker.UpdateEpics(jiraInfo);
@@ -193,7 +190,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void never_calls_UpdateEpic()
         {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), It.IsAny<string>()),Times.Never);
+            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), It.IsAny<string>()), Times.Never);
         }
     }
 
@@ -226,7 +223,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     new Issue(){Key = "key4", Fields = new Fields(){Summary = "Name4", Description = "Description" , Status = new Status(){Name = "Not done!"}}},
                 }
             });
-            
+
             _worker = new VersionOneToJiraWorker(_mockV1.Object);
             var jiraInfo = MakeInfo();
 
@@ -252,7 +249,6 @@ namespace VersionOne.TeamSync.Core.Tests
         }
     }
 
-
     [TestClass]
     public class Worker_when_there_is_1_epic_to_update_matching_one_in_jira : worker_bits
     {
@@ -263,16 +259,16 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64"};
+            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64" };
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue(){Key = "OPC-10", Fields = new Fields(){Status = new Status(){Name = "ToDo"}}});
+            _searchResult.issues.Add(new Issue() { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "ToDo" } } });
 
             _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
                 _epic
             });
 
-			_mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(_searchResult);
+            _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(_searchResult);
 
             _epic.Reference.ShouldNotBeNull("need a reference");
             _epic.IsClosed().ShouldBeFalse();
@@ -359,7 +355,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Reference = "OPC-10", Name = "Johnny", AssetState = "128"};
+            _epic = new Epic() { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
             _searchResult = new SearchResult();
             _searchResult.issues.Add(new Issue() { Key = "OPC-10" });
 
@@ -406,7 +402,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Reference = "OPC-10", Number = "E-00001"};
+            _epic = new Epic() { Reference = "OPC-10", Number = "E-00001" };
 
             _mockV1.Setup(x => x.GetDeletedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
             {
@@ -433,7 +429,5 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             _mockJira.Verify(x => x.DeleteEpicIfExists("OPC-10"), Times.Once());
         }
-
     }
-
 }
