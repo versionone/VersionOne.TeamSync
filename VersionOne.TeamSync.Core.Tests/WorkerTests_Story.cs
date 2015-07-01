@@ -38,12 +38,12 @@ namespace VersionOne.TeamSync.Core.Tests
                     Labels = new List<string> { "S-9000" }
                 }
             };
-            
+
             _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>())).Callback(
                 (IV1Asset asset, XDocument xDocument) =>
                 {
-                    _storySentToUpdate = (Story)asset;
-                });
+                    _storySentToUpdate = (Story) asset;
+                }).ReturnsAsync(new XDocument());
             _worker.UpdateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Story> { _existingStory, _updatedStory });
         }
 
