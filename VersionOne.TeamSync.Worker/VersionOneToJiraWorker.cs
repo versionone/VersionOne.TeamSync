@@ -115,7 +115,7 @@ namespace VersionOne.TeamSync.Worker
             var processedEpics = 0;
             var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
-            _log.DebugFormat("Found {0} epics to delete", deletedEpics.Count);
+            _log.DebugFormat("Found {0} epics to check for delete", deletedEpics.Count);
 
             deletedEpics.ForEach(epic =>
             {
@@ -140,7 +140,7 @@ namespace VersionOne.TeamSync.Worker
             var processedEpics = 0;
             var closedEpics = await _v1.GetClosedTrackedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
-            _log.TraceFormat("Found {0} epics to resolve", closedEpics.Count);
+            _log.TraceFormat("Found {0} epics to check for resolve", closedEpics.Count);
 
             closedEpics.ForEach(epic =>
             {
@@ -176,7 +176,7 @@ namespace VersionOne.TeamSync.Worker
             var jiraEpics = searchResult.issues;
 
             assignedEpics.RemoveAll(epic => searchResult.issues.SingleOrDefault(epic.ItMatches) != null);
-            _log.DebugFormat("Found {0} epics to update", assignedEpics.Count);
+            _log.DebugFormat("Found {0} epics to check for update", assignedEpics.Count);
 
             if (assignedEpics.Count > 0)
                 _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
@@ -209,7 +209,7 @@ namespace VersionOne.TeamSync.Worker
             var processedEpics = 0;
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
-            _log.DebugFormat("Found {0} epics to create", unassignedEpics.Count);
+            _log.DebugFormat("Found {0} epics to check for create", unassignedEpics.Count);
 
             unassignedEpics.ForEach(epic =>
             {
@@ -264,17 +264,17 @@ namespace VersionOne.TeamSync.Worker
                 allJiraStories.Where(jStory => { return allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)); })
                     .ToList();
 
-            _log.DebugFormat("Found {0} stories to update", existingStories.Count);
+            _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
             existingStories.ForEach(async existingJStory =>
             {
                 var story = allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number));
 
-                if (existingJStory.ItMatchesStory(story))
-                    return;
-
-                await UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story);
-                processedStories++;
+                if (!existingJStory.ItMatchesStory(story))
+                {
+                    await UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story);
+                    processedStories++;
+                }
             });
 
             _log.InfoFormat("Updated {0} stories", processedStories);
@@ -289,7 +289,7 @@ namespace VersionOne.TeamSync.Worker
             if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && story.AssetState == "128")
             {
                 await _v1.ReOpenStory(story.ID);
-                _log.TraceFormat("Reopened {0}", story.Number);
+                _log.DebugFormat("Reopened story {0}", story.Number);
             }
 
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
@@ -297,12 +297,13 @@ namespace VersionOne.TeamSync.Worker
             update.ID = story.ID;
 
             await _v1.UpdateAsset(update, update.CreateUpdatePayload());
+            _log.DebugFormat("Updated V1 story {0} from Jira story {1}", story.Number, issue.Key);
 
             //TODO : late bind? maybe??
             if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && story.AssetState != "128")
             {
                 await _v1.CloseStory(story.ID);
-                _log.TraceFormat("Closed {0}", story.Number);
+                _log.DebugFormat("Closed story {0}", story.Number);
             }
         }
 
@@ -319,7 +320,7 @@ namespace VersionOne.TeamSync.Worker
                                                               vStory.Reference.Contains(jStory.Key)) == null;
             }).ToList();
 
-            _log.DebugFormat("Found {0} stories to create", newStories.Count);
+            _log.DebugFormat("Found {0} stories to check for create", newStories.Count);
 
             newStories.ForEach(async newJStory =>
             {
@@ -365,7 +366,7 @@ namespace VersionOne.TeamSync.Worker
             var jiraDeletedStoriesKeys =
                 jiraReferencedStoriesKeys.Where(jiraStoryKey => !allJiraStories.Any(js => js.Key.Equals(jiraStoryKey))).ToList();
 
-            _log.DebugFormat("Found {0} stories to delete", jiraDeletedStoriesKeys.Count);
+            _log.DebugFormat("Found {0} stories to check for delete", jiraDeletedStoriesKeys.Count);
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {
@@ -401,7 +402,7 @@ namespace VersionOne.TeamSync.Worker
                 allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
                     .ToList();
 
-            _log.DebugFormat("Found {0} defects to update", existingDefects.Count);
+            _log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
 
             existingDefects.ForEach(async existingJDefect =>
             {
@@ -455,7 +456,7 @@ namespace VersionOne.TeamSync.Worker
                                                               vDefect.Reference.Contains(jDefect.Key)) == null;
             }).ToList();
 
-            _log.DebugFormat("Found {0} defects to create", newStories.Count);
+            _log.DebugFormat("Found {0} defects to check for    create", newStories.Count);
 
             newStories.ForEach(newJDefect =>
             {
