@@ -232,7 +232,7 @@ namespace VersionOne.TeamSync.Worker
                     _v1.UpdateEpicReference(epic);
                     _log.TraceFormat("Added reference in V1 epic {0}", epic.Number);
                     var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key;
-                    _v1.CreateLink(epic, "Jira Epic", link);
+                    _v1.CreateLink(epic, string.Format("Jira {0}", jiraData.Key), link);
                     _log.TraceFormat("Added link in V1 epic {0}", epic.Number);
                     processedEpics++;
                 }
@@ -354,6 +354,10 @@ namespace VersionOne.TeamSync.Worker
             jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ProjectName,
                 _v1.InstanceUrl);
             _log.TraceFormat("Added link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
+
+            var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraStory.Key;
+            _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);
+            _log.TraceFormat("Added link in V1 story {0}", newStory.Number);
         }
 
         public void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
@@ -407,7 +411,7 @@ namespace VersionOne.TeamSync.Worker
             existingDefects.ForEach(existingJDefect =>
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
-                
+
                 if (existingJDefect.ItMatchesDefect(defect))
                     return;
 
@@ -489,6 +493,10 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceFormat("Updated labels on Jira defect {0}", jiraDefect.Key);
             jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ProjectName, _v1.InstanceUrl);
             _log.TraceFormat("Added link to V1 defect {0} on Jira defect {1}", newDefect.Number, jiraDefect.Key);
+
+            var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraDefect.Key;
+            _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraDefect.Key), link);
+            _log.TraceFormat("Added link in V1 defect {0}", newDefect.Number);
         }
 
         public void DeleteV1Defects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
