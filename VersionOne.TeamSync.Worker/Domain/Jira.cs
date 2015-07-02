@@ -13,7 +13,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     public interface IJira
     {
         string InstanceUrl { get; }
-        void ValidateConnection();
+        bool ValidateConnection();
         bool ValidateProjectExists();
 
         void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
@@ -248,22 +248,17 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public string InstanceUrl { get; private set; }
 
-        public void ValidateConnection()
+        public bool ValidateConnection()
         {
             for (var i = 0; i < ConnectionAttempts; i++)
             {
                 Log.DebugFormat("Connection attempt {0}.", i + 1);
 
-                if (!_connector.IsConnectionValid())
-                {
-                    System.Threading.Thread.Sleep(5000);
-                }
-                else
-                {
-                    Log.Info("Jira connection successful!");
-                    return;
-                }
+                if (_connector.IsConnectionValid())
+                    return true;
+                System.Threading.Thread.Sleep(5000);
             }
+            return false;
         }
 
         public bool ValidateProjectExists()

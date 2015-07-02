@@ -70,13 +70,21 @@ namespace VersionOne.TeamSync.Worker
 
         public void ValidateConnections()
         {
-            _v1.ValidateConnection();
+            Log.Info("Verifying VersionOne connection...");
+            Log.DebugFormat("URL: {0}", _v1.InstanceUrl);
+            if (_v1.ValidateConnection())
+                Log.Info("VersionOne connection successful!");
+            else
+            {
+                Log.Error("VersionOne connection failed.");
+                throw new Exception(string.Format("Unable to validate connection to {0}.", _v1.InstanceUrl));
+            }
 
             foreach (var jiraInstance in _jiraInstances.ToList())
             {
                 Log.InfoFormat("Verifying Jira connection...");
                 Log.DebugFormat("URL: {0}", jiraInstance.JiraInstance.InstanceUrl);
-                jiraInstance.ValidateConnection();
+                Log.Info(jiraInstance.ValidateConnection() ? "Jira connection successful!" : "Jira connection failed!");
             }
         }
 

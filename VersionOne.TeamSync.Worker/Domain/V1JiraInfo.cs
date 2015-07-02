@@ -51,9 +51,9 @@ namespace VersionOne.TeamSync.Worker.Domain
             return list;
         }
 
-        public void ValidateConnection()
+        public bool ValidateConnection()
         {
-            JiraInstance.ValidateConnection();
+            return JiraInstance.ValidateConnection();
         }
 
         public bool ValidateMapping(IV1 v1)

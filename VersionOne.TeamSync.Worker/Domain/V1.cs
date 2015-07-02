@@ -12,7 +12,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     public interface IV1
     {
         string InstanceUrl { get; }
-        void ValidateConnection();
+        bool ValidateConnection();
         bool ValidateProjectExists(string projectId);
         bool ValidateEpicCategoryExists(string epicCategoryId);
 
@@ -186,37 +186,27 @@ namespace VersionOne.TeamSync.Worker.Domain
             await _connector.Operation(epic, "Delete");
         }
 
-        public void ValidateConnection()
+        public bool ValidateConnection()
         {
-            Log.Info("Verifying VersionOne connection...");
-            Log.DebugFormat("URL: {0}", InstanceUrl);
-
             for (var i = 0; i < ConnectionAttempts; i++)
             {
                 Log.DebugFormat("Connection attempt {0}.", i + 1);
 
                 try
                 {
-                    if (!_connector.IsConnectionValid())
-                    {
-                        System.Threading.Thread.Sleep(5000);
-                    }
-                    else
-                    {
-                        Log.Info("VersionOne connection successful!");
-                        return;
-                    }
+                    if (_connector.IsConnectionValid())
+                        return true;
+
+                    System.Threading.Thread.Sleep(5000);
                 }
                 catch (Exception e)
                 {
                     Log.Error("VersionOne connection failed.");
                     Log.Error(e.Message);
-                    break;
+                    return false;
                 }
             }
-
-            Log.Error("VersionOne connection failed.");
-            throw new Exception(string.Format("Unable to validate connection to {0}.", InstanceUrl));
+            return false;
         }
 
         public bool ValidateProjectExists(string projectId)
