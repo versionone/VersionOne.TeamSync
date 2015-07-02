@@ -52,7 +52,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
 
         public MetaProperty StoryPoints
         {
-            get { return StoryCustomFields.Single(x => x.Property == "Story Points"); }
+            get { return StoryCustomFields.SingleOrDefault(x => x.Property == "Story Points") ?? MetaProperty.EmptyProperty("Story Points"); }
         }
     }
 
@@ -78,6 +78,16 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Property { get; set; }
         public string Schema { get; set; }
         public string Key { get; set; }
+
+        public static MetaProperty EmptyProperty(string key)
+        {
+            return new MetaProperty()
+            {
+                Key = key,
+                Property = "custom_key",
+                Schema = "not_found"
+            };
+        }
     }
 
     public class MetaData : JsonConverter
