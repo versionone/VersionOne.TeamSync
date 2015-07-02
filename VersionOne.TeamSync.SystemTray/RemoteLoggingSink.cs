@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using log4net.Appender;
 using log4net.Core;
+using VersionOne.TeamSync.Core;
 
 namespace VersionOne.TeamSync.SystemTray
 {

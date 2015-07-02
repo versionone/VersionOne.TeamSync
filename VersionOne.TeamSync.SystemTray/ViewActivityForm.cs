@@ -3,6 +3,7 @@ using System.Drawing;
 using System.ServiceProcess;
 using System.Windows.Forms;
 using VersionOne.TeamSync.SystemTray.Properties;
+using VersionOne.TeamSync.Core;
 
 namespace VersionOne.TeamSync.SystemTray
 {
@@ -177,14 +178,5 @@ namespace VersionOne.TeamSync.SystemTray
             Settings.Default.LogLevel = toolStripComboBox1.SelectedItem.ToString();
             Settings.Default.Save();
         }
-    }
-
-    public enum LogLevel
-    {
-        ALL = 0,
-        TRACE = 1,
-        DEBUG = 2,
-        INFO = 3,
-        ERROR = 4
     }
 }
