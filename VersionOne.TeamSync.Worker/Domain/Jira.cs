@@ -41,11 +41,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const string TrackedInV1 = "Tracking Issue {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
         private const int ConnectionAttempts = 3;
 
+        private static readonly ILog Log = LogManager.GetLogger(typeof(Jira));
         private readonly IJiraConnector _connector;
-
-        private static ILog _log = LogManager.GetLogger(typeof(Jira));
+        private readonly string _jiraProject;
         private MetaProject _projectMeta;
-        private string _jiraProject;
 
         public Jira(IJiraConnector connector, string jiraProject)
         {
@@ -152,8 +151,8 @@ namespace VersionOne.TeamSync.Worker.Domain
             var existing = GetEpicByKey(issueKey);
             if (existing.HasErrors)
             {
-                _log.Error("Error attempting to remove jira issue " + issueKey);
-                _log.Error("  message(s) returned : " + string.Join(" ||| ", existing.ErrorMessages));
+                Log.Error("Error attempting to remove jira issue " + issueKey);
+                Log.Error("  message(s) returned : " + string.Join(" ||| ", existing.ErrorMessages));
                 return;
             }
 
@@ -211,7 +210,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void SetIssueToResolved(string issueKey)
         {
-            _log.Info("Attempting to transition " + issueKey);
+            Log.Info("Attempting to transition " + issueKey);
 
             _connector.Post("issue/" + issueKey + "/transitions", new
             {
@@ -225,12 +224,12 @@ namespace VersionOne.TeamSync.Worker.Domain
                 transition = new { id = "31" }
             }, HttpStatusCode.NoContent);
 
-            _log.Info("Attempting to set status on " + issueKey);
+            Log.Info("Attempting to set status on " + issueKey);
         }
 
         public void SetIssueToToDo(string issueKey)
         {
-            _log.Info("Attempting to transition " + issueKey);
+            Log.Info("Attempting to transition " + issueKey);
 
             _connector.Post("issue/" + issueKey + "/transitions", new
             {
@@ -244,7 +243,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 transition = new { id = "11" }
             }, HttpStatusCode.NoContent);
 
-            _log.Info("Attempting to set status on " + issueKey);
+            Log.Info("Attempting to set status on " + issueKey);
         }
 
         public string InstanceUrl { get; private set; }
@@ -253,7 +252,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             for (var i = 0; i < ConnectionAttempts; i++)
             {
-                _log.DebugFormat("Connection attempt {0}.", i + 1);
+                Log.DebugFormat("Connection attempt {0}.", i + 1);
 
                 if (!_connector.IsConnectionValid())
                 {
@@ -261,7 +260,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }
                 else
                 {
-                    _log.Info("Jira connection successful!");
+                    Log.Info("Jira connection successful!");
                     return;
                 }
             }

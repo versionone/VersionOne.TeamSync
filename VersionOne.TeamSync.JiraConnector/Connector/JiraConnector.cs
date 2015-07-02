@@ -17,7 +17,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 {
     public class JiraConnector : IJiraConnector
     {
-        private static ILog _log = LogManager.GetLogger(typeof(JiraConnector));
+        private static readonly ILog Log = LogManager.GetLogger(typeof(JiraConnector));
         private const string InQuery = "{0} in ({1})";
 
         private readonly IRestClient _client;
@@ -294,7 +294,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             stringBuilder.AppendLine("\tBody: ");
             stringBuilder.AppendLine("\t\t" + resp.Content);
 
-            _log.Trace(stringBuilder.ToString());
+            Log.Trace(stringBuilder.ToString());
         }
 
         private void LogRequest(IRestClient client, IRestRequest req)
@@ -318,7 +318,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             var reqBody = req.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
             stringBuilder.AppendLine("\t\t" + reqBody);
 
-            _log.Trace(stringBuilder.ToString());
+            Log.Trace(stringBuilder.ToString());
         }
     }
 }

@@ -17,10 +17,10 @@ namespace VersionOne.TeamSync.V1Connector
 {
     public class V1Connector : IV1Connector
     {
-        private static ILog _log = LogManager.GetLogger(typeof(V1Connector));
+        private static readonly ILog Log = LogManager.GetLogger(typeof(V1Connector));
         private readonly HttpClient _client;
         private readonly HttpClientHandler _handler;
-        private Uri _baseAddress;
+        private readonly Uri _baseAddress;
         private static ICredentials _networkCreds;
         private string _endpoint = "rest-1.v1/Data";
         private string _upstreamUserAgent;
@@ -276,7 +276,7 @@ namespace VersionOne.TeamSync.V1Connector
             stringBuilder.AppendLine("\tBody: ");
             stringBuilder.AppendLine("\t\t" + (resp.Content != null ? resp.Content.ReadAsStringAsync().Result : string.Empty));
 
-            _log.Trace(stringBuilder.ToString());
+            Log.Trace(stringBuilder.ToString());
         }
 
         private void LogRequest(HttpRequestMessage rm, string rc)
@@ -293,7 +293,7 @@ namespace VersionOne.TeamSync.V1Connector
             stringBuilder.AppendLine("\tBody: ");
             stringBuilder.AppendLine("\t\t" + rc);
 
-            _log.Trace(stringBuilder.ToString());
+            Log.Trace(stringBuilder.ToString());
         }
 
         private class Builder : ICanSetUserAgentHeader, ICanSetAuthMethod, ICanSetProxyOrEndpointOrGetConnector, ICanSetEndpointOrGetConnector, ICanSetProxyOrGetConnector

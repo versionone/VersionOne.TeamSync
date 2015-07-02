@@ -44,13 +44,13 @@ namespace VersionOne.TeamSync.Worker.Domain
 
     public class V1 : IV1
     {
-        private readonly IV1Connector _connector;
-        private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
-        private const string _whereProject = "Scope=\"{0}\"";
-        private const string _whereEpicCategory = "Category=\"{0}\"";
+        private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
         private const int ConnectionAttempts = 3;
+        private const string WhereProject = "Scope=\"{0}\"";
+        private const string WhereEpicCategory = "Category=\"{0}\"";
+        private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
+        private readonly IV1Connector _connector;
         private readonly string _aDayAgo;
-        private static ILog _log = LogManager.GetLogger(typeof(V1));
 
         public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
         {
@@ -81,8 +81,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                     "Reference=\"\"",
                     "AssetState='Active'",
                     //"CreateDateUTC>=" + _aDayAgo,
-                    string.Format(_whereProject, projectId),
-                    string.Format(_whereEpicCategory, category)
+                    string.Format(WhereProject, projectId),
+                    string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
         }
 
@@ -98,8 +98,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                     "Reference!=\"\"",
                     "AssetState='Closed'", 
                     //"ChangeDateUTC>=" + _aDayAgo, 
-                    string.Format(_whereProject, projectId),
-                    string.Format(_whereEpicCategory, category)
+                    string.Format(WhereProject, projectId),
+                    string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
         }
 
@@ -109,8 +109,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { 
                     "Reference!=\"\"", 
                     //"ChangeDateUTC>=" + _aDayAgo, 
-                    string.Format(_whereProject, projectId), 
-                    string.Format(_whereEpicCategory, category)
+                    string.Format(WhereProject, projectId), 
+                    string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
         }
 
@@ -121,8 +121,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                     "Reference!=\"\"", 
                     "IsDeleted='True'",
                     //"ChangeDateUTC>=" + _aDayAgo, 
-                    string.Format(_whereProject, projectId), 
-                    string.Format(_whereEpicCategory, category) 
+                    string.Format(WhereProject, projectId), 
+                    string.Format(WhereEpicCategory, category) 
                 }, Epic.FromQuery);
         }
 
@@ -188,12 +188,12 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void ValidateConnection()
         {
-            _log.Info("Verifying VersionOne connection...");
-            _log.DebugFormat("URL: {0}", InstanceUrl);
+            Log.Info("Verifying VersionOne connection...");
+            Log.DebugFormat("URL: {0}", InstanceUrl);
 
             for (var i = 0; i < ConnectionAttempts; i++)
             {
-                _log.DebugFormat("Connection attempt {0}.", i + 1);
+                Log.DebugFormat("Connection attempt {0}.", i + 1);
 
                 try
                 {
@@ -203,19 +203,19 @@ namespace VersionOne.TeamSync.Worker.Domain
                     }
                     else
                     {
-                        _log.Info("VersionOne connection successful!");
+                        Log.Info("VersionOne connection successful!");
                         return;
                     }
                 }
                 catch (Exception e)
                 {
-                    _log.Error("VersionOne connection failed.");
-                    _log.Error(e.Message);
+                    Log.Error("VersionOne connection failed.");
+                    Log.Error(e.Message);
                     break;
                 }
             }
 
-            _log.Error("VersionOne connection failed.");
+            Log.Error("VersionOne connection failed.");
             throw new Exception(string.Format("Unable to validate connection to {0}.", InstanceUrl));
         }
 
@@ -233,14 +233,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             return await _connector.Query("Story",
                 new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState" },
-                new[] { "Reference!=\"\"", string.Format(_whereProject, projectId) }, Story.FromQuery);
+                new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Story.FromQuery);
         }
 
         public async Task<List<Defect>> GetDefectsWithJiraReference(string projectId)
         {
             return await _connector.Query("Defect",
                 new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState" },
-                new[] { "Reference!=\"\"", string.Format(_whereProject, projectId) }, Defect.FromQuery);
+                new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Defect.FromQuery);
         }
 
         public async Task RefreshBasicInfo(IPrimaryWorkItem workItem)

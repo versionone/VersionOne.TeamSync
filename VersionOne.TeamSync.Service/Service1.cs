@@ -12,7 +12,7 @@ namespace VersionOne.TeamSync.Service
         private Timer _timer;
         private static TimeSpan _serviceDuration;
         private static VersionOneToJiraWorker _worker;
-        private static ILog _log = LogManager.GetLogger(typeof(Service1));
+        private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
 
         public Service1()
         {
@@ -39,8 +39,8 @@ namespace VersionOne.TeamSync.Service
                 }
                 catch (Exception e)
                 {
-                    _log.Error(e);
-                    _log.Error("Errors occurred during connection validations. Service will be stopped.");
+                    Log.Error(e);
+                    Log.Error("Errors occurred during connection validations. Service will be stopped.");
                     Stop();
                 }
                 _timer = new Timer { Interval = _serviceDuration.TotalMilliseconds };
@@ -50,8 +50,8 @@ namespace VersionOne.TeamSync.Service
             }
             catch (Exception e)
             {
-                _log.Error(e);
-                _log.Error("Errors occurred during sync.");
+                Log.Error(e);
+                Log.Error("Errors occurred during sync.");
             }
         }
 
@@ -65,23 +65,23 @@ namespace VersionOne.TeamSync.Service
 
         private static void OnTimedEvent(object source, ElapsedEventArgs e)
         {
-            _log.DebugFormat("The service event was raised at {0}", e.SignalTime);
+            Log.DebugFormat("The service event was raised at {0}", e.SignalTime);
             _worker.DoWork();
-            _log.DebugFormat("The service event was completed at {0}", e.SignalTime);
+            Log.DebugFormat("The service event was completed at {0}", e.SignalTime);
         }
 
         private static void startMessage()
         {
-            _log.Info("*** VersionOne TeamSync ***");
-            _log.Info("Starting service...");
-            _log.DebugFormat("Started at {0}", DateTime.Now);
+            Log.Info("*** VersionOne TeamSync ***");
+            Log.Info("Starting service...");
+            Log.DebugFormat("Started at {0}", DateTime.Now);
         }
 
         private static void stopMessage()
         {
-            _log.Info("Stopping service...");
-            _log.DebugFormat("Stopped at {0}", DateTime.Now);
-            _log.Info("");
+            Log.Info("Stopping service...");
+            Log.DebugFormat("Stopped at {0}", DateTime.Now);
+            Log.Info("");
         }
     }
 }
