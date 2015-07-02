@@ -84,6 +84,8 @@ namespace VersionOne.TeamSync.SystemTray
                 return Color.Yellow;
             if (level == LogLevel.ERROR)
                 return Color.Red;
+            if (level == LogLevel.WARN)
+                return Color.Orange;
 
             return Color.White;
         }
@@ -159,6 +161,7 @@ namespace VersionOne.TeamSync.SystemTray
         {
             toolStripComboBox1.Items.Add(LogLevel.ALL.ToString());
             toolStripComboBox1.Items.Add(LogLevel.INFO.ToString());
+            toolStripComboBox1.Items.Add(LogLevel.WARN.ToString());
             toolStripComboBox1.Items.Add(LogLevel.DEBUG.ToString());
             toolStripComboBox1.Items.Add(LogLevel.TRACE.ToString());
             toolStripComboBox1.Items.Add(LogLevel.ERROR.ToString());

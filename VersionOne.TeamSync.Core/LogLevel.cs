@@ -5,7 +5,8 @@
         ALL = 0,
         TRACE = 1,
         DEBUG = 2,
-        INFO = 3,
-        ERROR = 4
+        WARN = 3,
+        INFO = 4,
+        ERROR = 5
     }
 }
