@@ -463,9 +463,9 @@ namespace VersionOne.TeamSync.Worker
 
             _log.DebugFormat("Found {0} defects to check for create", newStories.Count);
 
-            newStories.ForEach(newJDefect =>
+            newStories.ForEach(async newJDefect =>
             {
-                CreateDefectFromJira(jiraInfo, newJDefect);
+                await CreateDefectFromJira(jiraInfo, newJDefect);
                 processedDefects++;
             });
 
