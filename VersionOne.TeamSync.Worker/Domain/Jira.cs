@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using log4net;
+using Newtonsoft.Json.Linq;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Connector;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -118,7 +119,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             Log.Info("Attempting to transition " + issueKey);
 
-            _connector.Post("issue/" + issueKey + "/transitions", new
+            _connector.Post("issue/{issueIdOrKey}/transitions", new
             {
                 update = new
                 {
@@ -128,16 +129,16 @@ namespace VersionOne.TeamSync.Worker.Domain
                     }
                 },
                 transition = new { id = "11" }
-            }, HttpStatusCode.NoContent);
+            }, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
 
-            Log.Info("Attempting to set status on " + issueKey);
+            Log.Info(string.Format("Attempting to set status on {0}", issueKey));
         }
 
         public void SetIssueToResolved(string issueKey)
         {
             Log.Info("Attempting to transition " + issueKey);
 
-            _connector.Post("issue/" + issueKey + "/transitions", new
+            _connector.Post("issue/{issueIdOrKey}/transitions", new
             {
                 update = new
                 {
@@ -147,9 +148,9 @@ namespace VersionOne.TeamSync.Worker.Domain
                     }
                 },
                 transition = new { id = "31" }
-            }, HttpStatusCode.NoContent);
+            }, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
 
-            Log.Info("Attempting to set status on " + issueKey);
+            Log.Info(string.Format("Attempting to set status on {0}", issueKey));
         }
 
         public SearchResult GetEpicByKey(string reference)
@@ -187,7 +188,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
-            return _connector.Post(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, ProjectMeta.EpicName.Key), HttpStatusCode.Created);
+            return _connector.Post<ItemBase>(JiraResource.Issue.Value, epic.CreateJiraEpic(projectKey, ProjectMeta.EpicName.Key), HttpStatusCode.Created);
         }
 
         public void DeleteEpicIfExists(string issueKey) // TODO: async
@@ -256,7 +257,39 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public IEnumerable<Worklog> GetIssueWorkLogs(string issueKey)
         {
-            return _connector.GetIssueWorkLogs(issueKey);
+            var content = _connector.Get("issue/{issueIdOrKey}/worklog", new KeyValuePair<string, string>("issueIdOrKey", issueKey));
+            dynamic data = JObject.Parse(content);
+            return ((JArray)data.worklogs).Select<dynamic, Worklog>(i => new Worklog
+            {
+                self = i.self,
+                author = new Author
+                {
+                    self = i.author.self,
+                    name = i.author.name,
+                    key = i.author.key,
+                    emailAddress = i.author.emailAddress,
+                    displayName = i.author.displayName,
+                    active = i.author.active,
+                    timeZone = i.author.timeZone
+                },
+                updateAuthor = new Author
+                {
+                    self = i.updateAuthor.self,
+                    name = i.updateAuthor.name,
+                    key = i.updateAuthor.key,
+                    emailAddress = i.updateAuthor.emailAddress,
+                    displayName = i.updateAuthor.displayName,
+                    active = i.updateAuthor.active,
+                    timeZone = i.updateAuthor.timeZone
+                },
+                comment = i.comment,
+                created = i.created,
+                updated = i.updated,
+                started = i.started,
+                timeSpent = i.timeSpent,
+                timeSpentSeconds = i.timeSpentSeconds,
+                id = i.id
+            });
         }
 
         private object AddComment(string body)

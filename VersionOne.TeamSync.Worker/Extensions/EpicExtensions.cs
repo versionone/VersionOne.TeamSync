@@ -9,8 +9,8 @@ namespace VersionOne.TeamSync.Worker.Extensions
     {
         public static bool ItMatches(this Epic epic, Issue other)
         {
-            return string.Equals(epic.Name, other.Fields.Summary) && 
-                string.Equals(epic.Description, other.Fields.Description) && 
+            return string.Equals(epic.Name, other.Fields.Summary) &&
+                string.Equals(epic.Description, other.Fields.Description) &&
                 string.Equals(epic.Reference, other.Key);
         }
 
@@ -45,7 +45,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static void ReOpen(this Issue issue)
         {
             if (issue.Fields.Status == null)
-                issue.Fields.Status = new Status() {Name = "ToDo"};
+                issue.Fields.Status = new Status() { Name = "ToDo" };
             else
                 issue.Fields.Status.Name = "ToDo";
         }

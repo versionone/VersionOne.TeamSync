@@ -4,8 +4,7 @@ namespace VersionOne.TeamSync.JiraConnector
 {
     public static class ReservedWords
     {
-        private static readonly string[] _reserved = new[]
-        {
+        private static readonly string[] Reserved = {
             "abort", "access", "add", "after", "alias", "all", "alter", "and", "any", "as", "asc",
             "audit", "avg", "before", "begin", "between", "boolean", "break", "by", "byte", "catch", "cf",
             "char", "character", "check", "checkpoint", "collate", "collation", "column", "commit", "connect",
@@ -28,17 +27,17 @@ namespace VersionOne.TeamSync.JiraConnector
             "while", "with"
         };
 
-        private static string _inQuotes = "\"{0}\"";
+        private const string InQuotes = "\"{0}\"";
 
         public static bool IsReserved(this string value)
         {
-            return _reserved.Contains(value);
+            return Reserved.Contains(value);
         }
 
         public static string QuoteReservedWord(this string value)
         {
-            if (_reserved.Contains(value.ToLower()))
-                return string.Format(_inQuotes, value);
+            if (Reserved.Contains(value.ToLower()))
+                return string.Format(InQuotes, value);
             return value;
         }
     }

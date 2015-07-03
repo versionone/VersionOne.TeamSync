@@ -77,7 +77,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         public void GetIssueWorklogsTest()
         {
             //http://jira-6.cloudapp.net:8080/plugins/servlet/restbrowser#/resource/api-2-issue-issueidorkey-worklog
-            List<Worklog> result = _connector.GetIssueWorkLogs("STP-1").ToList();
+            var result = _connector.Get("issue/{issueIdOrKey}/worklog", new KeyValuePair<string, string>("issueIdOrKey", "STP-1"));
         }
     }
 }

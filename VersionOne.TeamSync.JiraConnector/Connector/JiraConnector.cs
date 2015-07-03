@@ -49,6 +49,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             _client = restClient;
         }
 
+
+        #region EXECUTE
+
         public string Execute(IRestRequest request, HttpStatusCode responseStatusCode)
         {
             LogRequest(_client, request);
@@ -77,13 +80,55 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             throw ProcessResponseError(response);
         }
 
-        public ItemBase Post<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
+        #endregion
+
+        #region HTTP VERBS
+
+        public string Get(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
         {
             if (string.IsNullOrEmpty(path))
-                return null; // TODO: Exception?
+                return string.Empty; // TODO: Exception?
+
+            var request = new RestRequest
+            {
+                Method = Method.GET,
+                Resource = path,
+                RequestFormat = DataFormat.Json,
+                JsonSerializer = _serializer
+            };
+
+            if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
+                request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
+
+            return Execute(request, HttpStatusCode.OK);
+        }
+
+        public T Get<T>(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>)) where T : new()
+        {
+            if (string.IsNullOrEmpty(path))
+                return default(T); // TODO: Exception?
+
+            var request = new RestRequest
+            {
+                Method = Method.GET,
+                Resource = path,
+                RequestFormat = DataFormat.Json,
+                JsonSerializer = _serializer
+            };
+
+            if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
+                request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
+
+            return Execute<T>(request, HttpStatusCode.OK);
+        }
+
+        public string Post(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
+        {
+            if (string.IsNullOrEmpty(path))
+                return string.Empty; // TODO: Exception?
 
             if (data == null)
-                return null; // TODO: Exception?
+                return string.Empty; // TODO: Exception?
 
             var request = new RestRequest
             {
@@ -98,16 +143,40 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             request.AddBody(data);
 
-            return Execute<ItemBase>(request, responseStatusCode);
+            return Execute(request, responseStatusCode);
         }
 
-        public void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
+        public T Post<T>(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>)) where T : new()
         {
             if (string.IsNullOrEmpty(path))
-                return; // TODO: Exception?
+                return default(T); // TODO: Exception?
 
             if (data == null)
-                return; // TODO: Exception?
+                return default(T); // TODO: Exception?
+
+            var request = new RestRequest
+            {
+                Method = Method.POST,
+                Resource = path,
+                RequestFormat = DataFormat.Json,
+                JsonSerializer = _serializer
+            };
+
+            if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
+                request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
+
+            request.AddBody(data);
+
+            return Execute<T>(request, responseStatusCode);
+        }
+
+        public string Put(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
+        {
+            if (string.IsNullOrEmpty(path))
+                return string.Empty; // TODO: Exception?
+
+            if (data == null)
+                return string.Empty; // TODO: Exception?
 
             var request = new RestRequest
             {
@@ -122,13 +191,13 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             request.AddBody(data);
 
-            Execute(request, responseStatusCode);
+            return Execute(request, responseStatusCode);
         }
 
-        public void Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
+        public string Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
         {
             if (string.IsNullOrEmpty(path))
-                return; // TODO: Exception?
+                return string.Empty; // TODO: Exception?
 
             var request = new RestRequest
             {
@@ -139,8 +208,10 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
                 request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
 
-            Execute(request, responseStatusCode);
+            return Execute(request, responseStatusCode);
         }
+
+        #endregion
 
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties) //not entirely convinced this belongs here
         {
@@ -185,25 +256,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             return Execute<SearchResult>(BuildSearchRequest(query, properties), HttpStatusCode.OK);
         }
 
-        public static RestRequest BuildSearchRequest(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)// ..|..
-        {
-            var request = new RestRequest(Method.GET)
-            {
-                Resource = "search",
-            };
-
-            var queryString = string.Join(" AND ", query.Select(item =>
-            {
-                if (item.Value.Count() == 1)
-                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
-                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
-            }));
-
-            request.AddQueryParameter("jql", queryString);
-            request.AddQueryParameter("fields", string.Join(",", properties));
-            return request;
-        }
-
         public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
         {
             var request = new RestRequest(Method.GET)
@@ -215,51 +267,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("expand", "projects.issuetypes.fields");
 
             return Execute<CreateMeta>(request, HttpStatusCode.OK);
-        }
-
-        public IEnumerable<Worklog> GetIssueWorkLogs(string issueIdOrKey)
-        {
-            var request = new RestRequest
-            {
-                Method = Method.GET,
-                Resource = "issue/{issueIdOrKey}/worklog",
-                RequestFormat = DataFormat.Json
-            };
-            request.AddUrlSegment("issueIdOrKey", issueIdOrKey);
-
-            var content = Execute(request, HttpStatusCode.OK);
-            dynamic data = JObject.Parse(content);
-            return ((JArray)data.worklogs).Select<dynamic, Worklog>(i => new Worklog
-            {
-                self = i.self,
-                author = new Author
-                {
-                    self = i.author.self,
-                    name = i.author.name,
-                    key = i.author.key,
-                    emailAddress = i.author.emailAddress,
-                    displayName = i.author.displayName,
-                    active = i.author.active,
-                    timeZone = i.author.timeZone
-                },
-                updateAuthor = new Author
-                {
-                    self = i.updateAuthor.self,
-                    name = i.updateAuthor.name,
-                    key = i.updateAuthor.key,
-                    emailAddress = i.updateAuthor.emailAddress,
-                    displayName = i.updateAuthor.displayName,
-                    active = i.updateAuthor.active,
-                    timeZone = i.updateAuthor.timeZone
-                },
-                comment = i.comment,
-                created = i.created,
-                updated = i.updated,
-                started = i.started,
-                timeSpent = i.timeSpent,
-                timeSpentSeconds = i.timeSpentSeconds,
-                id = i.id
-            });
         }
 
         public bool IsConnectionValid()
@@ -307,20 +314,48 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             }
         }
 
+        #region HELPER METHODS
+
+        public static RestRequest BuildSearchRequest(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)// ..|..
+        {
+            var request = new RestRequest(Method.GET)
+            {
+                Resource = "search",
+            };
+
+            var queryString = string.Join(" AND ", query.Select(item =>
+            {
+                if (item.Value.Count() == 1)
+                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
+                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
+            }));
+
+            request.AddQueryParameter("jql", queryString);
+            request.AddQueryParameter("fields", string.Join(",", properties));
+            return request;
+        }
+
         private static Exception ProcessResponseError(IRestResponse response)
         {
             if (response.StatusCode.Equals(HttpStatusCode.BadRequest))
             {
                 var error = JsonConvert.DeserializeObject<BadResult>(response.Content);
                 if (error.Errors.Values.Any(x => x.Contains("It is not on the appropriate screen, or unknown.")))
-                    return new JiraException(string.Format("Please expose the field {0} on the screen", error.Errors.First().Key), new Exception(error.Errors.First().Value));
+                    return
+                        new JiraException(
+                            string.Format("Please expose the field {0} on the screen", error.Errors.First().Key),
+                            new Exception(error.Errors.First().Value));
             }
 
             if (response.StatusCode.Equals(HttpStatusCode.Unauthorized))
                 return new JiraLoginException();
 
-            if (response.Headers.Any(h => h.Name.Equals("X-Seraph-LoginReason") && h.Value.Equals("AUTHENTICATION_DENIED")))
-                return new JiraLoginException("Authentication to JIRA was denied. This may be a result of the CAPTCHA feature being triggered.");
+            if (
+                response.Headers.Any(
+                    h => h.Name.Equals("X-Seraph-LoginReason") && h.Value.Equals("AUTHENTICATION_DENIED")))
+                return
+                    new JiraLoginException(
+                        "Authentication to JIRA was denied. This may be a result of the CAPTCHA feature being triggered.");
 
             return new JiraException(response.StatusCode, response.StatusDescription, new Exception(response.Content));
         }
@@ -364,5 +399,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             Log.Trace(stringBuilder.ToString());
         }
+
+        #endregion
     }
 }

@@ -4,7 +4,7 @@
     {
         public static JqOperator Equals(string property, string value)
         {
-            return new JqOperator()
+            return new JqOperator
             {
                 Property = property,
                 Value = value,
@@ -14,7 +14,7 @@
 
         public static JqOperator NotEquals(string property, string value)
         {
-            return new JqOperator()
+            return new JqOperator
             {
                 Property = property,
                 Value = value,
@@ -24,7 +24,7 @@
 
         public static JqOperator UpdatedTimeAgo(int minutes)
         {
-            return new JqOperator()
+            return new JqOperator
             {
                 Property = "updated",
                 Value = "\"-" + minutes + "m\"",

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -13,10 +12,10 @@ namespace VersionOne.TeamSync.Core.Tests
     public class when_creating_a_story
     {
         private V1 _v1;
-        private Story _story = new Story() {Name = "Name"};
-        private Story _createdStory;
         private Mock<IV1Connector> _mockV1;
         private XDocument _xDocument;
+        private Story _createdStory;
+        private readonly Story _story = new Story { Name = "Name" };
 
         [TestInitialize]
         public async void Context()
@@ -45,6 +44,5 @@ namespace VersionOne.TeamSync.Core.Tests
             _createdStory.ID.ShouldNotBeEmpty();
             _createdStory.ID.ShouldEqual("1126");
         }
-    
     }
 }
