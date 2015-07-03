@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VersionOne.TeamSync.JiraConnector.Connector;
+using VersionOne.TeamSync.JiraConnector.Entities;
 
 namespace VersionOne.TeamSync.JiraConnector.Tests
 {
     [TestClass]
     public class JiraConnectorTests
     {
-        private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-64.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
+        private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
 
         [Ignore]
         [TestMethod]
@@ -68,6 +70,14 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         {
             //http://jira-64.cloudapp.net:8080/plugins/servlet/restbrowser#/resource/api-2-issue-issueidorkey/DELETE
             _connector.Delete(JiraResource.Issue.Value + "/{issueIdOrKey}", HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-7"));
+        }
+
+        [Ignore]
+        [TestMethod]
+        public void GetIssueWorklogsTest()
+        {
+            //http://jira-6.cloudapp.net:8080/plugins/servlet/restbrowser#/resource/api-2-issue-issueidorkey-worklog
+            List<Worklog> result = _connector.GetIssueWorkLogs("STP-1").ToList();
         }
     }
 }

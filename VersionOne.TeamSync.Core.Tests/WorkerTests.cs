@@ -202,25 +202,25 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             BuildContext();
             _mockV1 = new Mock<IV1>();
-            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
-                new Epic(){Name = "Name", Description = "Description", Reference = "key"},
-                new Epic(){Name = "Name1", Description = "Description", Reference = "key1"},
-                new Epic(){Name = "Name2", Description = "Description", Reference = "key2"},
-                new Epic(){Name = "Name3", Description = "Description", Reference = "key3"},
-                new Epic(){Name = "Name4", Description = "Description", Reference = "key4"},
+                new Epic {Name = "Name", Description = "Description", Reference = "key"},
+                new Epic {Name = "Name1", Description = "Description", Reference = "key1"},
+                new Epic {Name = "Name2", Description = "Description", Reference = "key2"},
+                new Epic {Name = "Name3", Description = "Description", Reference = "key3"},
+                new Epic {Name = "Name4", Description = "Description", Reference = "key4"},
             });
 
             _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult()
+            _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult
             {
-                issues = new List<Issue>()
+                issues = new List<Issue>
                 {
-                    new Issue(){Key = "key", Fields = new Fields(){Summary = "Name", Description = "Description", Status = new Status(){Name = "Not done!"}}},
-                    new Issue(){Key = "key1", Fields = new Fields(){Summary = "Name1", Description = "Description1", Status = new Status(){Name = "Not done!"}}},
-                    new Issue(){Key = "key2", Fields = new Fields(){Summary = "Name2", Description = "Description" , Status = new Status(){Name = "Not done!"}}},
-                    new Issue(){Key = "key3", Fields = new Fields(){Summary = "Name3", Description = "Description3", Status = new Status(){Name = "Not done!"}}},
-                    new Issue(){Key = "key4", Fields = new Fields(){Summary = "Name4", Description = "Description" , Status = new Status(){Name = "Not done!"}}},
+                    new Issue {Key = "key", Fields = new Fields {Summary = "Name", Description = "Description", Status = new Status {Name = "Not done!"}}},
+                    new Issue {Key = "key1", Fields = new Fields {Summary = "Name1", Description = "Description1", Status = new Status {Name = "Not done!"}}},
+                    new Issue {Key = "key2", Fields = new Fields {Summary = "Name2", Description = "Description" , Status = new Status {Name = "Not done!"}}},
+                    new Issue {Key = "key3", Fields = new Fields {Summary = "Name3", Description = "Description3", Status = new Status {Name = "Not done!"}}},
+                    new Issue {Key = "key4", Fields = new Fields {Summary = "Name4", Description = "Description" , Status = new Status {Name = "Not done!"}}},
                 }
             });
 
@@ -259,11 +259,11 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64" };
+            _epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64" };
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue() { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "ToDo" } } });
+            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() { Status = new Status { Name = "ToDo" } } });
 
-            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
                 _epic
             });
@@ -307,11 +307,11 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10" };
+            _epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10" };
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue() { Key = "OPC-50" });
+            _searchResult.issues.Add(new Issue { Key = "OPC-50" });
 
-            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
                 _epic
             });
@@ -355,11 +355,11 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
+            _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue() { Key = "OPC-10" });
+            _searchResult.issues.Add(new Issue { Key = "OPC-10" });
 
-            _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
                 _epic
             });
@@ -402,9 +402,9 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _epic = new Epic() { Reference = "OPC-10", Number = "E-00001" };
+            _epic = new Epic { Reference = "OPC-10", Number = "E-00001" };
 
-            _mockV1.Setup(x => x.GetDeletedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>()
+            _mockV1.Setup(x => x.GetDeletedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
                 _epic
             });

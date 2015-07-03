@@ -17,10 +17,10 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public bool HasErrors { get { return ErrorMessages.Count > 0; } }
     }
 
-	public class BadResult : JiraBase
-	{
-		//for just mess ups
-	}
+    public class BadResult : JiraBase
+    {
+        //for just mess ups
+    }
 
     public class Errors
     {
@@ -32,7 +32,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public int MaxResults { get; set; }
         public List<Issue> Issues { get; set; }
     }
-    
+
     public class SearchResult : JiraBase
     {
         public SearchResult()
@@ -53,10 +53,10 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Key { get; set; }
         public string Self { get; set; }
 
-	    public bool IsEmpty
-	    {
-		    get { return string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(Key) && string.IsNullOrWhiteSpace(Self); }
-	    }
+        public bool IsEmpty
+        {
+            get { return string.IsNullOrWhiteSpace(id) && string.IsNullOrWhiteSpace(Key) && string.IsNullOrWhiteSpace(Self); }
+        }
     }
 
     public class BaseRefType : ItemBase
@@ -67,7 +67,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
     public class Issue : ItemBase
     {
         public string Expand { get; set; }
-        
+
         public Fields Fields { get; set; }
 
         /// <summary>
@@ -75,7 +75,6 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         /// </summary>
         public RenderedFields RenderedFields { get; set; }
     }
-
 
     public class Priority
     {
@@ -110,7 +109,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Summary { get; set; }
 
         public string Description { get; set; }
-        public List<string> Labels { get; set; } 
+        public List<string> Labels { get; set; }
 
         public ProgressObj Progress { get; set; }
         public ProgressObj AggregateProgress { get; set; }
@@ -124,13 +123,12 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
 
         public string RemainingInDays
         {
-            get { return TimeTracking == null ? null : Math.Abs(TimeTracking.RemainingEstimateSeconds/3600).ToString(); }
+            get { return TimeTracking == null ? null : Math.Abs(TimeTracking.RemainingEstimateSeconds / 3600).ToString(); }
         }
 
         //late binding properties
         public string StoryPoints { get; set; }
         public string EpicLink { get; set; }
-
     }
 
     public class RenderedFields
@@ -145,11 +143,35 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
 
     public class TimeTracking
     {
-        public string RemainingEstimate { get;set; }
+        public string RemainingEstimate { get; set; }
         public string TimeSpent { get; set; }
         public int RemainingEstimateSeconds { get; set; }
         public int TimeSpentSeconds { get; set; }
+    }
 
-    } 
+    public class Worklog
+    {
+        public string self;
+        public Author author;
+        public Author updateAuthor;
+        public string comment;
+        public DateTime created;
+        public DateTime updated;
+        public DateTime started;
+        public string timeSpent;
+        public long timeSpentSeconds;
+        public int id;
+    }
 
+    public class Author
+    {
+        public string self;
+        public string name;
+        public string key;
+        public string emailAddress;
+        //public something avatarUrls 48x48, 24x24, 16x16, 32x32;
+        public string displayName;
+        public bool active;
+        public string timeZone;
+    }
 }

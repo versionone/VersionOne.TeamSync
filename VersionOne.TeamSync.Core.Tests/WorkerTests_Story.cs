@@ -42,7 +42,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>())).Callback(
                 (IV1Asset asset, XDocument xDocument) =>
                 {
-                    _storySentToUpdate = (Story) asset;
+                    _storySentToUpdate = (Story)asset;
                 }).ReturnsAsync(new XDocument());
             _worker.UpdateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Story> { _existingStory, _updatedStory });
         }
@@ -66,12 +66,12 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         private List<Issue> _allJiraStories;
         private List<Story> _allV1Stories;
-            
+
         [TestInitialize]
         public void Context()
-            {
-                BuildContext();
-                _allJiraStories = new List<Issue>
+        {
+            BuildContext();
+            _allJiraStories = new List<Issue>
                 {
                     new Issue
                     {
@@ -90,7 +90,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     }
                 };
 
-                _allV1Stories = new List<Story>
+            _allV1Stories = new List<Story>
                 {
                     new Story
                     {
@@ -116,8 +116,8 @@ namespace VersionOne.TeamSync.Core.Tests
                         Reference = "OPC-3"
                     }
                 };
-            }
-        
+        }
+
         [TestMethod]
         public void should_never_call_delete_asset()
         {
@@ -164,29 +164,27 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             base.BuildContext();
             _existingIssueKey = "OPC-10";
-            _existingStory = new Story() { Reference = _existingIssueKey, Name = "Johnny", Number = _storyNumber, Description = "descript"};
-            _existingIssue = new Issue()
+            _existingStory = new Story { Reference = _existingIssueKey, Name = "Johnny", Number = _storyNumber, Description = "descript" };
+            _existingIssue = new Issue
             {
                 Key = _existingIssueKey,
-                RenderedFields = new RenderedFields(){Description = "descript"},
-                Fields = new Fields()
+                RenderedFields = new RenderedFields { Description = "descript" },
+                Fields = new Fields
                 {
                     Labels = new List<string> { _storyNumber },
                     Summary = "Johnny"
                 }
             };
 
-            _newIssue = new Issue()
+            _newIssue = new Issue
             {
                 Key = _newIssueKey,
                 Fields = new Fields(),
                 RenderedFields = new RenderedFields()
             };
-            _fakeCreatedStory = new Story() {Number = "S-8900"};
+            _fakeCreatedStory = new Story { Number = "S-8900" };
             _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(_fakeCreatedStory);
         }
-
-
     }
 
     [TestClass]
@@ -231,7 +229,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void makes_a_call_add_a_link_back_to_jira()
         {
-            _mockJira.Verify(x => x.AddLinkToV1InComments(_newIssueKey, _fakeCreatedStory.Number, It.IsAny<string>(),It.IsAny<string>()), Times.Once());
+            _mockJira.Verify(x => x.AddLinkToV1InComments(_newIssueKey, _fakeCreatedStory.Number, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         }
     }
 
@@ -280,5 +278,4 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Verify(x => x.AddLinkToV1InComments(_newIssueKey, _fakeCreatedStory.Number, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         }
     }
-
 }

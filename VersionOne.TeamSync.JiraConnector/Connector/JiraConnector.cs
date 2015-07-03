@@ -24,6 +24,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         private readonly ISerializer _serializer = new JiraSerializer();
         private readonly string _username;
 
+        public string BaseUrl { get; private set; }
+
         public JiraConnector(string baseUrl)
             : this(baseUrl, string.Empty, string.Empty)
         {
@@ -47,9 +49,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             _client = restClient;
         }
 
-        public string BaseUrl { get; private set; }
-
-        public void Execute(IRestRequest request, HttpStatusCode responseStatusCode)
+        public string Execute(IRestRequest request, HttpStatusCode responseStatusCode)
         {
             LogRequest(_client, request);
 
@@ -58,21 +58,21 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             LogResponse(response);
 
             if (response.StatusCode.Equals(responseStatusCode))
-                return;
+                return response.Content;
 
             throw ProcessResponseError(response);
         }
 
-        public T ExecuteWithReturn<T>(IRestRequest request, HttpStatusCode responseStatusCode, Func<string, T> returnBuilder)
+        public T Execute<T>(IRestRequest request, HttpStatusCode responseStatusCode) where T : new()
         {
             LogRequest(_client, request);
 
-            var response = _client.Execute(request); // TODO: ExecuteAsync?
+            var response = _client.Execute<T>(request); // TODO: ExecuteAsync?
 
             LogResponse(response);
 
             if (response.StatusCode.Equals(responseStatusCode))
-                return returnBuilder(response.Content);
+                return response.Data;
 
             throw ProcessResponseError(response);
         }
@@ -98,7 +98,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             request.AddBody(data);
 
-            return ExecuteWithReturn(request, responseStatusCode, JsonConvert.DeserializeObject<ItemBase>);
+            return Execute<ItemBase>(request, responseStatusCode);
         }
 
         public void Put<T>(string path, T data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
@@ -153,7 +153,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
 
-            return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<SearchResult>);
+            return Execute<SearchResult>(request, HttpStatusCode.OK);
         }
 
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
@@ -167,8 +167,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
 
-            var result = ExecuteWithReturn(request, HttpStatusCode.OK, JObject.Parse);
-            var issues = result.Property("issues").Value;
+            var content = Execute(request, HttpStatusCode.OK);
+            var result = JObject.Parse(content);
+            var issues = result.Property("result").Value;
             var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
             foreach (var issue in issues)
             {
@@ -181,9 +182,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
         {
-            var request = BuildSearchRequest(query, properties);
-
-            return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<SearchResult>);
+            return Execute<SearchResult>(BuildSearchRequest(query, properties), HttpStatusCode.OK);
         }
 
         public static RestRequest BuildSearchRequest(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)// ..|..
@@ -203,6 +202,64 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
             return request;
+        }
+
+        public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
+        {
+            var request = new RestRequest(Method.GET)
+            {
+                Resource = "issue/createmeta"
+            };
+
+            request.AddQueryParameter("projectKeys", string.Join(",", projectKey));
+            request.AddQueryParameter("expand", "projects.issuetypes.fields");
+
+            return Execute<CreateMeta>(request, HttpStatusCode.OK);
+        }
+
+        public IEnumerable<Worklog> GetIssueWorkLogs(string issueIdOrKey)
+        {
+            var request = new RestRequest
+            {
+                Method = Method.GET,
+                Resource = "issue/{issueIdOrKey}/worklog",
+                RequestFormat = DataFormat.Json
+            };
+            request.AddUrlSegment("issueIdOrKey", issueIdOrKey);
+
+            var content = Execute(request, HttpStatusCode.OK);
+            dynamic data = JObject.Parse(content);
+            return ((JArray)data.worklogs).Select<dynamic, Worklog>(i => new Worklog
+            {
+                self = i.self,
+                author = new Author
+                {
+                    self = i.author.self,
+                    name = i.author.name,
+                    key = i.author.key,
+                    emailAddress = i.author.emailAddress,
+                    displayName = i.author.displayName,
+                    active = i.author.active,
+                    timeZone = i.author.timeZone
+                },
+                updateAuthor = new Author
+                {
+                    self = i.updateAuthor.self,
+                    name = i.updateAuthor.name,
+                    key = i.updateAuthor.key,
+                    emailAddress = i.updateAuthor.emailAddress,
+                    displayName = i.updateAuthor.displayName,
+                    active = i.updateAuthor.active,
+                    timeZone = i.updateAuthor.timeZone
+                },
+                comment = i.comment,
+                created = i.created,
+                updated = i.updated,
+                started = i.started,
+                timeSpent = i.timeSpent,
+                timeSpentSeconds = i.timeSpentSeconds,
+                id = i.id
+            });
         }
 
         public bool IsConnectionValid()
@@ -266,19 +323,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                 return new JiraLoginException("Authentication to JIRA was denied. This may be a result of the CAPTCHA feature being triggered.");
 
             return new JiraException(response.StatusCode, response.StatusDescription, new Exception(response.Content));
-        }
-
-        public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
-        {
-            var request = new RestRequest(Method.GET)
-            {
-                Resource = "issue/createmeta"
-            };
-
-            request.AddQueryParameter("projectKeys", string.Join(",", projectKey));
-            request.AddQueryParameter("expand", "projects.issuetypes.fields");
-
-            return ExecuteWithReturn(request, HttpStatusCode.OK, JsonConvert.DeserializeObject<CreateMeta>);
         }
 
         private void LogResponse(IRestResponse resp)

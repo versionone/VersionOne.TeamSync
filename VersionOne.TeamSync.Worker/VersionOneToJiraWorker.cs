@@ -183,7 +183,7 @@ namespace VersionOne.TeamSync.Worker
             }
             var jiraEpics = searchResult.issues;
 
-            assignedEpics.RemoveAll(epic => searchResult.issues.SingleOrDefault(epic.ItMatches) != null);
+            assignedEpics.RemoveAll(epic => jiraEpics.SingleOrDefault(epic.ItMatches) != null);
             Log.DebugFormat("Found {0} epics to check for update", assignedEpics.Count);
 
             if (assignedEpics.Count > 0)
