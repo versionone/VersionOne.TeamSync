@@ -224,7 +224,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("jql", queryString);
             request.AddQueryParameter("fields", string.Join(",", properties));
 
-            return Execute<SearchResult>(request, HttpStatusCode.OK);
+            var content = Execute(request, HttpStatusCode.OK);
+
+            return JsonConvert.DeserializeObject<SearchResult>(content);
         }
 
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
@@ -240,7 +242,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             var content = Execute(request, HttpStatusCode.OK);
             var result = JObject.Parse(content);
-            var issues = result.Property("result").Value;
+            var issues = result.Property("issues").Value;
             var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
             foreach (var issue in issues)
             {
@@ -253,7 +255,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
         {
-            return Execute<SearchResult>(BuildSearchRequest(query, properties), HttpStatusCode.OK);
+            var content = Execute(BuildSearchRequest(query, properties), HttpStatusCode.OK);
+
+            return JsonConvert.DeserializeObject<SearchResult>(content);
         }
 
         public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
@@ -266,7 +270,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             request.AddQueryParameter("projectKeys", string.Join(",", projectKey));
             request.AddQueryParameter("expand", "projects.issuetypes.fields");
 
-            return Execute<CreateMeta>(request, HttpStatusCode.OK);
+            var content = Execute(request, HttpStatusCode.OK);
+
+            return JsonConvert.DeserializeObject<CreateMeta>(content);
         }
 
         public bool IsConnectionValid()

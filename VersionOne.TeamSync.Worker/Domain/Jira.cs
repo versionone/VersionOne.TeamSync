@@ -125,7 +125,13 @@ namespace VersionOne.TeamSync.Worker.Domain
                 {
                     comment = new[]
                     {
-                        new {add = new {body = "This epic status is managed from VersionOne.  Done can only be set by a project admin"}}
+                        new
+                        {
+                            add = new
+                            {
+                                body = "This epic status is managed from VersionOne.  Done can only be set by a project admin"
+                            }
+                        }
                     }
                 },
                 transition = new { id = "11" }
@@ -144,7 +150,13 @@ namespace VersionOne.TeamSync.Worker.Domain
                 {
                     comment = new[]
                     {
-                        new {add = new {body = "Closed from VersionOne"}}
+                        new
+                        {
+                            add = new
+                            {
+                                body = "Closed from VersionOne"
+                            }
+                        }
                     }
                 },
                 transition = new { id = "31" }
@@ -196,8 +208,8 @@ namespace VersionOne.TeamSync.Worker.Domain
             var existing = GetEpicByKey(issueKey);
             if (existing.HasErrors)
             {
-                Log.Error("Error attempting to remove jira issue " + issueKey);
-                Log.Error("  message(s) returned : " + string.Join(" ||| ", existing.ErrorMessages));
+                Log.Error(string.Format("Error attempting to remove jira issue {0}", issueKey));
+                Log.Error(string.Format("  message(s) returned : {0}", string.Join(" ||| ", existing.ErrorMessages)));
                 return;
             }
 

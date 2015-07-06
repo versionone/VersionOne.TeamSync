@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RestSharp.Deserializers;
 
 namespace VersionOne.TeamSync.JiraConnector.Entities
 {
@@ -15,36 +16,45 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
             Projects = new List<MetaProject>();
         }
 
-        public string Name { get; set; }
         public List<MetaProject> Projects { get; set; }
-
     }
 
     public class MetaProject
     {
         public MetaProject()
         {
-            IssueTypes = new List<MetaIssueType>();   
+            IssueTypes = new List<MetaIssueType>();
         }
+
         public string Key { get; set; }
+
         public List<MetaIssueType> IssueTypes { get; set; }
 
-        public MetaIssueType Epic {
-            get
-            {
-                return IssueTypes.SingleOrDefault(x => x.Name == "Epic");
-            }
+        public MetaIssueType Epic
+        {
+            get { return IssueTypes.SingleOrDefault(x => x.Name == "Epic"); }
         }
 
-        public MetaIssueType Story { get { return IssueTypes.SingleOrDefault(x => x.Name == "Story"); } }
+        public MetaIssueType Story
+        {
+            get { return IssueTypes.SingleOrDefault(x => x.Name == "Story"); }
+        }
 
-        public List<MetaProperty> OfficialEpicCustomFields { get { return Epic.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema) && x.Schema.StartsWith("com.pyxis.greenhopper.jira:gh")).ToList(); } }
-        public List<MetaProperty> StoryCustomFields { get { return Story.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema)).ToList(); } }
-            
+        public List<MetaProperty> OfficialEpicCustomFields
+        {
+            get { return Epic.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema) && x.Schema.StartsWith("com.pyxis.greenhopper.jira:gh")).ToList(); }
+        }
+
+        public List<MetaProperty> StoryCustomFields
+        {
+            get { return Story.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema)).ToList(); }
+        }
+
         public MetaProperty EpicName
         {
             get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Name"); }
         }
+
         public MetaProperty EpicLink
         {
             get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Link"); }
@@ -59,9 +69,8 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
     public class MetaIssueType
     {
         public string Name { get; set; }
-        public MetaField Fields { get; set; } 
+        public MetaField Fields { get; set; }
     }
-
 
     [JsonConverter(typeof(MetaData))]
     public class MetaField
@@ -70,7 +79,8 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         {
             Properties = new List<MetaProperty>();
         }
-        public List<MetaProperty> Properties { get; set; } 
+
+        public List<MetaProperty> Properties { get; set; }
     }
 
     public class MetaProperty
@@ -81,7 +91,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
 
         public static MetaProperty EmptyProperty(string key)
         {
-            return new MetaProperty()
+            return new MetaProperty
             {
                 Key = key,
                 Property = "custom_key",
@@ -116,7 +126,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
                     Schema = customNamespace
                 });
             }
-            
+
             return new MetaField()
             {
                 Properties = resultList
@@ -128,5 +138,4 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
             throw new NotImplementedException();
         }
     }
-
 }
