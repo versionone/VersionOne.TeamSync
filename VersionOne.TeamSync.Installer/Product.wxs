@@ -21,7 +21,7 @@
              Platform="$(var.Platform)" />
 
     <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service. -->
-    <!--<Condition Message="You must be an administrator to install VersionOne TeamSync.">Privileged</Condition>-->
+    <Condition Message="You must be an administrator to install VersionOne TeamSync.">Privileged</Condition>
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
