@@ -104,7 +104,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
     public class and_the_status_is_normal : update_jira_story_to_v1
     {
         [TestInitialize]
-        public async void Setup()
+        public void Setup()
         {
             _story.AssetState = "64";
             _status = new Status(){Name = "In Progress"};
