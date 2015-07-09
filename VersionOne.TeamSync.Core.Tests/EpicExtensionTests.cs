@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Should;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -52,6 +53,64 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_include_issue_type()
         {
             ((Dictionary<string, object>)_result.fields["issuetype"])["name"].ShouldEqual("Epic");
+        }
+    }
+
+    [TestClass]
+    public class when_comparing_epic_to_issue
+    {
+        private Epic _epic;
+        private Issue _issue;
+
+        [TestInitialize]
+        public void Context()
+        {
+            _epic = new Epic()
+            {
+                Description = "Why is the ogre all angry?",
+                Name = "Odysseus",
+                Reference = "Prince Telemachus"
+            };
+
+            _issue = new Issue()
+            {
+                Key = "Prince Telemachus",
+                Fields = new Fields()
+                {
+                    Description = "Why is the ogre all angry?",
+                    Summary = "Odysseus"
+                }
+            };
+        }
+
+        [TestMethod]
+        public void sanity_check()
+        {
+            _epic.ItMatches(_issue).ShouldBeTrue("if this breaks, the data might be messed up");
+        }
+
+        [TestMethod]
+        public void description_is_null_or_empty()
+        {
+            _issue.Fields.Description = null;
+            _epic.ItMatches(_issue).ShouldBeFalse();
+
+            _issue.Fields.Description = string.Empty;
+            _epic.ItMatches(_issue).ShouldBeFalse();
+        }
+
+        [TestMethod]
+        public void summary_is_different()
+        {
+            _issue.Fields.Summary = "Ithica";
+            _epic.ItMatches(_issue).ShouldBeFalse();
+         }
+
+        [TestMethod]
+        public void reference_is_null_or_empty()
+        {
+            _issue.Key = "wat?!";
+            _epic.ItMatches(_issue).ShouldBeFalse();
         }
     }
 }
