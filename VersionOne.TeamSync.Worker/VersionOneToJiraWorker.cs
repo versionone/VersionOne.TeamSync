@@ -264,7 +264,7 @@ namespace VersionOne.TeamSync.Worker
             Log.Trace("Story sync stopped...");
         }
 
-        public void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
+        public async void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             Log.Trace("Updating stories started");
             var processedStories = 0;
@@ -274,11 +274,13 @@ namespace VersionOne.TeamSync.Worker
 
             Log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
+	        var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+
             existingStories.ForEach(existingJStory =>
             {
                 var story = allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number));
 
-                UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story).Wait();
+                UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics).Wait();
                 processedStories++;
             });
 
@@ -286,7 +288,7 @@ namespace VersionOne.TeamSync.Worker
             Log.Trace("Updating stories stopped");
         }
 
-        public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story)
+        public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
         {
             Log.TraceFormat("Attempting to update V1 story {0}", story.Number);
 
@@ -297,12 +299,16 @@ namespace VersionOne.TeamSync.Worker
                 Log.DebugFormat("Reopened story V1 {0}", story.Number);
             }
 
+			var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+			var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
+            if (currentAssignedEpic != null) 
+                issue.Fields.EpicLink = currentAssignedEpic.Number;
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
-
             update.ID = story.ID;
 
             if (!issue.ItMatchesStory(story))
             {
+                update.Super = v1EpicId;
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 Log.DebugFormat("Updated story V1 {0}", story.Number);
             }
@@ -406,7 +412,7 @@ namespace VersionOne.TeamSync.Worker
             Log.Trace("Defect sync stopped...");
         }
 
-        public void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraDefects, List<Defect> allV1Defects)
+        public async void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraDefects, List<Defect> allV1Defects)
         {
             Log.Trace("Updating defects started");
             var processedDefects = 0;
@@ -415,12 +421,13 @@ namespace VersionOne.TeamSync.Worker
                     .ToList();
 
             Log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
+			var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             existingDefects.ForEach(existingJDefect =>
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect).Wait();
+				UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
                 processedDefects++;
             });
 
@@ -428,7 +435,7 @@ namespace VersionOne.TeamSync.Worker
             Log.Trace("Updating defects stopped");
         }
 
-        public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect)
+        public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
             //need to reopen a Defect first before we can update it
             if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && defect.AssetState == "128")
@@ -437,11 +444,18 @@ namespace VersionOne.TeamSync.Worker
                 Log.TraceFormat("Reopened V1 defect {0}", defect.Number);
             }
 
+			var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+			var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
+
+            if (currentAssignedEpic != null)
+                issue.Fields.EpicLink = currentAssignedEpic.Number;
+
             var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
             update.ID = defect.ID;
 
             if (!issue.ItMatchesDefect(defect))
             {
+                update.Super = v1EpicId;
                 Log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
             }

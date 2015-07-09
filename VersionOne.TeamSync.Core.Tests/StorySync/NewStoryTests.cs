@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -82,7 +83,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     Status = _status,
                     Summary = "summary",
                 }
-            }, _story);
+            }, _story, new List<Epic>());
         }
 
         [TestMethod]

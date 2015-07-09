@@ -19,6 +19,13 @@ namespace VersionOne.TeamSync.Worker.Extensions
 			return doc;
 		}
 
+		public static XDocument AddNullableSetRelationNode(this XDocument doc, string attributeName, string value)
+		{
+			var node = new V1NullableSetRelationNode(attributeName, value);
+			node.AddNode(doc);
+			return doc;
+		}
+
         public static XDocument AddNullableSetNode(this XDocument doc, string attributeName, string value)
         {
             var node = new V1NullableSetNode(attributeName, value);

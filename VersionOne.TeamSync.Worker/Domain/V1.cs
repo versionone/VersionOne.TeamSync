@@ -222,14 +222,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Story.FromQuery);
         }
 
         public async Task<List<Defect>> GetDefectsWithJiraReference(string projectId)
         {
             return await _connector.Query("Defect",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Defect.FromQuery);
         }
 

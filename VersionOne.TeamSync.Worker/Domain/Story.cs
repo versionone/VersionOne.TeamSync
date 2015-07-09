@@ -28,6 +28,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Reference { get; set; }
         public string ProjectName { get; set; }
         public string Super { get; set; }
+        public string SuperNumber { get; set; }
         public bool IsInactive { get; private set; }
 
         public XDocument CreatePayload()
@@ -51,6 +52,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableCDataSetNode("Description", Description)
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
+				.AddNullableSetRelationNode("Super", Super)
                 .AddSetNode("Reference", Reference);
             return doc;
         }
@@ -82,7 +84,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 ToDo = attributes.GetValueOrDefault("ToDo"),
                 Name = attributes.GetValueOrDefault("Name"),
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
-                AssetState = attributes.GetValueOrDefault("AssetState")
+                AssetState = attributes.GetValueOrDefault("AssetState"),
+                SuperNumber = attributes.GetValueOrDefault("Super.Number"),
             };
         }
 

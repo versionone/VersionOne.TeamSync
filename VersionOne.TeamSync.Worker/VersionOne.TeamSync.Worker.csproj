@@ -72,6 +72,7 @@
     <Compile Include="Domain\V1.cs" />
     <Compile Include="Domain\V1JiraInfo.cs" />
     <Compile Include="Domain\Xml\IV1ApiXmlNode.cs" />
+    <Compile Include="Domain\Xml\V1NullableSetRelationNode.cs" />
     <Compile Include="Domain\Xml\V1NullableCDataSetNode.cs" />
     <Compile Include="Domain\Xml\V1NulableSetNode.cs" />
     <Compile Include="Domain\Xml\V1SetNode.cs" />

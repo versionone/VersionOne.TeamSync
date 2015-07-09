@@ -85,7 +85,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 Reference = _reference,
                 Estimate = "5",
                 ToDo = "10",
-                Super = "Epic:1000"
+                SuperNumber = "E-1000"
             };
 
             _jiraStory = new Issue()
@@ -98,7 +98,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 Fields = new Fields()
                 {
                     Summary = "Name",
-                    EpicLink = "Epic:1000",
+                    EpicLink = "E-1000",
                     TimeTracking = new TimeTracking()
                     {
                         RemainingEstimateSeconds = 36000,
@@ -150,9 +150,9 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public void different_super_means_update()
+        public void different_supernumber_means_update()
         {
-            _story.Super = "something else";
+            _story.SuperNumber = "something else";
             _jiraStory.ItMatchesStory(_story).ShouldBeFalse();
         }
 
@@ -182,7 +182,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 Reference = _reference,
                 Estimate = "5",
                 ToDo = "10",
-                Super = "Epic:1000"
+                SuperNumber = "E-1000"
             };
 
             _jiraDefect = new Issue()
@@ -195,7 +195,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 Fields = new Fields()
                 {
                     Summary = "Name",
-                    EpicLink = "Epic:1000",
+                    EpicLink = "E-1000",
                     TimeTracking = new TimeTracking()
                     {
                         RemainingEstimateSeconds = 36000,
@@ -250,7 +250,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void different_super_means_update()
         {
-            _defect.Super = "something else";
+            _defect.SuperNumber = "something else";
             _jiraDefect.ItMatchesDefect(_defect).ShouldBeFalse();
         }
 

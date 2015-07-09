@@ -23,7 +23,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             var jiraInfo = MakeInfo();
 
-            _updatedStory = new Story() { Reference = "J-100", Name = "Johnny", Number = "S-9000" };
+            _updatedStory = new Story() { Reference = "J-100", Name = "Johnny", Number = "S-9000", Estimate = "", ToDo = "", SuperNumber = "", Description = ""};
             _johnnyIsAlive = "Johnny 5 is alive";
             var updatedIssue = new Issue()
             {
@@ -38,6 +38,9 @@ namespace VersionOne.TeamSync.Core.Tests
                     Labels = new List<string> { "S-9000" }
                 }
             };
+
+            _mockV1.Setup(x => x.GetEpicsWithReference(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new List<Epic>());
 
             _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>())).Callback(
                 (IV1Asset asset, XDocument xDocument) =>
@@ -164,7 +167,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             base.BuildContext();
             _existingIssueKey = "OPC-10";
-            _existingStory = new Story { Reference = _existingIssueKey, Name = "Johnny", Number = _storyNumber, Description = "descript" };
+            _existingStory = new Story { Reference = _existingIssueKey, Name = "Johnny", Number = _storyNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = ""};
             _existingIssue = new Issue
             {
                 Key = _existingIssueKey,
