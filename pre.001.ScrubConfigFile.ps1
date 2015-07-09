@@ -7,8 +7,8 @@ function Clean-ConfigFile {
 
     ## log4net
     $xml.configuration.log4net.appender | % { 
-        $_.filter.levelMin.value = "INFO"
-        $_.filter.levelMax.value = "INFO"
+        $_.filter.level.value = "ALL"
+        ##$_.filter.levelMax.value = "INFO"
      }
 
     ## serviceSettings
