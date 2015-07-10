@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 
@@ -44,10 +45,11 @@ namespace VersionOne.TeamSync.Worker.Extensions
 
         public static Actual ToV1Actual(this Worklog worklog, string v1ScopeId, string workItemId) // TODO: memberId?
         {
+            const decimal secondsInHour = 3600;
             return new Actual
             {
                 Date = worklog.created,
-                Value = (worklog.timeSpentSeconds / 3600).ToString(),
+                Value = (worklog.timeSpentSeconds / secondsInHour).ToString(CultureInfo.InvariantCulture),
                 Reference = worklog.id.ToString(),
                 ScopeId = v1ScopeId,
                 WorkItemId = workItemId
