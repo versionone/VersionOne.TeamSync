@@ -80,7 +80,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableCDataSetNode("Description", Description)
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
-                .AddNullableSetRelationNode("Super",Super)
+                .AddNullableSetRelationNode("Super", Super)
                 .AddSetNode("Reference", Reference);
             return doc;
         }

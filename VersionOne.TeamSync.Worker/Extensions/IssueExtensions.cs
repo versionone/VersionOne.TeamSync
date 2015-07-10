@@ -56,12 +56,12 @@ namespace VersionOne.TeamSync.Worker.Extensions
 
         public static bool ItMatchesStory(this Issue issue, Story story)
         {
-	        return string.Equals(story.Name, issue.Fields.Summary) &&
-	               string.Equals(story.Description, issue.RenderedFields.Description.ToEmptyIfNull()) &&
-	               string.Equals(story.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
-	               string.Equals(story.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
-	               string.Equals(story.Reference, issue.Key) &&
-	               string.Equals(story.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull());
+            return string.Equals(story.Name, issue.Fields.Summary) &&
+                   string.Equals(story.Description, issue.RenderedFields.Description.ToEmptyIfNull()) &&
+                   string.Equals(story.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
+                   string.Equals(story.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
+                   string.Equals(story.Reference, issue.Key) &&
+                   string.Equals(story.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull());
         }
 
         public static bool ItMatchesDefect(this Issue issue, Defect defect)

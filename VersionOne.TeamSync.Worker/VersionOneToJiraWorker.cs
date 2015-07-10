@@ -275,7 +275,7 @@ namespace VersionOne.TeamSync.Worker
 
             Log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
-	        var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+            var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             existingStories.ForEach(existingJStory =>
             {
@@ -300,9 +300,9 @@ namespace VersionOne.TeamSync.Worker
                 Log.DebugFormat("Reopened story V1 {0}", story.Number);
             }
 
-			var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
-			var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
-            if (currentAssignedEpic != null) 
+            var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+            var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
+            if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
             update.ID = story.ID;
@@ -423,13 +423,13 @@ namespace VersionOne.TeamSync.Worker
                     .ToList();
 
             Log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
-			var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+            var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             existingDefects.ForEach(existingJDefect =>
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-				UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
+                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
                 processedDefects++;
             });
 
@@ -446,8 +446,8 @@ namespace VersionOne.TeamSync.Worker
                 Log.TraceFormat("Reopened V1 defect {0}", defect.Number);
             }
 
-			var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
-			var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
+            var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+            var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
 
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
@@ -552,9 +552,9 @@ namespace VersionOne.TeamSync.Worker
         private async void CreateActualsFromWorklogs<T>(V1JiraInfo jiraInfo, List<Issue> allJiraIssues, List<T> allV1WorkItems) where T : IPrimaryWorkItem
         {
             Log.Trace("Creating actuals started");
+            var processedActuals = 0;
             foreach (var issueKey in allJiraIssues.Select(issue => issue.Key))
             {
-                //TODO: add more logging
                 var workItem = allV1WorkItems.FirstOrDefault(s => s.Reference.Equals(issueKey));
                 if (workItem != null && !workItem.Equals(default(T)))
                 {
@@ -563,13 +563,23 @@ namespace VersionOne.TeamSync.Worker
                     var worklogs = jiraInfo.JiraInstance.GetIssueWorkLogs(issueKey);
                     var actuals = await _v1.GetWorkItemActuals(jiraInfo.V1ProjectId, workItemId);
 
-                    var newWorklogs = worklogs.Where(w => !actuals.Any(a => a.Reference.Equals(w.id.ToString())));
-                    foreach (var worklog in newWorklogs)
+                    var newWorklogs = worklogs.Where(w => !actuals.Any(a => a.Reference.Equals(w.id.ToString()))).ToList();
+                    if (newWorklogs.Any())
                     {
-                        var actual = worklog.ToV1Actual(jiraInfo.V1ProjectId, workItemId);
-                        var newActual = await _v1.CreateActual(actual);
+                        Log.DebugFormat("Found {0} worklogs to check for create", newWorklogs.Count());
+                        foreach (var worklog in newWorklogs)
+                        {
+                            Log.TraceFormat("Attempting to create actual from Jira worklog id {0}", worklog.id);
+                            var actual = worklog.ToV1Actual(jiraInfo.V1ProjectId, workItemId);
+                            var newActual = await _v1.CreateActual(actual);
+                            Log.DebugFormat("Created actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
 
-                        jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, newActual.ID, workItem.ID);
+                            jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, newActual.ID, workItem.ID);
+                            Log.TraceFormat("Added comment on Jira worklog id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
+
+                            processedActuals++;
+                        }
+                        Log.InfoFormat("Created {0} V1 actuals", processedActuals);
                     }
                 }
             }
