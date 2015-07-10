@@ -19,6 +19,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
         void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
+        void AddCreatedAsVersionOneActualComment(string issueKey, string v1ActualOid, string v1WorkitemOid);
 
         void UpdateIssue(Issue issue, string issueKey);
         void SetIssueToToDo(string issueKey);
@@ -42,6 +43,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     {
         private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
         private const string TrackedInV1 = "Tracking Issue {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
+        private const string CreatedAsVersionOneActualComment = "Created as VersionOne Actual \"{0}\" in Workitem \"{1}\"";
         private const int ConnectionAttempts = 3;
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(Jira));
@@ -57,7 +59,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 if (_projectMeta == null)
                 {
-                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string>() { _jiraProject });
+                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string> { _jiraProject });
                     _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
                 }
 
@@ -107,6 +109,12 @@ namespace VersionOne.TeamSync.Worker.Domain
         public void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
         {
             var body = string.Format(TrackedInV1, v1Number, v1ProjectName, v1Instance);
+            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
+        }
+
+        public void AddCreatedAsVersionOneActualComment(string issueKey, string v1ActualOid, string v1WorkitemOid)
+        {
+            var body = string.Format(CreatedAsVersionOneActualComment, v1ActualOid, v1WorkitemOid);
             _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
         }
 
@@ -312,7 +320,10 @@ namespace VersionOne.TeamSync.Worker.Domain
                 {
                     comment = new[]
                     {
-                        new { add = new { body} }
+                        new
+                        {
+                            add = new { body }
+                        }
                     }
                 }
             };

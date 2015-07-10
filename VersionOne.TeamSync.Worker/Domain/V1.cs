@@ -40,6 +40,9 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task CloseDefect(string defectId);
         Task ReOpenDefect(string defectId);
         void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey);
+
+        Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
+        Task<Actual> CreateActual(Actual actual);
     }
 
     public class V1 : IV1
@@ -235,7 +238,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task RefreshBasicInfo(IPrimaryWorkItem workItem)
         {
-            await _connector.QueryOne(workItem.AssetType, workItem.ID, new[] { "ID.Number", "Scope.Name" }, (xElement) =>
+            await _connector.QueryOne(workItem.AssetType, workItem.ID, new[] { "ID.Number", "Scope.Name" }, xElement =>
             {
                 var attributes = xElement.Elements("Attribute")
                     .ToDictionary(item => item.Attribute("name").Value, item => item.Value);
@@ -275,6 +278,25 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task ReOpenDefect(string defectId)
         {
             await _connector.Operation("Defect", defectId, "Reactivate");
+        }
+
+        public async Task<Actual> CreateActual(Actual actual)
+        {
+            var xDoc = await _connector.Post(actual, actual.CreatePayload());
+            actual.FromCreate(xDoc.Root);
+            return actual;
+        }
+
+        public async Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId)
+        {
+            return await _connector.Query("Actual",
+                new[] { "Date", "Value", "Reference", "Scope.Name", "Workitem.Name", "Workitem.Number" },
+                new[]
+                {
+                    "Reference!=\"\"",
+                    string.Format("Workitem=\"{0}\"", workItemId),
+                    string.Format(WhereProject, projectId)
+                }, Actual.FromQuery);
         }
     }
 

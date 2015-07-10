@@ -7,5 +7,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         string ScopeId { get; set; }
         string ScopeName { get; set; }
         string Number { get; set; }
+        string Reference { get; set; }
     }
 }

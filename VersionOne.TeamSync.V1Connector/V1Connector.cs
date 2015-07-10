@@ -81,7 +81,6 @@ namespace VersionOne.TeamSync.V1Connector
 
                 return XDocument.Parse(responseContent);
             }
-
         }
 
         private HttpClientHandler _clientHandler

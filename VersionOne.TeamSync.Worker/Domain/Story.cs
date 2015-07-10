@@ -7,15 +7,15 @@ using VersionOne.TeamSync.Worker.Extensions;
 namespace VersionOne.TeamSync.Worker.Domain
 {
     public class Story : IPrimaryWorkItem
-	{
+    {
         public string AssetType
-		{
-			get { return "Story"; }
-		}
+        {
+            get { return "Story"; }
+        }
 
-		public string ID { get; set; }
-		public string Error { get; private set; }
-		public bool HasErrors { get; private set; }
+        public string ID { get; set; }
+        public string Error { get; private set; }
+        public bool HasErrors { get; private set; }
         public string Name { get; set; }
         public string Number { get; set; }
         public string AssetState { get; set; }
@@ -33,7 +33,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public XDocument CreatePayload()
         {
-			var doc = XDocument.Parse("<Asset></Asset>");
+            var doc = XDocument.Parse("<Asset></Asset>");
             doc.AddSetNode("Name", Name)
                 .AddSetRelationNode("Scope", ScopeId)
                 .AddSetNode("Description", Description)
@@ -41,7 +41,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
                 .AddSetRelationNode("Super", Super);
-			return doc;
+            return doc;
         }
 
         public XDocument CreateUpdatePayload()
@@ -88,7 +88,5 @@ namespace VersionOne.TeamSync.Worker.Domain
                 SuperNumber = attributes.GetValueOrDefault("Super.Number"),
             };
         }
-
-
-	}
+    }
 }

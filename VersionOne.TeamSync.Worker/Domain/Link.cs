@@ -6,7 +6,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 {
     public class Link : IV1Asset
     {
-        public string AssetType { get { return "Link"; }}
+        public string AssetType { get { return "Link"; } }
         public string ID { get; private set; }
         public string Error { get; private set; }
         public bool HasErrors { get; private set; }
@@ -25,6 +25,5 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetRelationNode("Asset", Asset);
             return doc;
         }
-
     }
 }

@@ -261,6 +261,7 @@ namespace VersionOne.TeamSync.Worker
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
+            CreateActualsFromWorklogs(jiraInfo, allJiraStories, allV1Stories);
             Log.Trace("Story sync stopped...");
         }
 
@@ -409,6 +410,7 @@ namespace VersionOne.TeamSync.Worker
             UpdateDefects(jiraInfo, allJiraDefects, allV1Defects);
             CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
             DeleteV1Defects(jiraInfo, allJiraDefects, allV1Defects);
+            CreateActualsFromWorklogs(jiraInfo, allJiraDefects, allV1Defects);
             Log.Trace("Defect sync stopped...");
         }
 
@@ -546,5 +548,32 @@ namespace VersionOne.TeamSync.Worker
             Log.Trace("Deleting defects stopped");
         }
         #endregion DEFECTS
+
+        private async void CreateActualsFromWorklogs<T>(V1JiraInfo jiraInfo, List<Issue> allJiraIssues, List<T> allV1WorkItems) where T : IPrimaryWorkItem
+        {
+            Log.Trace("Creating actuals started");
+            foreach (var issueKey in allJiraIssues.Select(issue => issue.Key))
+            {
+                //TODO: add more logging
+                var workItem = allV1WorkItems.FirstOrDefault(s => s.Reference.Equals(issueKey));
+                if (workItem != null && !workItem.Equals(default(T)))
+                {
+                    var workItemId = string.Format("{0}:{1}", workItem.GetType().Name, workItem.ID);
+
+                    var worklogs = jiraInfo.JiraInstance.GetIssueWorkLogs(issueKey);
+                    var actuals = await _v1.GetWorkItemActuals(jiraInfo.V1ProjectId, workItemId);
+
+                    var newWorklogs = worklogs.Where(w => !actuals.Any(a => a.Reference.Equals(w.id.ToString())));
+                    foreach (var worklog in newWorklogs)
+                    {
+                        var actual = worklog.ToV1Actual(jiraInfo.V1ProjectId, workItemId);
+                        var newActual = await _v1.CreateActual(actual);
+
+                        jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, newActual.ID, workItem.ID);
+                    }
+                }
+            }
+            Log.Trace("Creating actuals stopped");
+        }
     }
 }
