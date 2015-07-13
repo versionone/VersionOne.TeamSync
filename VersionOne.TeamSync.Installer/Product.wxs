@@ -113,8 +113,8 @@
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
     <!-- Overrides the default WiX UI graphics. -->
-    <WixVariable Id="WixUIDialogBmp" Value="dialogBMP.png" />
-    <WixVariable Id="WixUIBannerBmp" Value="uibanner-transparent.png" />
+    <WixVariable Id="WixUIDialogBmp" Value="dialogBMP.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="uibanner-transparent.bmp" />
 
     <!-- Icon used in Control Panel's Add/Remove Programs list. -->
     <Icon Id="icon.ico" SourceFile="$(var.SourceDir)\v1-icon-48x48.ico" />
