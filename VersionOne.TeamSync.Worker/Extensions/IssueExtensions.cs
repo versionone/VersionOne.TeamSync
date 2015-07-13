@@ -43,7 +43,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
             };
         }
 
-        public static Actual ToV1Actual(this Worklog worklog, string v1ScopeId, string workItemId) // TODO: memberId?
+        public static Actual ToV1Actual(this Worklog worklog, string memberId, string v1ScopeId, string workItemId)
         {
             const decimal secondsInHour = 3600;
             return new Actual
@@ -51,6 +51,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 Date = worklog.created,
                 Value = (worklog.timeSpentSeconds / secondsInHour).ToString(CultureInfo.InvariantCulture),
                 Reference = worklog.id.ToString(),
+                MemberId = memberId,
                 ScopeId = v1ScopeId,
                 WorkItemId = workItemId
             };

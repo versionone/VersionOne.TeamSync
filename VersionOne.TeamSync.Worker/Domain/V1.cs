@@ -12,6 +12,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     public interface IV1
     {
         string InstanceUrl { get; }
+        string MemberId { get; }
         bool ValidateConnection();
         bool ValidateProjectExists(string projectId);
         bool ValidateEpicCategoryExists(string epicCategoryId);
@@ -74,6 +75,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         }
 
         public string InstanceUrl { get; private set; }
+
+        public string MemberId { get; private set; }
 
         public async Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category)
         {
@@ -198,8 +201,10 @@ namespace VersionOne.TeamSync.Worker.Domain
                 try
                 {
                     if (_connector.IsConnectionValid())
+                    {
+                        MemberId = _connector.MemberId;
                         return true;
-
+                    }
                     System.Threading.Thread.Sleep(5000);
                 }
                 catch (Exception e)

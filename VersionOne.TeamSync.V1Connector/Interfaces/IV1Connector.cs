@@ -8,6 +8,7 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
     public interface IV1Connector
     {
         string InstanceUrl { get; }
+        string MemberId { get; }
 
         Task<XDocument> Operation(IV1Asset asset, string operation); //this is higher level so should this live here?
         Task<XDocument> Post(IV1Asset asset, XDocument postPayload);

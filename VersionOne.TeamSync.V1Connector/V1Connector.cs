@@ -50,6 +50,8 @@ namespace VersionOne.TeamSync.V1Connector
 
         public string InstanceUrl { get; private set; }
 
+        public string MemberId { get; private set; }
+
         private const string _operation = "{0}/{1}?op={2}";
         public async Task<XDocument> Operation(IV1Asset asset, string operation) //this is higher level so should this live here?
         {
@@ -184,21 +186,29 @@ namespace VersionOne.TeamSync.V1Connector
         {
             using (var client = HttpInstance)
             {
-                HttpResponseMessage response;
                 try
                 {
-                    var endpoint = GetResourceUrl("Member") + "?sel=Member.IsSelf";
-                    response = client.GetAsync(endpoint).Result;
+                    var endpoint = GetResourceUrl("Member") + "?sel=IsSelf,ID";
+                    var response = client.GetAsync(endpoint).Result;
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseContent = response.Content.ReadAsStringAsync().Result;
+                        var doc = XElement.Parse(responseContent);
+                        var member = doc.Descendants("Asset").FirstOrDefault();
+                        if (member != null)
+                            MemberId = member.Attribute("id").Value;
+                    }
+
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                        throw new ConfigurationErrorsException("Could not connecto to V1. Bad credentials.");
+
+                    return response.IsSuccessStatusCode;
                 }
                 catch (Exception)
                 {
                     throw new ConfigurationErrorsException("Could not connecto to V1. Bad url.");
                 }
-
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                    throw new ConfigurationErrorsException("Could not connecto to V1. Bad credentials.");
-
-                return response.IsSuccessStatusCode;
             }
         }
 
@@ -419,6 +429,5 @@ namespace VersionOne.TeamSync.V1Connector
                 return this;
             }
         }
-
     }
 }

@@ -26,7 +26,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public DateTime Date { get; set; }
         public string Value { get; set; }
         public string Reference { get; set; }
-        //public string MemberId { get; set; }
+        public string MemberId { get; set; }
         public string ScopeId { get; set; }
         public string WorkItemId { get; set; }
 
@@ -41,7 +41,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("Date", Date.ToString(CultureInfo.InvariantCulture))
                 .AddSetNode("Value", Value)
                 .AddSetNode("Reference", Reference)
-                .AddSetRelationNode("Member", "Member:20") // TODO: use MemberId property
+                .AddSetRelationNode("Member", MemberId)
                 .AddSetRelationNode("Scope", ScopeId)
                 .AddSetRelationNode("Workitem", WorkItemId);
         }

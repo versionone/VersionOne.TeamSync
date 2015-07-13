@@ -570,7 +570,7 @@ namespace VersionOne.TeamSync.Worker
                         foreach (var worklog in newWorklogs)
                         {
                             Log.TraceFormat("Attempting to create actual from Jira worklog id {0}", worklog.id);
-                            var actual = worklog.ToV1Actual(jiraInfo.V1ProjectId, workItemId);
+                            var actual = worklog.ToV1Actual(_v1.MemberId, jiraInfo.V1ProjectId, workItemId);
                             var newActual = await _v1.CreateActual(actual);
                             Log.DebugFormat("Created actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
 
