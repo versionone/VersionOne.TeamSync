@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace VersionOne.TeamSync.Worker.Extensions
 {
@@ -14,6 +15,11 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static string ToEmptyIfNull(this string value)
         {
             return value ?? "";
+        }
+
+        public static bool Is(this string value, string[] items)
+        {
+            return items.Contains(value);
         }
     }
 }

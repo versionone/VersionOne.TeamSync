@@ -21,6 +21,7 @@ namespace VersionOne.TeamSync.Worker
         private readonly IEnumerable<V1JiraInfo> _jiraInstances;
         private readonly IV1 _v1;
         private static DateTime _syncTime;
+        private readonly string[] _doneWords = {"Done", "Closed"};
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
@@ -294,7 +295,7 @@ namespace VersionOne.TeamSync.Worker
             Log.TraceFormat("Attempting to update V1 story {0}", story.Number);
 
             //need to reopen a story first before we can update it
-            if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && story.AssetState == "128")
+            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(_doneWords) && story.AssetState == "128")
             {
                 await _v1.ReOpenStory(story.ID);
                 Log.DebugFormat("Reopened story V1 {0}", story.Number);
@@ -315,7 +316,7 @@ namespace VersionOne.TeamSync.Worker
             }
 
             //TODO : late bind? maybe??
-            if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && story.AssetState != "128")
+            if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(_doneWords) && story.AssetState != "128")
             {
                 await _v1.CloseStory(story.ID);
                 Log.DebugFormat("Closed V1 story {0}", story.Number);
@@ -440,7 +441,7 @@ namespace VersionOne.TeamSync.Worker
         public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
             //need to reopen a Defect first before we can update it
-            if (issue.Fields.Status != null && issue.Fields.Status.Name != "Done" && defect.AssetState == "128")
+            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(_doneWords) && defect.AssetState == "128")
             {
                 await _v1.ReOpenDefect(defect.ID);
                 Log.TraceFormat("Reopened V1 defect {0}", defect.Number);
@@ -464,8 +465,7 @@ namespace VersionOne.TeamSync.Worker
 
             Log.DebugFormat("Updated V1 defect {0}", defect.Number);
 
-            //TODO : late bind? maybe??
-            if (issue.Fields.Status != null && issue.Fields.Status.Name == "Done" && defect.AssetState != "128")
+            if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(_doneWords) && defect.AssetState != "128")
             {
                 await _v1.CloseDefect(defect.ID);
                 Log.TraceFormat("Closed V1 defect {0}", defect.Number);
