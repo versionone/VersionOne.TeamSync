@@ -88,14 +88,15 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Property { get; set; }
         public string Schema { get; set; }
         public string Key { get; set; }
-
+        public bool IsEmptyProperty { get; private set; }
         public static MetaProperty EmptyProperty(string key)
         {
             return new MetaProperty
             {
                 Key = key,
                 Property = "custom_key",
-                Schema = "not_found"
+                Schema = "not_found",
+                IsEmptyProperty = true
             };
         }
     }

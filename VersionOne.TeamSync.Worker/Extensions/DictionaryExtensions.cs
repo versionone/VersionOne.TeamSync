@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using log4net;
+using Microsoft.SqlServer.Server;
+using VersionOne.TeamSync.JiraConnector.Entities;
 
 namespace VersionOne.TeamSync.Worker.Extensions
 {
@@ -20,5 +24,18 @@ namespace VersionOne.TeamSync.Worker.Extensions
 
             return converter.ConvertHtml(htmlValue);
         }
+
+        private static string _logMessage = "Unable to find {0} on the screen. Add this to the default display to enable this property";
+	    public static void EvalLateBinding<T>(this IDictionary<string, T> properties, MetaProperty meta, Action<string> propertyToSetWithValue, ILog log)
+	    {
+	        if (meta.IsEmptyProperty)
+	        {
+                log.Warn(string.Format(_logMessage, meta.Key));
+	            return; 
+	        }
+
+	        if (properties.ContainsKey(meta.Key) && properties[meta.Key] != null)
+	            propertyToSetWithValue(properties[meta.Key].ToString());
+	    }
 	}
 }

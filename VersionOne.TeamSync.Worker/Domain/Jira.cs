@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using log4net;
@@ -37,6 +38,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetDefectsInProject(string jiraProject);
 
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
+        void CleanUpAfterRun(ILog log);
     }
 
     public class Jira : IJira
@@ -57,14 +59,18 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             get
             {
-                if (_projectMeta == null)
-                {
-                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string> { _jiraProject });
-                    _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
-                }
+                if (_projectMeta != null) return _projectMeta;
+                var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string> { _jiraProject });
+                _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
 
                 return _projectMeta;
             }
+        }
+
+        public void CleanUpAfterRun(ILog log)
+        {
+            log.Info("Running cleanup...");
+            _projectMeta = null;
         }
 
         public Jira(IJiraConnector connector, string jiraProject)
@@ -234,10 +240,8 @@ namespace VersionOne.TeamSync.Worker.Domain
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
             (fields, properties) =>
             {
-                if (properties.ContainsKey(ProjectMeta.StoryPoints.Key) && properties[ProjectMeta.StoryPoints.Key] != null)
-                    fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
-                if (properties.ContainsKey(ProjectMeta.EpicLink.Key) && properties[ProjectMeta.EpicLink.Key] != null)
-                    fields.EpicLink = properties[ProjectMeta.EpicLink.Key].ToString();
+                properties.EvalLateBinding(ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
+                properties.EvalLateBinding(ProjectMeta.EpicLink, value => fields.EpicLink = value, Log);
             });
         }
 
@@ -252,8 +256,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key },
             (fields, properties) =>
             {
-                if (properties.ContainsKey(ProjectMeta.StoryPoints.Key))
-                    fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
+                properties.EvalLateBinding(ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
             });
         }
 
@@ -267,11 +270,8 @@ namespace VersionOne.TeamSync.Worker.Domain
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
             (fields, properties) =>
             {
-                //exception!
-                if (properties.ContainsKey(ProjectMeta.StoryPoints.Key) && properties[ProjectMeta.StoryPoints.Key] != null)
-                    fields.StoryPoints = properties[ProjectMeta.StoryPoints.Key].ToString();
-                if (properties.ContainsKey(ProjectMeta.EpicLink.Key) && properties[ProjectMeta.EpicLink.Key] != null)
-                    fields.EpicLink = properties[ProjectMeta.EpicLink.Key].ToString();
+                properties.EvalLateBinding(ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
+                properties.EvalLateBinding(ProjectMeta.EpicLink, value => fields.EpicLink = value, Log);
             });
         }
 

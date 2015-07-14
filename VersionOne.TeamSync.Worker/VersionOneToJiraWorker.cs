@@ -64,6 +64,7 @@ namespace VersionOne.TeamSync.Worker
                 await DoEpicWork(jiraInfo);
                 await DoStoryWork(jiraInfo); //this will be broken out to its own thing :-)
                 await DoDefectWork(jiraInfo);
+                jiraInfo.JiraInstance.CleanUpAfterRun(Log);
             });
             Log.Info("Ending sync...");
             Log.DebugFormat("Total sync time: {0}", DateTime.Now - _syncTime);
