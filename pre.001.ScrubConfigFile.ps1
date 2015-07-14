@@ -7,8 +7,13 @@ function Clean-ConfigFile {
 
     ## log4net
     $xml.configuration.log4net.appender | % { 
-        $_.filter.level.value = "ALL"
-        ##$_.filter.levelMax.value = "INFO"
+        if ($_.name -eq "RemotingAppender") {
+            $_.filter.level.value = "ALL"
+        } else{
+            if ($_.name -eq "RollingLogFileAppender") {
+                $_.filter.level.value = "INFO"
+            }
+        } 
      }
 
     ## serviceSettings
