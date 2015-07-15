@@ -134,6 +134,11 @@ namespace VersionOne.TeamSync.SystemTray
         {
             StopWatchingServiceStatus();
         }
+
+        private void configureServiceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+        }
     }
 
     public class CustomRenderer : ToolStripSystemRenderer

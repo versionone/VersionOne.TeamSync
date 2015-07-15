@@ -93,6 +93,7 @@
             this.configureServiceToolStripMenuItem.Name = "configureServiceToolStripMenuItem";
             this.configureServiceToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.configureServiceToolStripMenuItem.Text = "Configure...";
+            this.configureServiceToolStripMenuItem.Click += new System.EventHandler(this.configureServiceToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
