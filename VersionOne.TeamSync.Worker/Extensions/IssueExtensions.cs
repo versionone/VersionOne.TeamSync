@@ -48,7 +48,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
             const decimal secondsInHour = 3600;
             return new Actual
             {
-                Date = worklog.created,
+                Date = worklog.started,
                 Value = (worklog.timeSpentSeconds / secondsInHour).ToString(CultureInfo.InvariantCulture),
                 Reference = worklog.id.ToString(),
                 MemberId = memberId,

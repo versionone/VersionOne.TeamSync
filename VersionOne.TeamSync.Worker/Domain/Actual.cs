@@ -19,7 +19,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             get { return "Actual"; }
         }
 
-        public string ID { get; private set; }
+        public string ID { get; set; }
         public string Error { get; private set; }
         public bool HasErrors { get; private set; }
 
