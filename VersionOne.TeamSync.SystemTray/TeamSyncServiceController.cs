@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.ServiceProcess;
+using Microsoft.Win32;
 
 namespace VersionOne.TeamSync.SystemTray
 {
@@ -24,6 +25,18 @@ namespace VersionOne.TeamSync.SystemTray
             }
 
             return _isServiceInstalled.Value;
+        }
+
+        public static string GetServicePath()
+        {
+            ValidateServiceInstallation();
+            var registryPath = @"SYSTEM\CurrentControlSet\Services\" + ServiceName;
+            var keyHKLM = Registry.LocalMachine;
+            var key = keyHKLM.OpenSubKey(registryPath);
+            var path = key.GetValue("ImagePath").ToString();
+            key.Close();
+
+            return Environment.ExpandEnvironmentVariables(path).Trim(new char[] { '"' });
         }
 
         public static void StartService()

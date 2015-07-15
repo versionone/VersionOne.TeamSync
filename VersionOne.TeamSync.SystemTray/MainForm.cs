@@ -119,13 +119,14 @@ namespace VersionOne.TeamSync.SystemTray
                         serviceStatus == ServiceControllerStatus.Running;
                     this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled =
                         serviceStatus == ServiceControllerStatus.Running;
-                    ;
+                    this.contextMenuStrip1.Items["configureServiceToolStripMenuItem"].Enabled = true;
                 }
                 else
                 {
                     this.contextMenuStrip1.Items["startServiceToolStripMenuItem"].Enabled = false;
                     this.contextMenuStrip1.Items["stopServiceToolStripMenuItem"].Enabled = false;
                     this.contextMenuStrip1.Items["recycleServiceToolStripMenuItem"].Enabled = false;
+                    this.contextMenuStrip1.Items["configureServiceToolStripMenuItem"].Enabled = false;
                 }
             }
         }
@@ -137,7 +138,8 @@ namespace VersionOne.TeamSync.SystemTray
 
         private void configureServiceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+            var path = TeamSyncServiceController.GetServicePath() + ".config";
+            System.Diagnostics.Process.Start(path);
         }
     }
 
