@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using log4net;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
@@ -21,7 +22,7 @@ namespace VersionOne.TeamSync.Worker
         private readonly IEnumerable<V1JiraInfo> _jiraInstances;
         private readonly IV1 _v1;
         private static DateTime _syncTime;
-        private readonly string[] _doneWords = {"Done", "Closed"};
+        private readonly string[] _doneWords = { "Done", "Closed" };
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
@@ -263,7 +264,8 @@ namespace VersionOne.TeamSync.Worker
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
-            CreateActualsFromWorklogs(jiraInfo, allJiraStories, allV1Stories);
+
+            DoActualWork(jiraInfo, allJiraStories, allV1Stories);
             Log.Trace("Story sync stopped...");
         }
 
@@ -412,7 +414,8 @@ namespace VersionOne.TeamSync.Worker
             UpdateDefects(jiraInfo, allJiraDefects, allV1Defects);
             CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
             DeleteV1Defects(jiraInfo, allJiraDefects, allV1Defects);
-            CreateActualsFromWorklogs(jiraInfo, allJiraDefects, allV1Defects);
+
+            DoActualWork(jiraInfo, allJiraDefects, allV1Defects);
             Log.Trace("Defect sync stopped...");
         }
 
@@ -550,10 +553,9 @@ namespace VersionOne.TeamSync.Worker
         }
         #endregion DEFECTS
 
-        private async void CreateActualsFromWorklogs<T>(V1JiraInfo jiraInfo, List<Issue> allJiraIssues, List<T> allV1WorkItems) where T : IPrimaryWorkItem
+        #region ACTUALS
+        private void DoActualWork<T>(V1JiraInfo jiraInfo, List<Issue> allJiraIssues, List<T> allV1WorkItems) where T : IPrimaryWorkItem
         {
-            Log.Trace("Creating actuals started");
-            var processedActuals = 0;
             foreach (var issueKey in allJiraIssues.Select(issue => issue.Key))
             {
                 var workItem = allV1WorkItems.FirstOrDefault(s => s.Reference.Equals(issueKey));
@@ -561,30 +563,90 @@ namespace VersionOne.TeamSync.Worker
                 {
                     var workItemId = string.Format("{0}:{1}", workItem.GetType().Name, workItem.ID);
 
-                    var worklogs = jiraInfo.JiraInstance.GetIssueWorkLogs(issueKey);
-                    var actuals = await _v1.GetWorkItemActuals(jiraInfo.V1ProjectId, workItemId);
+                    Log.TraceFormat("Getting Jira Worklogs for Issue key: {0}", issueKey);
+                    var worklogs = jiraInfo.JiraInstance.GetIssueWorkLogs(issueKey).ToList();
 
+                    Log.TraceFormat("Getting V1 actuals for Workitem id: {0}", workItemId);
+                    var actuals = _v1.GetWorkItemActuals(jiraInfo.V1ProjectId, workItemId).Result.ToList();
+
+                    Log.Trace("Creating actuals started");
                     var newWorklogs = worklogs.Where(w => !actuals.Any(a => a.Reference.Equals(w.id.ToString()))).ToList();
                     if (newWorklogs.Any())
-                    {
-                        Log.DebugFormat("Found {0} worklogs to check for create", newWorklogs.Count());
-                        foreach (var worklog in newWorklogs)
-                        {
-                            Log.TraceFormat("Attempting to create actual from Jira worklog id {0}", worklog.id);
-                            var actual = worklog.ToV1Actual(_v1.MemberId, jiraInfo.V1ProjectId, workItemId);
-                            var newActual = await _v1.CreateActual(actual);
-                            Log.DebugFormat("Created actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
+                        CreateActualsFromWorklogs(jiraInfo, newWorklogs, workItemId, issueKey);
+                    Log.Trace("Creating actuals stopped");
 
-                            jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, newActual.ID, workItem.ID);
-                            Log.TraceFormat("Added comment on Jira worklog id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
+                    Log.Trace("Updating actual started");
+                    var updateWorklogs = worklogs.Where(w => actuals.Any(a => a.Reference.Equals(w.id.ToString()) &&
+                        // Have started date changed?
+                        (!w.started.ToString(CultureInfo.InvariantCulture).Equals(a.Date.ToString(CultureInfo.InvariantCulture)) ||
+                        // Have worked hours changed?
+                        double.Parse(a.Value).CompareTo(w.timeSpentSeconds / 3600d) != 0))).ToList();
+                    if (updateWorklogs.Any())
+                        UpdateActualsFromWorklogs(jiraInfo, updateWorklogs, workItemId, actuals);
+                    Log.Trace("Updating actual stopped");
 
-                            processedActuals++;
-                        }
-                        Log.InfoFormat("Created {0} V1 actuals", processedActuals);
-                    }
+                    Log.Trace("Deleting actuals started");
+                    var actualsToDelete = actuals.Where(a => !worklogs.Any(w => w.id.ToString().Equals(a.Reference)) &&
+                        !a.Value.Equals("0")).ToList();
+                    if (actualsToDelete.Any())
+                        DeleteActualsFromWorklogs(actualsToDelete);
+                    Log.Trace("Deleting actuals stopped");
                 }
             }
-            Log.Trace("Creating actuals stopped");
         }
+
+        private void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string issueKey)
+        {
+            Log.DebugFormat("Found {0} worklogs to check for create", newWorklogs.Count());
+            var processedActuals = 0;
+            foreach (var worklog in newWorklogs)
+            {
+                Log.TraceFormat("Attempting to create actual from Jira worklog id {0}", worklog.id);
+                var actual = worklog.ToV1Actual(_v1.MemberId, jiraInfo.V1ProjectId, workItemId);
+                var newActual = _v1.CreateActual(actual).Result;
+                Log.DebugFormat("Created V1 actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
+
+                jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, newActual.ID, workItemId);
+                Log.TraceFormat("Added comment on Jira worklog id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
+
+                processedActuals++;
+            }
+            Log.InfoFormat("Created {0} V1 actuals", processedActuals);
+        }
+
+        private void UpdateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
+        {
+            Log.DebugFormat("Found {0} worklogs to check for update", updateWorklogs.Count());
+            var processedActuals = 0;
+            foreach (var worklog in updateWorklogs)
+            {
+                var actual = worklog.ToV1Actual(_v1.MemberId, jiraInfo.V1ProjectId, workItemId);
+                actual.ID = actuals.Single(a => a.Reference.Equals(worklog.id.ToString())).ID;
+
+                Log.TraceFormat("Attempting to update actual id {0} from Jira worklog id {1}", actual.ID, worklog.id);
+                _v1.UpdateAsset(actual, actual.CreatePayload());
+                Log.DebugFormat("Updated V1 actual id {0}", actual.ID);
+
+                processedActuals++;
+            }
+            Log.InfoFormat("Updated {0} V1 actuals", processedActuals);
+        }
+
+        private void DeleteActualsFromWorklogs(List<Actual> actualsToDelete)
+        {
+            Log.DebugFormat("Found {0} actuals to check for delete", actualsToDelete.Count);
+            var processedActuals = 0;
+            foreach (var actual in actualsToDelete)
+            {
+                Log.TraceFormat("Attempting to update actual id {0} with value 0", actual.ID);
+                actual.Value = "0";
+                _v1.UpdateAsset(actual, actual.CreatePayload());
+                Log.DebugFormat("Updated V1 actual id {0}", actual.ID);
+
+                processedActuals++;
+            }
+            Log.InfoFormat("Deleted {0} V1 actuals", processedActuals);
+        }
+        #endregion ACTUALS
     }
 }
