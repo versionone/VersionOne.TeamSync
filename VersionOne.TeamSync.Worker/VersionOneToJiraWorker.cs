@@ -186,7 +186,6 @@ namespace VersionOne.TeamSync.Worker
             }
             var jiraEpics = searchResult.issues;
 
-            assignedEpics.RemoveAll(epic => jiraEpics.SingleOrDefault(epic.ItMatches) != null);
             Log.DebugFormat("Found {0} epics to check for update", assignedEpics.Count);
 
             if (assignedEpics.Count > 0)
@@ -202,11 +201,18 @@ namespace VersionOne.TeamSync.Worker
                     return;
                 }
 
-                if (relatedJiraEpic.Fields.Status.Name == "Done" && !epic.IsClosed()) //hrrmmm...
-                    jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
+	            if (relatedJiraEpic.Fields.Status.Name == "Done" && !epic.IsClosed())
+	            {
+					jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
+					Log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
+	            }
 
-                jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(), relatedJiraEpic.Key);
-                Log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
+	            if (!epic.ItMatches(relatedJiraEpic))
+	            {
+		            jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(), relatedJiraEpic.Key);
+					Log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
+	            }
+
                 processedEpics++;
             });
 

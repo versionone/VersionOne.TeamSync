@@ -206,7 +206,7 @@ namespace VersionOne.TeamSync.Core.Tests
             {
                 new Epic {Name = "Name", Description = "Description", Reference = "key"},
                 new Epic {Name = "Name1", Description = "Description", Reference = "key1"},
-                new Epic {Name = "Name2", Description = "Description", Reference = "key2"},
+                new Epic {Name = "Name2", Description = "Description", Reference = "key2", AssetState = "64"},
                 new Epic {Name = "Name3", Description = "Description", Reference = "key3"},
                 new Epic {Name = "Name4", Description = "Description", Reference = "key4"},
             });
@@ -218,7 +218,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 {
                     new Issue {Key = "key", Fields = new Fields {Summary = "Name", Description = "Description", Status = new Status {Name = "Not done!"}}},
                     new Issue {Key = "key1", Fields = new Fields {Summary = "Name1", Description = "Description1", Status = new Status {Name = "Not done!"}}},
-                    new Issue {Key = "key2", Fields = new Fields {Summary = "Name2", Description = "Description" , Status = new Status {Name = "Not done!"}}},
+                    new Issue {Key = "key2", Fields = new Fields {Summary = "Name2", Description = "Description" , Status = new Status {Name = "Done"}}},
                     new Issue {Key = "key3", Fields = new Fields {Summary = "Name3", Description = "Description3", Status = new Status {Name = "Not done!"}}},
                     new Issue {Key = "key4", Fields = new Fields {Summary = "Name4", Description = "Description" , Status = new Status {Name = "Not done!"}}},
                 }
@@ -243,10 +243,16 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public void never_calls_UpdateEpic()
+        public void calls_UpdateEpic_twice()
         {
             _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), It.IsAny<string>()), Times.Exactly(2));
         }
+
+	    [TestMethod]
+	    public void calls_SetEpicTo_ToDo_once()
+	    {
+		    _mockJira.Verify(x => x.SetIssueToToDo(It.IsAny<string>()), Times.Once);
+	    }
     }
 
     [TestClass]
