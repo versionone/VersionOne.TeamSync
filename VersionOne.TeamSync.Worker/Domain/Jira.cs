@@ -38,6 +38,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetDefectsInProject(string jiraProject);
 
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
+
         void CleanUpAfterRun(ILog log);
     }
 
@@ -45,7 +46,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     {
         private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
         private const string TrackedInV1 = "Created as VersionOne Workitem {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
-        private const string CreatedAsVersionOneActualComment = "Created as VersionOne Actual \"{0}\" in Workitem \"{1}\"";
+        private const string CreatedAsVersionOneActualComment = "Created as VersionOne {0} in Workitem {1}";
         private const int ConnectionAttempts = 3;
 
         private ILog _log;
@@ -72,11 +73,6 @@ namespace VersionOne.TeamSync.Worker.Domain
 
                 return _projectMeta;
             }
-        }
-
-        public void CleanUpAfterRun(ILog log)
-        {
-            _projectMeta = null;
         }
 
         public Jira(IJiraConnector connector, string jiraProject)
@@ -125,9 +121,9 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
         }
 
-        public void AddCreatedAsVersionOneActualComment(string issueKey, string v1ActualOid, string v1WorkitemOid)
+        public void AddCreatedAsVersionOneActualComment(string issueKey, string v1ActualOid, string v1Number)
         {
-            var body = string.Format(CreatedAsVersionOneActualComment, v1ActualOid, v1WorkitemOid);
+            var body = string.Format(CreatedAsVersionOneActualComment, v1ActualOid, v1Number);
             _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
         }
 
@@ -165,14 +161,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             Log.Info("Attempting to transition " + issueKey);
 
-			var response = _connector.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", issueKey));
-			var transition = response.Transitions.Where(t => t.Name == "Done").ToList();
+            var response = _connector.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", issueKey));
+            var transition = response.Transitions.Where(t => t.Name == "Done").ToList();
 
-	        if (transition.Count != 1)
-	        {
-		        Log.Error("None or multiple transistions exists for {0} with the status of \"Done\".  This epic will not be updated");
-		        return;
-	        }
+            if (transition.Count != 1)
+            {
+                Log.Error("None or multiple transistions exists for {0} with the status of \"Done\".  This epic will not be updated");
+                return;
+            }
 
             _connector.Post("issue/{issueIdOrKey}/transitions", new
             {
@@ -189,7 +185,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                         }
                     }
                 },
-				transition = new { id = transition.Single().Id }
+                transition = new { id = transition.Single().Id }
             }, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
 
             Log.Info(string.Format("Attempting to set status on {0}", issueKey));
@@ -326,6 +322,11 @@ namespace VersionOne.TeamSync.Worker.Domain
                 timeSpentSeconds = i.timeSpentSeconds,
                 id = i.id
             });
+        }
+
+        public void CleanUpAfterRun(ILog log)
+        {
+            _projectMeta = null;
         }
 
         private object AddComment(string body)

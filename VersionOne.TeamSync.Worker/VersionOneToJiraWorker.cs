@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using log4net;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
@@ -201,17 +200,17 @@ namespace VersionOne.TeamSync.Worker
                     return;
                 }
 
-	            if (relatedJiraEpic.Fields.Status.Name == "Done" && !epic.IsClosed())
-	            {
-					jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
-					Log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
-	            }
+                if (relatedJiraEpic.Fields.Status.Name == "Done" && !epic.IsClosed())
+                {
+                    jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key);
+                    Log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
+                }
 
-	            if (!epic.ItMatches(relatedJiraEpic))
-	            {
-		            jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(), relatedJiraEpic.Key);
-					Log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
-	            }
+                if (!epic.ItMatches(relatedJiraEpic))
+                {
+                    jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(), relatedJiraEpic.Key);
+                    Log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
+                }
 
                 processedEpics++;
             });
@@ -502,7 +501,7 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-			Log.TraceFormat("Created {0} V1 defects", processedDefects);
+            Log.TraceFormat("Created {0} V1 defects", processedDefects);
             Log.Trace("Creating defects stopped");
         }
 
@@ -547,7 +546,7 @@ namespace VersionOne.TeamSync.Worker
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {
-				Log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", key);
+                Log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", key);
                 _v1.DeleteDefectWithJiraReference(jiraInfo.V1ProjectId, key);
                 Log.DebugFormat("Deleted V1 defect referencing jira defect {0}", key);
                 processedDefects++;
@@ -571,13 +570,13 @@ namespace VersionOne.TeamSync.Worker
                     Log.TraceFormat("Getting Jira Worklogs for Issue key: {0}", issueKey);
                     var worklogs = jiraInfo.JiraInstance.GetIssueWorkLogs(issueKey).ToList();
 
-                    Log.TraceFormat("Getting V1 actuals for Workitem id: {0}", workItemId);
+                    Log.TraceFormat("Getting V1 actuals for Workitem Oid: {0}", workItemId);
                     var actuals = _v1.GetWorkItemActuals(jiraInfo.V1ProjectId, workItemId).Result.ToList();
 
                     Log.Trace("Creating actuals started");
                     var newWorklogs = worklogs.Where(w => !actuals.Any(a => a.Reference.Equals(w.id.ToString()))).ToList();
                     if (newWorklogs.Any())
-                        CreateActualsFromWorklogs(jiraInfo, newWorklogs, workItemId, issueKey);
+                        CreateActualsFromWorklogs(jiraInfo, newWorklogs, workItemId, workItem.Number, issueKey);
                     Log.Trace("Creating actuals stopped");
 
                     Log.Trace("Updating actual started");
@@ -600,7 +599,7 @@ namespace VersionOne.TeamSync.Worker
             }
         }
 
-        private void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string issueKey)
+        private void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
         {
             Log.DebugFormat("Found {0} worklogs to check for create", newWorklogs.Count());
             var processedActuals = 0;
@@ -611,7 +610,8 @@ namespace VersionOne.TeamSync.Worker
                 var newActual = _v1.CreateActual(actual).Result;
                 Log.DebugFormat("Created V1 actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
 
-                jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, newActual.ID, workItemId);
+                var actualOid = string.Format("{0}:{1}", newActual.AssetType, newActual.ID);
+                jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, actualOid, v1Number);
                 Log.TraceFormat("Added comment on Jira worklog id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
 
                 processedActuals++;
