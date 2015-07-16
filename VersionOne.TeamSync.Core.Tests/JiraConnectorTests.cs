@@ -183,6 +183,10 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_request_an_update_correctly()
         {
             var mockConnector = new Mock<IJiraConnector>();
+			mockConnector.Setup(x => x.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", IssueKey))).Returns(new TransitionResponse()
+			{
+				Transitions = new List<Transition>() { new Transition() { Id = "5", Name = "Done"} }
+			}).Verifiable();
             mockConnector.Setup(x => x.Post("issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey))).Verifiable();
 
             var jira = new Jira(mockConnector.Object, string.Empty);

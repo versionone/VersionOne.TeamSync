@@ -105,6 +105,7 @@
     <Compile Include="Entities\CreateMeta.cs" />
     <Compile Include="Entities\Issue.cs" />
     <Compile Include="Entities\Item.cs" />
+    <Compile Include="Entities\Transition.cs" />
     <Compile Include="Exceptions\JiraException.cs" />
     <Compile Include="Exceptions\JiraLoginException.cs" />
     <Compile Include="Exceptions\JiraPermissionException.cs" />

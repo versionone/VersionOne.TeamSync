@@ -166,6 +166,15 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             Log.Info("Attempting to transition " + issueKey);
 
+			var response = _connector.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", issueKey));
+			var transition = response.Transitions.Where(t => t.Name == "Done").ToList();
+
+	        if (transition.Count != 1)
+	        {
+		        Log.Error("None or multiple transistions exists for {0} with the status of \"Done\".  This epic will not be updated");
+		        return;
+	        }
+
             _connector.Post("issue/{issueIdOrKey}/transitions", new
             {
                 update = new
@@ -181,7 +190,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                         }
                     }
                 },
-                transition = new { id = "31" }
+				transition = new { id = transition.Single().Id }
             }, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
 
             Log.Info(string.Format("Attempting to set status on {0}", issueKey));
