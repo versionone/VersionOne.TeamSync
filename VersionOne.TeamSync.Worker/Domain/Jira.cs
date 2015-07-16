@@ -44,7 +44,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     public class Jira : IJira
     {
         private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
-        private const string TrackedInV1 = "Tracking Issue {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
+        private const string TrackedInV1 = "Created as VersionOne Workitem {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
         private const string CreatedAsVersionOneActualComment = "Created as VersionOne Actual \"{0}\" in Workitem \"{1}\"";
         private const int ConnectionAttempts = 3;
 
