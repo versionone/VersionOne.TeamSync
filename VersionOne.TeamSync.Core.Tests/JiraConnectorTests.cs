@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RestSharp;
@@ -336,6 +337,34 @@ namespace VersionOne.TeamSync.Core.Tests
     }
 
     [TestClass]
+    public class dealing_with_a_property_that_isnt_visible
+    {
+        private Mock<ILog> _mockLogger;
+
+        [TestInitialize]
+        public void getting_jira_stories()
+        {
+            _mockLogger = new Mock<ILog>();
+            var dictionary = new Dictionary<string, string>()
+            {
+                {"Story Points", "value value"},
+                {"Epic Stuff", "something else"}
+            };
+            var empty = MetaProperty.EmptyProperty("KEY");
+            string resultValue;
+
+            dictionary.EvalLateBinding("KEY-10", empty, s => resultValue = s, _mockLogger.Object);
+            dictionary.EvalLateBinding("KEY-10", empty, s => resultValue = s, _mockLogger.Object);
+        }
+
+        [TestMethod]
+        public void should_call_logger_only_one_time()
+        {
+            _mockLogger.Verify(x => x.Warn(It.IsAny<string>()), Times.Once);
+        }
+    }
+
+    [TestClass]
     public class getting_orphan_stories_in_a_jira_project
     {
         private const string EpicLink = "Epic Link";
@@ -343,6 +372,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
         private List<JqOperator> _jqOperators;
         private List<string> _whereItems;
+        private Mock<ILog> _mockLogger;
 
         [TestInitialize]
         public void getting_jira_stories()
@@ -351,12 +381,14 @@ namespace VersionOne.TeamSync.Core.Tests
 
             _jqOperators = new List<JqOperator>();
             _whereItems = new List<string>();
-            mockConnector.Setup(x => x.GetSearchResults(It.IsAny<IList<JqOperator>>(), It.IsAny<IEnumerable<string>>(), It.IsAny<Action<Fields, Dictionary<string, object>>>()))
-                .Callback<IList<JqOperator>, IEnumerable<string>, Action<Fields, Dictionary<string, object>>>((list, enumerable, func) =>
+            mockConnector.Setup(x => x.GetSearchResults(It.IsAny<IList<JqOperator>>(), It.IsAny<IEnumerable<string>>(), It.IsAny<Action<string, Fields, Dictionary<string, object>>>()))
+                .Callback<IList<JqOperator>, IEnumerable<string>, Action<string, Fields, Dictionary<string, object>>>((list, enumerable, func) =>
                 {
                     _jqOperators.AddRange(list);
                     _whereItems.AddRange(enumerable);
                 });
+            _mockLogger = new Mock<ILog>();
+            _mockLogger.Setup(x => x.Warn(It.IsAny<string>()));
 
             var jira = new Jira(mockConnector.Object, new MetaProject()
             {
@@ -378,8 +410,7 @@ namespace VersionOne.TeamSync.Core.Tests
                         } }
                     }
                 }
-
-            });
+            }, _mockLogger.Object);
 
             jira.GetStoriesWithNoEpicInProject(ProjectKey);
         }
@@ -409,6 +440,12 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var op = _jqOperators.Single(x => x.Value == "Story");
             op.Property.ShouldEqual("issuetype");
+        }
+
+        [TestMethod]
+        public void should_never_call_the_logger()
+        {
+            _mockLogger.Verify(x => x.Warn(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]

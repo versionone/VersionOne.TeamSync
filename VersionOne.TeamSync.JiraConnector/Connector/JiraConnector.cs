@@ -229,7 +229,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             return JsonConvert.DeserializeObject<SearchResult>(content);
         }
 
-        public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
+        public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
         {
             var request = new RestRequest(Method.GET)
             {
@@ -245,9 +245,10 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             var issues = result.Property("issues").Value;
             var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
             foreach (var issue in issues)
-            {
+            {   
                 var fields = issue["fields"].ToObject<Dictionary<string, object>>();
-                customProperties(searchResult.issues.Single(i => i.Key == issue["key"].ToString()).Fields, fields);
+                var key = issue["key"].ToString();
+                customProperties(key, searchResult.issues.Single(i => i.Key == key).Fields, fields);
             }
 
             return searchResult;

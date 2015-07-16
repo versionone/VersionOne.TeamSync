@@ -60,9 +60,17 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
             get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Link"); }
         }
 
+	    private MetaProperty _storyPoint;
         public MetaProperty StoryPoints
         {
-            get { return StoryCustomFields.SingleOrDefault(x => x.Property == "Story Points") ?? MetaProperty.EmptyProperty("Story Points"); }
+            get
+            {
+	            if (_storyPoint != null) return _storyPoint;
+	            var property = StoryCustomFields.SingleOrDefault(x => x.Property == "Story Points");
+	            _storyPoint = property ?? MetaProperty.EmptyProperty("Story Points");
+
+				return _storyPoint;
+            }
         }
     }
 
@@ -89,6 +97,8 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string Schema { get; set; }
         public string Key { get; set; }
         public bool IsEmptyProperty { get; private set; }
+        public bool HasLoggedMissingProperty { get; set; }
+
         public static MetaProperty EmptyProperty(string key)
         {
             return new MetaProperty

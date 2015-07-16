@@ -24,8 +24,7 @@ namespace VersionOne.TeamSync.JiraConnector.Interfaces
         SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
         CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey);
 
-        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties,
-            Action<Fields, Dictionary<string, object>> customProperties); //not entirely convinced this belongs here
+        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customProperties);
 
         bool IsConnectionValid();
         bool ProjectExists(string projectIdOrKey);

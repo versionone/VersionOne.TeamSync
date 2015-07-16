@@ -48,7 +48,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const string CreatedAsVersionOneActualComment = "Created as VersionOne Actual \"{0}\" in Workitem \"{1}\"";
         private const int ConnectionAttempts = 3;
 
-        private static readonly ILog Log = LogManager.GetLogger(typeof(Jira));
+        private ILog _log;
+        private ILog Log
+        {
+            get
+            {
+                return _log ?? LogManager.GetLogger(typeof(Jira));
+            }
+        }
         private readonly IJiraConnector _connector;
         private readonly string _jiraProject;
         private MetaProject _projectMeta;
@@ -80,11 +87,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public Jira(IJiraConnector connector, MetaProject project)
+        public Jira(IJiraConnector connector, MetaProject project, ILog log)
         {
             _connector = connector;
             _projectMeta = project;
             InstanceUrl = _connector.BaseUrl;
+            _log = log;
         }
 
         public bool ValidateConnection()
@@ -238,10 +246,10 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("issuetype", "Story")
             },
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
-            (fields, properties) =>
+            (issueKey, fields, properties) =>
             {
-                properties.EvalLateBinding(ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
-                properties.EvalLateBinding(ProjectMeta.EpicLink, value => fields.EpicLink = value, Log);
+                properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
+                properties.EvalLateBinding(issueKey, ProjectMeta.EpicLink, value => fields.EpicLink = value, Log);
             });
         }
 
@@ -254,9 +262,9 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals(ProjectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty)
             },
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key },
-            (fields, properties) =>
+            (issueKey, fields, properties) =>
             {
-                properties.EvalLateBinding(ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
+                properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
             });
         }
 
@@ -268,10 +276,10 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("issuetype", "Bug")
             },
             new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
-            (fields, properties) =>
+            (issueKey, fields, properties) =>
             {
-                properties.EvalLateBinding(ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
-                properties.EvalLateBinding(ProjectMeta.EpicLink, value => fields.EpicLink = value, Log);
+                properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);
+                properties.EvalLateBinding(issueKey, ProjectMeta.EpicLink, value => fields.EpicLink = value, Log);
             });
         }
 

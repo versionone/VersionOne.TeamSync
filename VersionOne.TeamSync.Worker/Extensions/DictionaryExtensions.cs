@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using log4net;
 using Microsoft.SqlServer.Server;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -25,12 +26,16 @@ namespace VersionOne.TeamSync.Worker.Extensions
             return converter.ConvertHtml(htmlValue);
         }
 
-        private static string _logMessage = "Unable to find {0} on the screen. Add this to the default display to enable this property";
-	    public static void EvalLateBinding<T>(this IDictionary<string, T> properties, MetaProperty meta, Action<string> propertyToSetWithValue, ILog log)
+		private static string _logMessage = "{0} field is not enabled in default issue screen for Jira project {1}. Estimate values cannot be synchronized";
+	    public static void EvalLateBinding<T>(this IDictionary<string, T> properties, string issueKey, MetaProperty meta, Action<string> propertyToSetWithValue, ILog log)
 	    {
+	        if (meta.HasLoggedMissingProperty)
+	            return;
+
 	        if (meta.IsEmptyProperty)
 	        {
-                log.Warn(string.Format(_logMessage, meta.Key));
+                log.Warn(string.Format(_logMessage, meta.Key, issueKey.Split('-').First()));
+	            meta.HasLoggedMissingProperty = true;
 	            return; 
 	        }
 
