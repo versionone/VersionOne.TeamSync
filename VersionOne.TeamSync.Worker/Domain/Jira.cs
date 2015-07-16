@@ -76,7 +76,6 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void CleanUpAfterRun(ILog log)
         {
-            log.Info("Running cleanup...");
             _projectMeta = null;
         }
 

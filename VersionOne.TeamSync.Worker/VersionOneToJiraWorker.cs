@@ -295,7 +295,7 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-            Log.InfoFormat("Updated {0} V1 stories", processedStories);
+            Log.InfoFormat("Finished checking {0} V1 stories", processedStories);
             Log.Trace("Updating stories stopped");
         }
 
@@ -324,7 +324,6 @@ namespace VersionOne.TeamSync.Worker
                 Log.DebugFormat("Updated story V1 {0}", story.Number);
             }
 
-            //TODO : late bind? maybe??
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(_doneWords) && story.AssetState != "128")
             {
                 await _v1.CloseStory(story.ID);
@@ -444,7 +443,7 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.InfoFormat("Updated {0} V1 defects", processedDefects);
+            Log.InfoFormat("Finsihed processing {0} V1 defects", processedDefects);
             Log.Trace("Updating defects stopped");
         }
 
@@ -503,7 +502,7 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.InfoFormat("Created {0} V1 defects", processedDefects);
+			Log.TraceFormat("Created {0} V1 defects", processedDefects);
             Log.Trace("Creating defects stopped");
         }
 
@@ -548,7 +547,7 @@ namespace VersionOne.TeamSync.Worker
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {
-                Log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", key);
+				Log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", key);
                 _v1.DeleteDefectWithJiraReference(jiraInfo.V1ProjectId, key);
                 Log.DebugFormat("Deleted V1 defect referencing jira defect {0}", key);
                 processedDefects++;
