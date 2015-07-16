@@ -443,7 +443,7 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.InfoFormat("Finsihed processing {0} V1 defects", processedDefects);
+            Log.InfoFormat("Finished processing {0} V1 defects", processedDefects);
             Log.Trace("Updating defects stopped");
         }
 
