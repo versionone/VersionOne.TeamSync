@@ -108,6 +108,16 @@ namespace VersionOne.TeamSync.Worker
             }
         }
 
+        public void ValidateRequiredV1Fields()
+        {
+            Log.Info("Verifying VersionOne required fields...");
+            if (!_v1.ValidateActualReferenceFieldExists())
+            {
+                Log.Warn("Actual.Reference field is missing in VersionOne instance.");
+                throw new Exception("Unable to validate required field Actual.Reference");
+            }
+        }
+
         #region EPICS
         public async Task DoEpicWork(V1JiraInfo jiraInfo)
         {

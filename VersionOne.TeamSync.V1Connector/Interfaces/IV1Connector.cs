@@ -19,5 +19,6 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
         bool IsConnectionValid();
         bool ProjectExists(string projectIdOrKey);
         bool EpicCategoryExists(string epicCategoryId);
+        bool AssetFieldExists(string asset, string field);
     }
 }
