@@ -36,12 +36,13 @@ namespace VersionOne.TeamSync.Service
                 {
                     _worker.ValidateConnections();
                     _worker.ValidateProjectMappings();
+                    _worker.ValidateRequiredV1Fields();
                 }
                 catch (Exception e)
                 {
                     Log.Error(e);
-                    Log.Error("Errors occurred during connection validations. Service will be stopped.");
-                    Stop(); // Do we really want to stop the service on a Exception? This makes app crash
+                    Log.Error("Errors occurred during service start up. Service will be stopped.");
+                    Stop(); // Do we really want to stop the service on a Exception? This makes app crash because some async tasks might be still running
                 }
                 _timer = new Timer { Interval = _serviceDuration.TotalMilliseconds };
                 _timer.Elapsed += OnTimedEvent;

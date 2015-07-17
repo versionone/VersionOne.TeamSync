@@ -108,6 +108,16 @@ namespace VersionOne.TeamSync.Worker
             }
         }
 
+        public void ValidateRequiredV1Fields()
+        {
+            Log.Info("Verifying VersionOne required fields...");
+            if (!_v1.ValidateActualReferenceFieldExists())
+            {
+                Log.Warn("Actual.Reference field is missing in VersionOne instance.");
+                throw new Exception("Unable to validate required field Actual.Reference");
+            }
+        }
+
         #region EPICS
         public async Task DoEpicWork(V1JiraInfo jiraInfo)
         {
@@ -374,7 +384,7 @@ namespace VersionOne.TeamSync.Worker
             jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
             Log.TraceFormat("Updated labels on Jira story {0}", jiraStory.Key);
 
-            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ProjectName,
+            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ScopeName,
                 _v1.InstanceUrl);
             Log.TraceFormat("Added link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
 
@@ -523,7 +533,7 @@ namespace VersionOne.TeamSync.Worker
 
             jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraDefect.Fields.Labels), jiraDefect.Key);
             Log.TraceFormat("Updated labels on Jira defect {0}", jiraDefect.Key);
-            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ProjectName, _v1.InstanceUrl);
+            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ScopeName, _v1.InstanceUrl);
             Log.TraceFormat("Added link to V1 defect {0} on Jira defect {1}", newDefect.Number, jiraDefect.Key);
 
             var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraDefect.Key;

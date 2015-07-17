@@ -232,6 +232,20 @@ namespace VersionOne.TeamSync.V1Connector
             return result.Any();
         }
 
+        public bool AssetFieldExists(string asset, string field)
+        {
+            using (var client = HttpInstance)
+            {
+                var endpoint = string.Format("meta.v1/{0}/{1}", asset, field);
+
+                var response = client.GetAsync(endpoint).Result;
+
+                LogResponse(response);
+
+                return response.IsSuccessStatusCode;
+            }
+        }
+
         public static ICanSetUserAgentHeader WithInstanceUrl(string versionOneInstanceUrl)
         {
             return new Builder(versionOneInstanceUrl);
@@ -240,14 +254,6 @@ namespace VersionOne.TeamSync.V1Connector
         internal void SetUpstreamUserAgent(string userAgent)
         {
             _upstreamUserAgent = userAgent;
-        }
-
-        private string GetResourceUrl(string resource)
-        {
-            if (string.IsNullOrWhiteSpace(_endpoint))
-                throw new ConfigurationErrorsException("V1Connector is not properly configured. The API endpoint was not specified.");
-
-            return _endpoint + ValidateResource(resource);
         }
 
         private string FormatAssemblyUserAgent(Assembly a, string upstream = null)
@@ -269,6 +275,14 @@ namespace VersionOne.TeamSync.V1Connector
             }
 
             return result;
+        }
+
+        private string GetResourceUrl(string resource)
+        {
+            if (string.IsNullOrWhiteSpace(_endpoint))
+                throw new ConfigurationErrorsException("V1Connector is not properly configured. The API endpoint was not specified.");
+
+            return _endpoint + ValidateResource(resource);
         }
 
         private void LogResponse(HttpResponseMessage resp, string rc = "")
