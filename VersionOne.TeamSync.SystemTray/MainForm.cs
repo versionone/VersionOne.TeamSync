@@ -4,11 +4,13 @@ using System.Runtime.Remoting;
 using System.ServiceProcess;
 using System.Timers;
 using System.Windows.Forms;
+using log4net;
 
 namespace VersionOne.TeamSync.SystemTray
 {
     public partial class SystemTray : Form
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(SystemTray));
         private System.Timers.Timer _timer;
 
         public SystemTray()
@@ -16,6 +18,8 @@ namespace VersionOne.TeamSync.SystemTray
             InitializeComponent();
             RemotingConfiguration.Configure("VersionOne.TeamSync.SystemTray.exe.config", false);
             RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
+
+            Log.Info("*** VersionOne SystemTray started ***");
 
             contextMenuStrip1.Renderer = new CustomRenderer();
             UpdateServiceControlOptions();
@@ -134,6 +138,7 @@ namespace VersionOne.TeamSync.SystemTray
         private void SystemTray_FormClosing(object sender, FormClosingEventArgs e)
         {
             StopWatchingServiceStatus();
+            Log.Info("*** VersionOne SytemTray stopped ***");
         }
 
         private void configureServiceToolStripMenuItem_Click(object sender, EventArgs e)

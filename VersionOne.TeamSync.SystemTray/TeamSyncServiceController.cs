@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.ServiceProcess;
+using log4net;
 using Microsoft.Win32;
 
 namespace VersionOne.TeamSync.SystemTray
@@ -11,9 +12,11 @@ namespace VersionOne.TeamSync.SystemTray
 
         private const string NoAdminPrivilegesMessage =
             "Unable to perform this action. The VersionOne TeamSync system tray application must be running with administrator privileges to control the TeamSync service.";
-        private const string TimeoutMessage =
-            "TeamSync service is taking too long to respond. If this problem continues, please contact your system administrator.";
-        private static readonly TimeSpan TimeOutTimeSpan = new TimeSpan(0, 0, 0, 5, 0); // 5 sec
+        private const string TimeoutMessageFormat =
+            "TeamSync service is taking too long to respond. Timeout value is set to {0} secs";
+
+        private static readonly ILog Log = LogManager.GetLogger(typeof(TeamSyncServiceController));
+        private static readonly TimeSpan TimeOutTimeSpan = TimeSpan.FromSeconds(15);
         private static bool? _isServiceInstalled = null;
 
         public static bool IsServiceInstalled()
@@ -44,17 +47,20 @@ namespace VersionOne.TeamSync.SystemTray
             ValidateServiceInstallation();
             try
             {
+                Log.Info("Attempting to start TeamSync Service from SystemTray");
                 var serviceController = GetServiceController();
                 serviceController.Start();
                 serviceController.WaitForStatus(ServiceControllerStatus.Running, TimeOutTimeSpan);
+                Log.Info("TeamSync Service started");
             }
-            catch (InvalidOperationException ioex)
+            catch (InvalidOperationException ex)
             {
-                throw new ServiceControllerException(NoAdminPrivilegesMessage, ioex.InnerException);
+                Log.Error(ex);
+                throw new ServiceControllerException(NoAdminPrivilegesMessage, ex.InnerException);
             }
-            catch (System.ServiceProcess.TimeoutException toex)
+            catch (System.ServiceProcess.TimeoutException)
             {
-                throw new ServiceControllerException(TimeoutMessage);
+                Log.WarnFormat(TimeoutMessageFormat, TimeOutTimeSpan.TotalSeconds);
             }
         }
 
@@ -63,17 +69,20 @@ namespace VersionOne.TeamSync.SystemTray
             ValidateServiceInstallation();
             try
             {
+                Log.Info("Attempting to pause TeamSync Service from SystemTray");
                 var serviceController = GetServiceController();
                 serviceController.Pause();
                 serviceController.WaitForStatus(ServiceControllerStatus.Paused, TimeOutTimeSpan);
+                Log.Info("TeamSync Service paused");
             }
             catch (InvalidOperationException ex)
             {
+                Log.Error(ex);
                 throw new ServiceControllerException(NoAdminPrivilegesMessage, ex.InnerException);
             }
-            catch (System.ServiceProcess.TimeoutException toex)
+            catch (System.ServiceProcess.TimeoutException)
             {
-                throw new ServiceControllerException(TimeoutMessage);
+                Log.WarnFormat(TimeoutMessageFormat, TimeOutTimeSpan.TotalSeconds);
             }
         }
 
@@ -82,17 +91,20 @@ namespace VersionOne.TeamSync.SystemTray
             ValidateServiceInstallation();
             try
             {
+                Log.Info("Attempting to continue TeamSync Service from SystemTray");
                 var serviceController = GetServiceController();
                 serviceController.Continue();
                 serviceController.WaitForStatus(ServiceControllerStatus.Running, TimeOutTimeSpan);
+                Log.Info("TeamSync Service continued");
             }
             catch (InvalidOperationException ex)
             {
+                Log.Error(ex);
                 throw new ServiceControllerException(NoAdminPrivilegesMessage, ex.InnerException);
             }
-            catch (System.ServiceProcess.TimeoutException toex)
+            catch (System.ServiceProcess.TimeoutException)
             {
-                throw new ServiceControllerException(TimeoutMessage);
+                Log.WarnFormat(TimeoutMessageFormat, TimeOutTimeSpan.TotalSeconds);
             }
         }
 
@@ -100,17 +112,20 @@ namespace VersionOne.TeamSync.SystemTray
         {
             try
             {
+                Log.Info("Attempting to stop TeamSync Service from SystemTray");
                 var serviceController = GetServiceController();
                 serviceController.Stop();
                 serviceController.WaitForStatus(ServiceControllerStatus.Stopped, TimeOutTimeSpan);
+                Log.Info("TeamSync Service stopped");
             }
             catch (InvalidOperationException ex)
             {
+                Log.Error(ex);
                 throw new ServiceControllerException(NoAdminPrivilegesMessage, ex.InnerException);
             }
-            catch (System.ServiceProcess.TimeoutException toex)
+            catch (System.ServiceProcess.TimeoutException)
             {
-                throw new ServiceControllerException(TimeoutMessage);
+                Log.WarnFormat(TimeoutMessageFormat, TimeOutTimeSpan.TotalSeconds);
             }
         }
 
