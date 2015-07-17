@@ -23,6 +23,8 @@ namespace VersionOne.TeamSync.Worker
         private static DateTime _syncTime;
         private readonly string[] _doneWords = { "Done", "Closed" };
 
+        public bool IsActualWorkEnabled { get; private set; }
+
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
             IV1Connector v1Connector;
@@ -75,7 +77,9 @@ namespace VersionOne.TeamSync.Worker
             Log.Info("Verifying VersionOne connection...");
             Log.DebugFormat("URL: {0}", _v1.InstanceUrl);
             if (_v1.ValidateConnection())
+            {
                 Log.Info("VersionOne connection successful!");
+            }
             else
             {
                 Log.Error("VersionOne connection failed.");
@@ -111,10 +115,9 @@ namespace VersionOne.TeamSync.Worker
         public void ValidateRequiredV1Fields()
         {
             Log.Info("Verifying VersionOne required fields...");
-            if (!_v1.ValidateActualReferenceFieldExists())
+            if (!(IsActualWorkEnabled = _v1.ValidateActualReferenceFieldExists()))
             {
-                Log.Warn("Actual.Reference field is missing in VersionOne instance.");
-                throw new Exception("Unable to validate required field Actual.Reference");
+                Log.Warn("Actual.Reference field is missing in VersionOne instance. JIRA worklogs will not be synced.");
             }
         }
 
@@ -280,7 +283,8 @@ namespace VersionOne.TeamSync.Worker
             CreateStories(jiraInfo, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
 
-            DoActualWork(jiraInfo, allJiraStories, allV1Stories);
+            if (IsActualWorkEnabled)
+                DoActualWork(jiraInfo, allJiraStories, allV1Stories);
             Log.Trace("Story sync stopped...");
         }
 
@@ -429,7 +433,8 @@ namespace VersionOne.TeamSync.Worker
             CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
             DeleteV1Defects(jiraInfo, allJiraDefects, allV1Defects);
 
-            DoActualWork(jiraInfo, allJiraDefects, allV1Defects);
+            if (IsActualWorkEnabled)
+                DoActualWork(jiraInfo, allJiraDefects, allV1Defects);
             Log.Trace("Defect sync stopped...");
         }
 
