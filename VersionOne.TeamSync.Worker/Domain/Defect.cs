@@ -54,7 +54,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Estimate { get; set; }
         public string ToDo { get; set; }
         public string Reference { get; set; }
-        public string ProjectName { get; set; }
         public string Super { get; set; }
         public string SuperNumber { get; set; }
         public bool IsInactive { get; private set; }
@@ -105,7 +104,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 ID = asset.GetAssetID(),
                 Number = attributes.GetValueOrDefault("ID.Number"),
-                ProjectName = attributes.GetValueOrDefault("Scope.Name"),
+                ScopeName = attributes.GetValueOrDefault("Scope.Name"),
                 Reference = attributes.GetValueOrDefault("Reference"),
                 Estimate = attributes.GetValueOrDefault("Estimate"),
                 ToDo = attributes.GetValueOrDefault("ToDo"),
