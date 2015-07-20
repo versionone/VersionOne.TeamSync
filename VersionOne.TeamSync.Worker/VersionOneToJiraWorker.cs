@@ -483,10 +483,12 @@ namespace VersionOne.TeamSync.Worker
             {
                 update.Super = v1EpicId;
                 Log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
-                await _v1.UpdateAsset(update, update.CreateUpdatePayload());
+                await _v1.UpdateAsset(update, update.CreateUpdatePayload()).ContinueWith(task =>
+                {
+                    Log.DebugFormat("Updated V1 defect {0}", defect.Number);
+                });
             }
 
-            Log.DebugFormat("Updated V1 defect {0}", defect.Number);
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(_doneWords) && defect.AssetState != "128")
             {
