@@ -74,7 +74,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 string.Equals(defect.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
                 string.Equals(defect.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
                 string.Equals(defect.Reference, issue.Key) &&
-                string.Equals(defect.SuperNumber, issue.Fields.EpicLink);
+                string.Equals(defect.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull());
         }
     }
 }
