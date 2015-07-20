@@ -228,7 +228,7 @@ namespace VersionOne.TeamSync.Worker
                 processedEpics++;
             });
 
-            Log.InfoFormat("Updated {0} Jira epics", processedEpics);
+            Log.InfoFormat("Finished checking {0} V1 Epics", processedEpics);
             Log.Trace("Updating epics stopped");
         }
 
