@@ -386,7 +386,7 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public void should_call_CreateEpic_on_jir()
+        public void should_call_CreateEpic_on_jira()
         {
             _mockJira.Verify(x => x.GetEpicByKey("OPC-10"), Times.Once());
         }
@@ -395,6 +395,54 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_create_a_link_on_v1_epic()
         {
             _mockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>()), Times.Once);
+        }
+
+    }
+
+    [TestClass]
+    public class Worker_when_a_VersionOne_epic_is_closed_and_already_updated : worker_bits
+    {
+        private Epic _epic;
+        private SearchResult _searchResult;
+
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+            _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
+            _searchResult = new SearchResult();
+            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() {Status = new Status() {Name = "Done"} } });
+
+            _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
+            {
+                _epic
+            });
+            _mockV1.Setup(x => x.UpdateEpicReference(_epic));
+            _mockV1.Setup(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()));
+
+            _mockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
+
+            var jiraInfo = MakeInfo();
+
+            await _worker.ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+        }
+
+        [TestMethod]
+        public void should_call_EpicsWithoutReference_one_time()
+        {
+            _mockV1.Verify(x => x.GetClosedTrackedEpics(_projectId, _epicCategory), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_call_CreateEpic_on_jir()
+        {
+            _mockJira.Verify(x => x.GetEpicByKey("OPC-10"), Times.Once());
+        }
+
+        [TestMethod]
+        public void should_not_set_the_issue_again()
+        {
+            _mockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>()), Times.Never);
         }
 
     }

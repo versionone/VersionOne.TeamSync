@@ -167,14 +167,19 @@ namespace VersionOne.TeamSync.Worker
 
             closedEpics.ForEach(epic =>
             {
-                Log.TraceFormat("Attempting to resolve Jira epic {0}", epic.Reference);
                 var jiraEpic = jiraInfo.JiraInstance.GetEpicByKey(epic.Reference);
+
                 if (jiraEpic.HasErrors)
                 {
-                    //???
                     Log.ErrorFormat("Jira epic {0} has errors", epic.Reference);
                     return;
                 }
+
+                if (_doneWords.Contains(jiraEpic.issues.Single().Fields.Status.Name))
+                    return;
+
+                Log.TraceFormat("Attempting to resolve Jira epic {0}", epic.Reference);
+
                 jiraInfo.JiraInstance.SetIssueToResolved(epic.Reference);
                 Log.DebugFormat("Resolved Jira epic {0}", epic.Reference);
                 processedEpics++;
@@ -488,7 +493,6 @@ namespace VersionOne.TeamSync.Worker
                     Log.DebugFormat("Updated V1 defect {0}", defect.Number);
                 });
             }
-
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(_doneWords) && defect.AssetState != "128")
             {
