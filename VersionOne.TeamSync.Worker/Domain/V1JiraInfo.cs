@@ -58,9 +58,14 @@ namespace VersionOne.TeamSync.Worker.Domain
                     proxy = new WebProxy(new Uri(server.Proxy.Url), false, new string[]{}, cred);
 
                 }
-                var connector =
-                    new JiraConnector.Connector.JiraConnector(
-                        new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password, proxy);
+                var connector = new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password, proxy);
+
+                var validConnection = connector.IsConnectionValid();
+
+                if (!validConnection)
+                    continue;
+                
+                connector.GetVersionInfo();
 
                 var projectMappings = server.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())

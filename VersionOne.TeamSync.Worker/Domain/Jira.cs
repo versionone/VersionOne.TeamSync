@@ -80,7 +80,10 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector = connector;
             _jiraProject = jiraProject;
             InstanceUrl = _connector.BaseUrl;
+            Version = _connector.VersionInfo;
         }
+
+        public JiraVersionInfo Version { get; set; }
 
         public Jira(IJiraConnector connector, MetaProject project, ILog log)
         {
