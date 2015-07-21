@@ -15,11 +15,11 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
     {
         private string _issueKey = "OPC-71";
         [TestInitialize]
-        public void Context()
+        public async void Context()
         {
             BuildContext();
             _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(new Story());
-            _worker.CreateStoryFromJira(MakeInfo(), new Issue()
+            await _worker.CreateStoryFromJira(MakeInfo(), new Issue()
             {
                 Key = _issueKey,
                 RenderedFields = new RenderedFields(){Description = "descript"},
