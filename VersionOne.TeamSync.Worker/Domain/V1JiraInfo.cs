@@ -60,11 +60,15 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }
                 var connector = new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password, proxy);
 
+                Log.InfoFormat("Verifying Jira connection...");
+                Log.DebugFormat("URL: {0}", server.Url);
+               
                 var validConnection = connector.IsConnectionValid();
+                Log.Info(validConnection ? "Jira connection successful!" : "Jira connection failed!");
 
                 if (!validConnection)
                     continue;
-                
+
                 connector.GetVersionInfo();
 
                 var projectMappings = server.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
@@ -75,11 +79,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             }
 
             return list;
-        }
-
-        public bool ValidateConnection()
-        {
-            return JiraInstance.ValidateConnection();
         }
 
         public bool ValidateMapping(IV1 v1)
