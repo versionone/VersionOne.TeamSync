@@ -286,6 +286,11 @@ namespace VersionOne.TeamSync.JiraConnector.Config
                 return (ProjectMapping)BaseGet(idx);
             }
         }
+
+        public void Add(ProjectMapping projectMapping)
+        {
+            BaseAdd(projectMapping);
+        }
     }
 
     public class PriorityMapping : ConfigurationElement
