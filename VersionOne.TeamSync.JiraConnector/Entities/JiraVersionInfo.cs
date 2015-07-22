@@ -12,4 +12,13 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string BuildNumber { get; set; }
         public string[] VersionNumbers { get; set; }
     }
+
+    public static class JiraVersionItems
+    {
+        public static Dictionary<string, string[]> VersionDoneWords = new Dictionary<string, string[]>
+        {
+            {"5", new[] {"Closed", "Close Issue"}},
+            {"6", new[] {"Done"}}
+        };
+    }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using log4net;
 using VersionOne.TeamSync.JiraConnector.Config;
+using VersionOne.TeamSync.JiraConnector.Entities;
 
 namespace VersionOne.TeamSync.Worker.Domain
 {
@@ -16,12 +17,15 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string EpicCategory { get; set; }
         public IJira JiraInstance { get; private set; }
 
+        public string[] DoneWords { get; private set; }
+
         public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
         {
             V1ProjectId = v1ProjectId;
             JiraKey = jiraKey;
             EpicCategory = epicCategory;
             JiraInstance = jiraInstance;
+            DoneWords = JiraVersionItems.VersionDoneWords[JiraInstance.VersionInfo.VersionNumbers[0]];
         }
 
         public V1JiraInfo(IProjectMapping projectMapping, IJira jiraInstance)
@@ -30,6 +34,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             JiraKey = projectMapping.JiraProject;
             EpicCategory = projectMapping.EpicSyncType;
             JiraInstance = jiraInstance;
+            DoneWords = JiraVersionItems.VersionDoneWords[JiraInstance.VersionInfo.VersionNumbers[0]];
         }
 
         public static IEnumerable<V1JiraInfo> BuildJiraInfo(JiraServerCollection servers, string minuteInterval)
