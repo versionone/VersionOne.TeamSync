@@ -251,7 +251,7 @@ namespace VersionOne.TeamSync.Core.Tests
 	    [TestMethod]
 	    public void calls_SetEpicTo_ToDo_once()
 	    {
-		    _mockJira.Verify(x => x.SetIssueToToDo(It.IsAny<string>()), Times.Once);
+		    _mockJira.Verify(x => x.SetIssueToToDo(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
 	    }
     }
 
@@ -394,7 +394,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_create_a_link_on_v1_epic()
         {
-            _mockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>()), Times.Once);
+            _mockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
         }
 
     }
@@ -442,7 +442,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_not_set_the_issue_again()
         {
-            _mockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>()), Times.Never);
+            _mockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>(), It.IsAny<string[]>()), Times.Never);
         }
 
     }

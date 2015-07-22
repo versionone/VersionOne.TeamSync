@@ -107,7 +107,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             var jira = new Jira(mockConnector.Object, string.Empty);
 
-            jira.SetIssueToToDo(IssueKey);
+            jira.SetIssueToToDo(IssueKey, new [] {"Done"});
 
             mockConnector.VerifyAll();
         }
@@ -191,7 +191,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             var jira = new Jira(mockConnector.Object, string.Empty);
 
-            jira.SetIssueToResolved(IssueKey);
+            jira.SetIssueToResolved(IssueKey, new[] {"Done"});
 
             mockConnector.VerifyAll();
         }
