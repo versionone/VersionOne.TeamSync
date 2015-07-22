@@ -9,6 +9,7 @@ using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.V1Connector;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -27,45 +28,46 @@ namespace VersionOne.TeamSync.Worker
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
-            IV1Connector v1Connector;
+            var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
+            
+            ICanSetProxyOrGetConnector authConnector;
             switch (V1Settings.Settings.AuthenticationType)
             {
                 case 0:
-                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
-                        .WithAccessToken(V1Settings.Settings.AccessToken)
-                        .Build();
+                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
+                        .WithAccessToken(V1Settings.Settings.AccessToken);
                     break;
                 case 1:
-                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
-                        .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password)
-                        .Build();
+                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
+                        .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password);
                     break;
                 case 2:
-                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
-                        .WithWindowsIntegrated()
-                        .Build();
+                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
+                        .WithWindowsIntegrated();
                     break;
                 case 3:
-                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
-                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password)
-                        .Build();
+                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
+                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password);
                     break;
                 case 4:
-                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
+                    authConnector = anonymousConnector
                         .WithAccessToken(V1Settings.Settings.AccessToken)
-                        .UseOAuthEndpoints()
-                        .Build();
+                        .UseOAuthEndpoints();
                     break;
 
                 default:
                     throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
             }
-            _v1 = new V1(v1Connector, serviceDuration);
+
+            if (V1Settings.Settings.Proxy.Enabled)
+            {
+                authConnector = (ICanSetProxyOrGetConnector) authConnector.WithProxy(new ProxyProvider(new Uri(V1Settings.Settings.Proxy.Url),
+                    V1Settings.Settings.Proxy.Username, V1Settings.Settings.Proxy.Password,
+                    V1Settings.Settings.Proxy.Domain));
+            }
+
+            _v1 = new V1(authConnector.Build(), serviceDuration);
 
             _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers, serviceDuration.TotalMinutes.ToString(CultureInfo.InvariantCulture));
         }

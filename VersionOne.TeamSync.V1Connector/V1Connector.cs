@@ -22,10 +22,10 @@ namespace VersionOne.TeamSync.V1Connector
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(V1Connector));
         private readonly HttpClient _client;
-        private readonly HttpClientHandler _handler;
         private readonly Uri _baseAddress;
         private static ICredentials _networkCreds;
         private bool _useOAuthEndpoints;
+        private IWebProxy _proxy;
 
         public V1Connector(string instanceUrl)
         {
@@ -36,8 +36,7 @@ namespace VersionOne.TeamSync.V1Connector
 
             if (Uri.TryCreate(instanceUrl, UriKind.Absolute, out _baseAddress))
             {
-                _handler = new HttpClientHandler();
-                _client = new HttpClient(_handler)
+                _client = new HttpClient()
                 {
                     BaseAddress = _baseAddress
                 };
@@ -93,7 +92,8 @@ namespace VersionOne.TeamSync.V1Connector
                 {
                     PreAuthenticate = true,
                     AllowAutoRedirect = true,
-                    Credentials = _networkCreds
+                    Credentials = _networkCreds,
+                    Proxy = _proxy
                 };
             }
         }
@@ -347,8 +347,8 @@ namespace VersionOne.TeamSync.V1Connector
                 if (string.IsNullOrWhiteSpace(password))
                     throw new ArgumentNullException("password");
 
-                _instance._handler.Credentials = new NetworkCredential(username, password);
-                _networkCreds = _instance._handler.Credentials;
+                _networkCreds = new NetworkCredential(username, password);
+                ;
                 return this;
             }
 
@@ -359,8 +359,7 @@ namespace VersionOne.TeamSync.V1Connector
                     {_instance._client.BaseAddress, "NTLM", CredentialCache.DefaultNetworkCredentials},
                     {_instance._client.BaseAddress, "Negotiate", CredentialCache.DefaultNetworkCredentials}
                 };
-                _instance._handler.Credentials = credentialCache;
-                _networkCreds = _instance._handler.Credentials;
+                _networkCreds = credentialCache;
 
                 return this;
             }
@@ -372,8 +371,7 @@ namespace VersionOne.TeamSync.V1Connector
                 if (string.IsNullOrWhiteSpace(password))
                     throw new ArgumentNullException("password");
 
-                _instance._handler.Credentials = new NetworkCredential(fullyQualifiedDomainUsername, password);
-                _networkCreds = _instance._handler.Credentials;
+                _networkCreds = new NetworkCredential(fullyQualifiedDomainUsername, password);
 
                 return this;
             }
@@ -403,7 +401,7 @@ namespace VersionOne.TeamSync.V1Connector
                 if (proxyProvider == null)
                     throw new ArgumentNullException("proxyProvider");
 
-                _instance._handler.Proxy = proxyProvider.CreateWebProxy();
+                _instance._proxy = proxyProvider.CreateWebProxy();
 
                 return this;
             }
@@ -418,7 +416,7 @@ namespace VersionOne.TeamSync.V1Connector
                 if (proxyProvider == null)
                     throw new ArgumentNullException("proxyProvider");
 
-                _instance._handler.Proxy = proxyProvider.CreateWebProxy();
+                _instance._proxy = proxyProvider.CreateWebProxy();
 
                 return this;
             }
