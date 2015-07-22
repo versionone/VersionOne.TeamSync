@@ -17,13 +17,15 @@ namespace VersionOne.TeamSync.V1Connector
 {
     public class V1Connector : IV1Connector
     {
+        private const string DATA_API_OAUTH_ENDPOINT = "rest-1.oauth.v1/Data/";
+        private const string DATA_API_ENDPOINT = "rest-1.v1/Data/";
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(V1Connector));
         private readonly HttpClient _client;
         private readonly HttpClientHandler _handler;
         private readonly Uri _baseAddress;
         private static ICredentials _networkCreds;
-        private string _endpoint = "rest-1.v1/Data";
-        private string _upstreamUserAgent;
+        private bool _useOAuthEndpoints;
 
         public V1Connector(string instanceUrl)
         {
@@ -39,9 +41,7 @@ namespace VersionOne.TeamSync.V1Connector
                 {
                     BaseAddress = _baseAddress
                 };
-                _upstreamUserAgent = FormatAssemblyUserAgent(Assembly.GetEntryAssembly());
 
-                //_upstreamUserAgent = FormatAssemblyUserAgent(Assembly.GetEntryAssembly());
                 InstanceUrl = _client.BaseAddress.AbsoluteUri;
             }
             else
@@ -250,12 +250,7 @@ namespace VersionOne.TeamSync.V1Connector
         {
             return new Builder(versionOneInstanceUrl);
         }
-
-        internal void SetUpstreamUserAgent(string userAgent)
-        {
-            _upstreamUserAgent = userAgent;
-        }
-
+        
         private string FormatAssemblyUserAgent(Assembly a, string upstream = null)
         {
             if (a == null) return null;
@@ -279,10 +274,10 @@ namespace VersionOne.TeamSync.V1Connector
 
         private string GetResourceUrl(string resource)
         {
-            if (string.IsNullOrWhiteSpace(_endpoint))
+            if (string.IsNullOrWhiteSpace(GetEndpoint()))
                 throw new ConfigurationErrorsException("V1Connector is not properly configured. The API endpoint was not specified.");
 
-            return _endpoint + ValidateResource(resource);
+            return GetEndpoint() + ValidateResource(resource);
         }
 
         private void LogResponse(HttpResponseMessage resp, string rc = "")
@@ -319,7 +314,12 @@ namespace VersionOne.TeamSync.V1Connector
             Log.Trace(stringBuilder.ToString());
         }
 
-        private class Builder : ICanSetUserAgentHeader, ICanSetAuthMethod, ICanSetProxyOrEndpointOrGetConnector, ICanSetEndpointOrGetConnector, ICanSetProxyOrGetConnector
+        private string GetEndpoint()
+        {
+            return _useOAuthEndpoints ? DATA_API_OAUTH_ENDPOINT : DATA_API_ENDPOINT;
+        }
+
+        private class Builder : ICanSetUserAgentHeader, ICanSetAuthMethod, ICanSetProxyOrEndpointOrGetConnector, ICanSetProxyOrGetConnector
         {
             private readonly V1Connector _instance;
 
@@ -398,17 +398,7 @@ namespace VersionOne.TeamSync.V1Connector
                 return this;
             }
 
-            public ICanSetProxyOrGetConnector UseEndpoint(string endpoint)
-            {
-                if (string.IsNullOrWhiteSpace(endpoint))
-                    throw new ArgumentNullException("endpoint");
-
-                _instance._endpoint = endpoint;
-
-                return this;
-            }
-
-            public ICanSetEndpointOrGetConnector WithProxy(ProxyProvider proxyProvider)
+            public ICanGetConnector WithProxy(ProxyProvider proxyProvider)
             {
                 if (proxyProvider == null)
                     throw new ArgumentNullException("proxyProvider");
@@ -432,13 +422,10 @@ namespace VersionOne.TeamSync.V1Connector
 
                 return this;
             }
-
-            ICanGetConnector ICanSetEndpointOrGetConnector.UseEndpoint(string endpoint)
+            
+            public ICanSetProxyOrGetConnector UseOAuthEndpoints()
             {
-                if (string.IsNullOrWhiteSpace(endpoint))
-                    throw new ArgumentNullException("endpoint");
-
-                _instance._endpoint = endpoint;
+                _instance._useOAuthEndpoints = true;
 
                 return this;
             }

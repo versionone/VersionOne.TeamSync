@@ -42,6 +42,26 @@ namespace VersionOne.TeamSync.Worker
                         .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password)
                         .Build();
                     break;
+                case 2:
+                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
+                        .WithWindowsIntegrated()
+                        .Build();
+                    break;
+                case 3:
+                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
+                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password)
+                        .Build();
+                    break;
+                case 4:
+                    v1Connector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                        .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString())
+                        .WithAccessToken(V1Settings.Settings.AccessToken)
+                        .UseOAuthEndpoints()
+                        .Build();
+                    break;
+
                 default:
                     throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
             }

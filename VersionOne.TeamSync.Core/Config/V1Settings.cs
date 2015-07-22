@@ -7,7 +7,7 @@ namespace VersionOne.TeamSync.Core.Config
         public static readonly V1Settings Settings = ConfigurationManager.GetSection("v1Settings") as V1Settings;
 
         [ConfigurationProperty("authenticationType", DefaultValue = 0, IsRequired = true)]
-        [IntegerValidator(MinValue = 0, MaxValue = 3)]
+        [IntegerValidator(MinValue = 0, MaxValue = 4)]
         public int AuthenticationType
         {
             get { return (int)this["authenticationType"]; }

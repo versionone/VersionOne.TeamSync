@@ -1,4 +1,6 @@
-﻿namespace VersionOne.TeamSync.V1Connector.Interfaces
+﻿using System;
+
+namespace VersionOne.TeamSync.V1Connector.Interfaces
 {
 
     public interface ICanSetUserAgentHeader
@@ -67,17 +69,7 @@
         /// </summary>
         /// <param name="proxyProvider">The ProxyProvider containing the proxy URI, username, and password.</param>
         /// <returns>ICanSetEndpointOrGetConnector</returns>
-        ICanSetEndpointOrGetConnector WithProxy(ProxyProvider proxyProvider);
-    }
-
-    public interface ICanSetEndpointOrGetConnector : ICanGetConnector
-    {
-        /// <summary>
-        /// Optional method for specifying an API endpoint to connect to.
-        /// </summary>
-        /// <param name="endpoint">The API endpoint.</param>
-        /// <returns>ICanGetConnector</returns>
-        ICanGetConnector UseEndpoint(string endpoint);
+        ICanGetConnector WithProxy(ProxyProvider proxyProvider);
     }
 
     public interface ICanSetProxyOrGetConnector : ICanGetConnector
@@ -93,11 +85,10 @@
     public interface ICanSetEndpoint
     {
         /// <summary>
-        /// Optional method for specifying an API endpoint to connect to.
+        /// Optional method for specifying that the connection should be made using the OAuth endpoints.
         /// </summary>
-        /// <param name="endpoint">The API endpoint.</param>
         /// <returns>ICanSetProxyOrGetConnector</returns>
-        ICanSetProxyOrGetConnector UseEndpoint(string endpoint);
+        ICanSetProxyOrGetConnector UseOAuthEndpoints();
     }
 
 }
