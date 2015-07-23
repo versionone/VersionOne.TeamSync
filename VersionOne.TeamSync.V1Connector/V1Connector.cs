@@ -17,8 +17,8 @@ namespace VersionOne.TeamSync.V1Connector
 {
     public class V1Connector : IV1Connector
     {
-        private const string DATA_API_OAUTH_ENDPOINT = "rest-1.oauth.v1/Data/";
-        private const string DATA_API_ENDPOINT = "rest-1.v1/Data/";
+        private const string DATA_API_OAUTH_ENDPOINT = "rest-1.oauth.v1/Data";
+        private const string DATA_API_ENDPOINT = "rest-1.v1/Data";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(V1Connector));
         private readonly HttpClient _client;
