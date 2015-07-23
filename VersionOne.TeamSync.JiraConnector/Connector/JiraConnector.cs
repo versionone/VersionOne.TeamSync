@@ -26,24 +26,21 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public string BaseUrl { get; private set; }
 
-        public JiraConnector(string baseUrl)
-            : this(baseUrl, string.Empty, string.Empty)
+        public JiraConnector(string baseUrl, IWebProxy proxy = null)
         {
-            _client = new RestClient(baseUrl);
+            _client = new RestClient(baseUrl) {Proxy = proxy};
             BaseUrl = _client.BaseUrl.AbsoluteUri.Replace(_client.BaseUrl.AbsolutePath, "");
         }
 
-        public JiraConnector(string baseUrl, string username, string password)
+        public JiraConnector(string baseUrl, string username, string password, IWebProxy proxy = null) : this(baseUrl, proxy)
         {
-            _client = new RestClient(baseUrl);
-            BaseUrl = _client.BaseUrl.AbsoluteUri.Replace(_client.BaseUrl.AbsolutePath, "");
             if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {
                 _client.Authenticator = new HttpBasicAuthenticator(username, password);
                 _username = username;
             }
         }
-
+        
         public JiraConnector(IRestClient restClient)
         {
             _client = restClient;

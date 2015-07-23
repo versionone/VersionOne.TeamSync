@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using VersionOne.TeamSync.Core.Config;
 
 namespace VersionOne.TeamSync.JiraConnector.Config
 {
@@ -56,6 +57,13 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         {
             get { return (string)this["password"]; }
             set { this["password"] = value; }
+        }
+
+        [ConfigurationProperty("proxy")]
+        public Proxy Proxy
+        {
+            get { return (Proxy)this["proxy"]; }
+            set { this["proxy"] = value; }
         }
 
         [ConfigurationProperty("projectMappings")]

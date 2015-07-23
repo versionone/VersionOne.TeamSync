@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Proxy.cs" />
     <Compile Include="Config\ServiceSettings.cs" />
     <Compile Include="Config\V1Settings.cs" />
     <Compile Include="ILogExtensions.cs" />
