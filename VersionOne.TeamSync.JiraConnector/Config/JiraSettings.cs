@@ -32,7 +32,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         }
 
         [ConfigurationProperty("name", DefaultValue = "", IsKey = true, IsRequired = true)]
-        public string name
+        public string Name
         {
             get { return (string)base["name"]; }
             set { base["name"] = value; }
@@ -57,6 +57,13 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         {
             get { return (string)this["password"]; }
             set { this["password"] = value; }
+        }
+
+        [ConfigurationProperty("ignoreCertificate", IsRequired = true)]
+        public bool IgnoreCertificate
+        {
+            get { return (bool)this["ignoreCertificate"]; }
+            set { this["ignoreCertificate"] = value; }
         }
 
         [ConfigurationProperty("proxy")]
@@ -105,7 +112,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((JiraServer)(element)).name;
+            return ((JiraServer)(element)).Name;
         }
 
         public override ConfigurationElementCollectionType CollectionType

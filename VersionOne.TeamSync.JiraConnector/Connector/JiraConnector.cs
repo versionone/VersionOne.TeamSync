@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using RestSharp.Serializers;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
@@ -26,26 +27,59 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public string BaseUrl { get; private set; }
 
-        public JiraConnector(string baseUrl, IWebProxy proxy = null)
+        public JiraConnector(JiraServer settings)
         {
-            _client = new RestClient(baseUrl) {Proxy = proxy};
-            BaseUrl = _client.BaseUrl.AbsoluteUri.Replace(_client.BaseUrl.AbsolutePath, "");
+            if (settings == null)
+                throw new ArgumentNullException("settings");
+
+            WebProxy proxy = null;
+            if (settings.Proxy != null && settings.Proxy.Enabled)
+            {
+                NetworkCredential cred;
+                if (string.IsNullOrEmpty(settings.Proxy.Username))
+                {
+                    cred = (NetworkCredential)CredentialCache.DefaultCredentials;
+                }
+                else
+                {
+                    cred = new NetworkCredential(settings.Proxy.Username, settings.Proxy.Password);
+                    if (!string.IsNullOrWhiteSpace(settings.Proxy.Domain))
+                    {
+                        cred.Domain = settings.Proxy.Domain;
+                    }
+                }
+
+                proxy = new WebProxy(new Uri(settings.Proxy.Url), false, new string[] { }, cred);
+            }
+
+            _client = new RestClient(new Uri(new Uri(settings.Url), "/rest/api/latest").ToString()) { Proxy = proxy };
+            BaseUrl = settings.Url;
+
+            if (!string.IsNullOrEmpty(settings.Username) && !string.IsNullOrEmpty(settings.Password))
+            {
+                _client.Authenticator = new HttpBasicAuthenticator(settings.Username, settings.Password);
+                _username = settings.Username;
+            }
+
+            if (settings.IgnoreCertificate)
+                ServicePointManager.ServerCertificateValidationCallback =
+                    (sender, certificate, chain, errors) => true;
         }
 
-        public JiraConnector(string baseUrl, string username, string password, IWebProxy proxy = null) : this(baseUrl, proxy)
-        {
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+        public JiraConnector(string baseUrl, string username, string password)
+            : this(new JiraServer
             {
-                _client.Authenticator = new HttpBasicAuthenticator(username, password);
-                _username = username;
-            }
+                Url = baseUrl,
+                Username = username,
+                Password = password
+            })
+        {
         }
-        
+
         public JiraConnector(IRestClient restClient)
         {
             _client = restClient;
         }
-
 
         #region EXECUTE
 
@@ -242,7 +276,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             var issues = result.Property("issues").Value;
             var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
             foreach (var issue in issues)
-            {   
+            {
                 var fields = issue["fields"].ToObject<Dictionary<string, object>>();
                 var key = issue["key"].ToString();
                 customProperties(key, searchResult.issues.Single(i => i.Key == key).Fields, fields);
@@ -304,10 +338,10 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             var response = _client.Execute(request);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                throw new JiraLoginException("Could not connecto to Jira. Bad credentials.");
+                throw new JiraLoginException("Could not connect to Jira. Bad credentials.");
 
             if (!string.IsNullOrWhiteSpace(response.ErrorMessage))
-                throw new JiraException("Could not connecto to Jira. Bad url.");
+                throw new JiraException("Could not connect to Jira. Bad url.");
 
             return response.StatusCode.Equals(HttpStatusCode.OK);
         }

@@ -5,6 +5,7 @@ using System.Net;
 using log4net;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.JiraConnector.Interfaces;
 
 namespace VersionOne.TeamSync.Worker.Domain
 {
@@ -43,28 +44,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
             foreach (var server in servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
-                WebProxy proxy = null;
-                if (server.Proxy.Enabled)
-                {
-                    NetworkCredential cred;
-                    if (string.IsNullOrEmpty(server.Proxy.Username))
-                    {
-                        cred = (NetworkCredential) CredentialCache.DefaultCredentials;
-                    }
-                    else
-                    {
-                        cred = new NetworkCredential(server.Proxy.Username, server.Proxy.Password);
-                        if (server.Proxy.Domain != null)
-                        {
-                            cred.Domain = server.Proxy.Domain;
-                        }
-                    }
-
-                    proxy = new WebProxy(new Uri(server.Proxy.Url), false, new string[]{}, cred);
-
-                }
-                var connector = new JiraConnector.Connector.JiraConnector(new Uri(new Uri(server.Url), "/rest/api/latest").ToString(), server.Username, server.Password, proxy);
-
+                IJiraConnector connector = new JiraConnector.Connector.JiraConnector(server);
+                
                 Log.InfoFormat("Verifying Jira connection...");
                 Log.DebugFormat("URL: {0}", server.Url);
                
@@ -80,7 +61,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 if (projectMappings.Any())
                     projectMappings.ForEach(pm => list.Add(new V1JiraInfo(pm, new Jira(connector, pm.JiraProject))));
                 else
-                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", server.name);
+                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", server.Name);
             }
 
             return list;

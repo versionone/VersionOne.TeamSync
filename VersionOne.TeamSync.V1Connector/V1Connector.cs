@@ -250,7 +250,7 @@ namespace VersionOne.TeamSync.V1Connector
         {
             return new Builder(versionOneInstanceUrl);
         }
-        
+
         private string FormatAssemblyUserAgent(Assembly a, string upstream = null)
         {
             if (a == null) return null;
@@ -420,7 +420,7 @@ namespace VersionOne.TeamSync.V1Connector
 
                 return this;
             }
-            
+
             public ICanSetProxyOrGetConnector UseOAuthEndpoints()
             {
                 _instance._useOAuthEndpoints = true;
