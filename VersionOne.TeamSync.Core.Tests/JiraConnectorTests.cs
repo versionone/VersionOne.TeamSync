@@ -103,11 +103,18 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_request_an_update_correctly()
         {
             var mockConnector = new Mock<IJiraConnector>();
-            mockConnector.Setup(x => x.Post("issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey))).Verifiable();
+            mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>()))
+                .Returns(new TransitionResponse() {Transitions = new List<Transition>()
+                {
+                    new Transition() {Id = "1",Name = "Done"},
+                    new Transition() {Id = "1",Name = "In Progress"}
+                } });
+            mockConnector.Setup(x => x.Post("issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey)))
+                .Verifiable();
 
             var jira = new Jira(mockConnector.Object, string.Empty);
 
-            jira.SetIssueToToDo(IssueKey);
+            jira.SetIssueToToDo(IssueKey, new [] {"Done"});
 
             mockConnector.VerifyAll();
         }
@@ -191,7 +198,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             var jira = new Jira(mockConnector.Object, string.Empty);
 
-            jira.SetIssueToResolved(IssueKey);
+            jira.SetIssueToResolved(IssueKey, new[] {"Done"});
 
             mockConnector.VerifyAll();
         }

@@ -15,6 +15,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     public interface IJira
     {
         string InstanceUrl { get; }
+        JiraVersionInfo VersionInfo { get; }
         bool ValidateConnection();
         bool ValidateProjectExists();
 
@@ -23,8 +24,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         void AddCreatedAsVersionOneActualComment(string issueKey, string v1ActualOid, string v1WorkitemOid);
 
         void UpdateIssue(Issue issue, string issueKey);
-        void SetIssueToToDo(string issueKey);
-        void SetIssueToResolved(string issueKey);
+        void SetIssueToToDo(string issueKey, string[] doneWords);
+        void SetIssueToResolved(string issueKey, string[] doneWords);
 
         SearchResult GetEpicByKey(string reference);
         SearchResult GetEpicsInProject(string projectKey);
@@ -62,6 +63,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private MetaProject _projectMeta;
 
         public string InstanceUrl { get; private set; }
+        public JiraVersionInfo VersionInfo { get; private set; }
 
         private MetaProject ProjectMeta
         {
@@ -80,13 +82,16 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector = connector;
             _jiraProject = jiraProject;
             InstanceUrl = _connector.BaseUrl;
+            VersionInfo = _connector.VersionInfo;
         }
+
 
         public Jira(IJiraConnector connector, MetaProject project, ILog log)
         {
             _connector = connector;
             _projectMeta = project;
             InstanceUrl = _connector.BaseUrl;
+            VersionInfo = _connector.VersionInfo;
             _log = log;
         }
 
@@ -132,8 +137,17 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector.Put("issue/" + issueKey, issue, HttpStatusCode.NoContent);
         }
 
-        public void SetIssueToToDo(string issueKey)
+        public void SetIssueToToDo(string issueKey, string[] doneWords)
         {
+            Log.Info("Attempting to transition " + issueKey);
+
+            var response = _connector.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", issueKey));
+            var transition = response.Transitions.Where(t => !doneWords.Contains(t.Name)).ToList();
+            if (transition.Count == 0)
+            {
+                Log.Error("No transitions found.  This jira epic will not be updated");
+                return;
+            }
             Log.Info("Attempting to transition " + issueKey);
 
             _connector.Post("issue/{issueIdOrKey}/transitions", new
@@ -151,22 +165,21 @@ namespace VersionOne.TeamSync.Worker.Domain
                         }
                     }
                 },
-                transition = new { id = "11" }
+                transition = new { id = transition.First().Id }
             }, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
 
             Log.Info(string.Format("Attempting to set status on {0}", issueKey));
         }
 
-        public void SetIssueToResolved(string issueKey)
+        public void SetIssueToResolved(string issueKey, string[] doneWords)
         {
             Log.Info("Attempting to transition " + issueKey);
-
+            
             var response = _connector.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", issueKey));
-            var transition = response.Transitions.Where(t => t.Name == "Done").ToList();
-
+            var transition = response.Transitions.Where(t => doneWords.Contains(t.Name)).ToList();
             if (transition.Count != 1)
             {
-                Log.Error("None or multiple transistions exists for {0} with the status of \"Done\".  This epic will not be updated");
+                Log.Error("None or multiple transistions exists for {0} with the status of " + string.Join(" or ", doneWords) + ".  This epic will not be updated");
                 return;
             }
 
