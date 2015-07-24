@@ -29,5 +29,6 @@ namespace VersionOne.TeamSync.JiraConnector.Interfaces
 
         bool IsConnectionValid();
         bool ProjectExists(string projectIdOrKey);
+        JiraVersionInfo GetVersionInfo();
     }
 }
