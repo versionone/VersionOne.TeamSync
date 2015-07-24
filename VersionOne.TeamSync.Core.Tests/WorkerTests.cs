@@ -21,6 +21,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             _mockV1 = new Mock<IV1>();
             _mockJira = new Mock<IJira>();
+            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
             _worker = new VersionOneToJiraWorker(_mockV1.Object);
         }
 
@@ -167,6 +168,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
 
             _mockJira = new Mock<IJira>();
+            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
 
             _worker = new VersionOneToJiraWorker(_mockV1.Object);
@@ -212,6 +214,7 @@ namespace VersionOne.TeamSync.Core.Tests
             });
 
             _mockJira = new Mock<IJira>();
+            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult
             {
                 issues = new List<Issue>
@@ -363,7 +366,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue { Key = "OPC-10" });
+            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields(){ Status = new Status(){Name = "Pending"}}});
 
             _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {

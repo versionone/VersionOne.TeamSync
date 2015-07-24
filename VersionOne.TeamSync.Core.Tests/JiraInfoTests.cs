@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
@@ -17,12 +18,14 @@ namespace VersionOne.TeamSync.Core.Tests
             for (var i = 0; i < listOMoqs.Capacity; i++)
             {
                 var moqInstance = new Mock<IJira>();
+                moqInstance.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
                 moqInstance.Setup(x => x.InstanceUrl).Returns("http://instance" + i);
 
                 hashSet.Add(new V1JiraInfo("project" + i, "key" + i, "category" + i, moqInstance.Object));
             }
 
             var dupeInstance = new Mock<IJira>();
+            dupeInstance.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
             dupeInstance.Setup(x => x.InstanceUrl).Returns("http://instance0");
 
             var infoDuplicate = new V1JiraInfo("project0", "key0", "category0", dupeInstance.Object);
