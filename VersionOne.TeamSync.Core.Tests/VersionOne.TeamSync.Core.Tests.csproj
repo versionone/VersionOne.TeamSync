@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EpicExtensionTests.cs" />
+    <Compile Include="Workers\DefectWorkerTests.cs" />
     <Compile Include="Workers\EpicWorkerTests.cs" />
     <Compile Include="IssueExtensionTests.cs" />
     <Compile Include="JiraConnectorTests.cs" />
