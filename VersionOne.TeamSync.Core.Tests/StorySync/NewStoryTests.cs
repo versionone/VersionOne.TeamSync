@@ -6,6 +6,7 @@ using Moq;
 using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests.StorySync
@@ -13,12 +14,14 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
     [TestClass]
     public class take_jira_story_to_v1_story : worker_bits
     {
+        private StoryWorker _worker;
         private string _issueKey = "OPC-71";
         [TestInitialize]
         public async void Context()
         {
             BuildContext();
             _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(new Story());
+            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
             await _worker.CreateStoryFromJira(MakeInfo(), new Issue()
             {
                 Key = _issueKey,
@@ -59,6 +62,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         private string _storyId = "Story:1000";
         protected Status _status;
         protected Story _story = new Story();
+        private StoryWorker _worker;
 
         public async void Context()
         {
@@ -71,6 +75,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                 .ReturnsAsync(new XDocument());
 
             _story.ID = _storyId;
+            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
             await _worker.UpdateStoryFromJiraToV1(MakeInfo(), new Issue()
             {
                 Key = _issueKey,

@@ -51,6 +51,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -66,6 +67,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActualsWorker.cs" />
+    <Compile Include="ApiCaching.cs" />
+    <Compile Include="DefectWorker.cs" />
     <Compile Include="Domain\Actual.cs" />
     <Compile Include="Domain\Epic.cs" />
     <Compile Include="Domain\IPrimaryWorkItem.cs" />
@@ -81,6 +85,7 @@
     <Compile Include="Domain\Xml\V1NulableSetNode.cs" />
     <Compile Include="Domain\Xml\V1SetNode.cs" />
     <Compile Include="Domain\Xml\V1SetRelationNode.cs" />
+    <Compile Include="EpicWorker.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\EpicExtensions.cs" />
     <Compile Include="Extensions\IssueExtensions.cs" />
@@ -88,6 +93,8 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\XDocumentExtensions.cs" />
     <Compile Include="HtmlToPlainText.cs" />
+    <Compile Include="IAsyncWorker.cs" />
+    <Compile Include="StoryWorker.cs" />
     <Compile Include="VersionOneToJiraWorker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

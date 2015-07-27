@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EpicExtensionTests.cs" />
+    <Compile Include="Workers\EpicWorkerTests.cs" />
     <Compile Include="IssueExtensionTests.cs" />
     <Compile Include="JiraConnectorTests.cs" />
     <Compile Include="JiraInfoTests.cs" />
@@ -109,6 +110,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

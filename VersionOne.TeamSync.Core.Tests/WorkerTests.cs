@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using log4net;
+using log4net.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
@@ -10,9 +12,9 @@ namespace VersionOne.TeamSync.Core.Tests
 {
     public abstract class worker_bits
     {
-        protected VersionOneToJiraWorker _worker;
         protected Mock<IV1> _mockV1;
         protected Mock<IJira> _mockJira;
+        protected Mock<ILog> _mockLogger;
         protected string _projectId = "Scope:1000";
         protected string _jiraKey = "OPC";
         protected string _epicCategory = "EpicCategory:1000";
@@ -22,7 +24,8 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockV1 = new Mock<IV1>();
             _mockJira = new Mock<IJira>();
             _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
-            _worker = new VersionOneToJiraWorker(_mockV1.Object);
+            _mockLogger = new Mock<ILog>();
+            _mockLogger.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
         }
 
         protected V1JiraInfo MakeInfo()
@@ -34,12 +37,16 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class Worker_when_there_are_no_new_epics : worker_bits
     {
+        private EpicWorker _worker;
+
         [TestInitialize]
         public async void Context()
         {
             BuildContext();
             _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
             var jiraInfo = MakeInfo();
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
+
             await _worker.CreateEpics(jiraInfo);
         }
 
@@ -66,6 +73,7 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         protected Epic _epic;
         protected ItemBase _itemBase;
+        private EpicWorker _worker;
 
         public async void DataSetup()
         {
@@ -83,7 +91,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             _epic.Reference.ShouldBeNull();
             var jiraInfo = MakeInfo();
-
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
             await _worker.CreateEpics(jiraInfo);
         }
     }
@@ -160,6 +168,8 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class Worker_when_there_are_no_epics_to_update : worker_bits
     {
+        private EpicWorker _worker;
+
         [TestInitialize]
         public async void Context()
         {
@@ -171,7 +181,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object);
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
             var jiraInfo = MakeInfo();
 
             await _worker.UpdateEpics(jiraInfo);
@@ -199,6 +209,8 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class Worker_when_there_are_no_updated_epics : worker_bits
     {
+        private EpicWorker _worker;
+
         [TestInitialize]
         public async void Context()
         {
@@ -227,7 +239,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             });
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object);
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
             var jiraInfo = MakeInfo();
 
             await _worker.UpdateEpics(jiraInfo);
@@ -263,6 +275,7 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         private Epic _epic;
         private SearchResult _searchResult;
+        private EpicWorker _worker;
 
         [TestInitialize]
         public async void Context()
@@ -283,6 +296,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _epic.IsClosed().ShouldBeFalse();
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
             var jiraInfo = MakeInfo();
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
             await _worker.UpdateEpics(jiraInfo);
         }
@@ -311,6 +325,7 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         private Epic _epic;
         private SearchResult _searchResult;
+        private EpicWorker _worker;
 
         [TestInitialize]
         public async void Context()
@@ -331,6 +346,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
 
             var jiraInfo = MakeInfo();
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
             await _worker.UpdateEpics(jiraInfo);
         }
@@ -359,6 +375,7 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         private Epic _epic;
         private SearchResult _searchResult;
+        private EpicWorker _worker;
 
         [TestInitialize]
         public async void Context()
@@ -378,6 +395,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
             var jiraInfo = MakeInfo();
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
             await _worker.ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
         }
@@ -407,7 +425,7 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         private Epic _epic;
         private SearchResult _searchResult;
-
+        private EpicWorker _epicWorker;
         [TestInitialize]
         public async void Context()
         {
@@ -426,8 +444,8 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
             var jiraInfo = MakeInfo();
-
-            await _worker.ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+            _epicWorker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
+            await _epicWorker.ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
         }
 
         [TestMethod]
@@ -437,7 +455,7 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public void should_call_CreateEpic_on_jir()
+        public void should_call_CreateEpic_on_jira()
         {
             _mockJira.Verify(x => x.GetEpicByKey("OPC-10"), Times.Once());
         }
@@ -454,6 +472,7 @@ namespace VersionOne.TeamSync.Core.Tests
     public class Worker_when_a_VersionOne_epic_is_deleted : worker_bits
     {
         private Epic _epic;
+        private EpicWorker _worker;
 
         [TestInitialize]
         public async void Context()
@@ -469,7 +488,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             _mockJira.Setup(x => x.DeleteEpicIfExists(_epic.Reference));
 
-            _worker = new VersionOneToJiraWorker(_mockV1.Object);
+            _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
             var jiraInfo = MakeInfo();
 
             await _worker.DeleteEpics(jiraInfo);

@@ -6,6 +6,7 @@ using Moq;
 using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
@@ -47,6 +48,8 @@ namespace VersionOne.TeamSync.Core.Tests
                 {
                     _storySentToUpdate = (Story)asset;
                 }).ReturnsAsync(new XDocument());
+            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
+
             _worker.UpdateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Story> { _existingStory, _updatedStory });
         }
 
@@ -119,6 +122,9 @@ namespace VersionOne.TeamSync.Core.Tests
                         Reference = "OPC-3"
                     }
                 };
+
+            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
+
         }
 
         [TestMethod]
@@ -126,6 +132,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             // All jira stories referenced in V1 exist in Jira - No stories should be deleted
             var jiraInfo = MakeInfo();
+
             _worker.DeleteV1Stories(jiraInfo, _allJiraStories, _allV1Stories);
             _mockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
         }
@@ -162,6 +169,8 @@ namespace VersionOne.TeamSync.Core.Tests
         protected string _storyNumber = "S-0001";
         protected string _newIssueKey = "OPC-15";
         protected string _existingIssueKey;
+        protected StoryWorker _worker;
+
 
         protected override void BuildContext()
         {
@@ -187,6 +196,7 @@ namespace VersionOne.TeamSync.Core.Tests
             };
             _fakeCreatedStory = new Story { Number = "S-8900" };
             _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(_fakeCreatedStory);
+            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
         }
     }
 
@@ -201,6 +211,8 @@ namespace VersionOne.TeamSync.Core.Tests
             _newIssue.Fields.EpicLink = null;
 
             var jiraInfo = MakeInfo();
+            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
+
             _worker.CreateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue }, new List<Story> { _existingStory });
         }
 
