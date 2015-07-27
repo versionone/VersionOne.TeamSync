@@ -70,7 +70,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private IJiraSettings _jiraSettings;
 
         public string InstanceUrl { get; private set; }
-
+        
         public string Username
         {
             get { return _connector.Username; }
@@ -114,7 +114,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             RunFromThisDateOn = runFromThisDateOn;
             _log = LogManager.GetLogger(typeof(Jira));
         }
-
         public Jira(IJiraConnector connector, MetaProject project, ILog log)
             : this(connector)
         {
@@ -139,6 +138,11 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateProjectExists()
         {
             return _connector.ProjectExists(JiraProject);
+        }
+
+        public JiraVersionInfo VersionInfo
+        {
+            get { return _jiraVersionInfo ?? (_jiraVersionInfo = _connector.GetVersionInfo()); }
         }
 
         public bool ValidateMemberPermissions()

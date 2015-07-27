@@ -324,7 +324,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             return searchResult;
         }
-
+        
         public JiraVersionInfo GetVersionInfo()
         {
             var path = string.Format("{0}/serverInfo", JiraRestApiUrl);

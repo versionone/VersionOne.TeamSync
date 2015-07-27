@@ -26,6 +26,7 @@ namespace VersionOne.TeamSync.Service
 
         protected override void OnStart(string[] args)
         {
+                StartMessage();
             try
             {
                 _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.SyncIntervalInSeconds);
