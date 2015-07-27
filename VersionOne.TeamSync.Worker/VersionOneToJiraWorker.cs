@@ -67,6 +67,7 @@ namespace VersionOne.TeamSync.Worker
             }
 
             _v1 = new V1(authConnector.Build(), serviceDuration);
+
             asyncWorkers = new List<IAsyncWorker>
             {
                 new EpicWorker(_v1, Log),
@@ -74,7 +75,8 @@ namespace VersionOne.TeamSync.Worker
                 new DefectWorker(_v1, Log),
                 new ActualsWorker(_v1, Log)
             };
-            _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers, serviceDuration.TotalMinutes.ToString(CultureInfo.InvariantCulture));
+
+            _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers);
         }
 
 
@@ -121,6 +123,12 @@ namespace VersionOne.TeamSync.Worker
                 throw new Exception(string.Format("Unable to validate connection to {0}.", _v1.InstanceUrl));
             }
 
+            foreach (var jiraInstanceInfo in _jiraInstances.ToList())
+            {
+                Log.InfoFormat("Verifying Jira connection...");
+                Log.DebugFormat("URL: {0}", jiraInstanceInfo.JiraInstance.InstanceUrl);
+                Log.Info(jiraInstanceInfo.ValidateConnection() ? "Jira connection successful!" : "Jira connection failed!");
+            }
         }
 
         public void ValidateProjectMappings()

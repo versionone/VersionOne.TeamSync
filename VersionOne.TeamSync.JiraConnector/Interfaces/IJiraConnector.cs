@@ -9,7 +9,6 @@ namespace VersionOne.TeamSync.JiraConnector.Interfaces
     public interface IJiraConnector
     {
         string BaseUrl { get; }
-        JiraVersionInfo VersionInfo { get; }
 
         T Execute<T>(IRestRequest request, HttpStatusCode responseStatusCode) where T : new();
         string Execute(IRestRequest request, HttpStatusCode responseStatusCode);
