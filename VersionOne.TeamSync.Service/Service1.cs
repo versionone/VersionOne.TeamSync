@@ -26,12 +26,12 @@ namespace VersionOne.TeamSync.Service
 
         protected override void OnStart(string[] args)
         {
-            _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
-
-            StartMessage();
-            _worker = new VersionOneToJiraWorker(_serviceDuration);
             try
             {
+                _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
+
+                StartMessage();
+                _worker = new VersionOneToJiraWorker(_serviceDuration);
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
             _timer = new Timer(OnTimedEvent, null, 0, (int) _serviceDuration.TotalMilliseconds);
