@@ -17,6 +17,24 @@ using VersionOne.TeamSync.Worker.Extensions;
 namespace VersionOne.TeamSync.Core.Tests
 {
     [TestClass]
+    public abstract class when_using_search
+    {
+        protected RestRequest ResultRequest;
+        protected Dictionary<string, IEnumerable<string>> Query;
+
+        public void MakeRequest()
+        {
+            ResultRequest = JiraConnector.Connector.JiraConnector.BuildSearchRequest(Query, new[] { "item", "item2", "item3" });
+        }
+
+        [TestMethod]
+        public void has_two_parameters()
+        {
+            ResultRequest.Parameters.Count.ShouldEqual(2);
+        }
+    }
+
+    [TestClass]
     public class when_seaching_in_one_project_for_items_in_jira : when_using_search
     {
         [TestInitialize]
@@ -77,24 +95,6 @@ namespace VersionOne.TeamSync.Core.Tests
     }
 
     [TestClass]
-    public abstract class when_using_search
-    {
-        protected RestRequest ResultRequest;
-        protected Dictionary<string, IEnumerable<string>> Query;
-
-        public void MakeRequest()
-        {
-            ResultRequest = JiraConnector.Connector.JiraConnector.BuildSearchRequest(Query, new[] { "item", "item2", "item3" });
-        }
-
-        [TestMethod]
-        public void has_two_parameters()
-        {
-            ResultRequest.Parameters.Count.ShouldEqual(2);
-        }
-    }
-
-    [TestClass]
     public class for_setting_a_project_to_todo
     {
         private const string IssueKey = "AKey-10";
@@ -104,17 +104,20 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>()))
-                .Returns(new TransitionResponse() {Transitions = new List<Transition>()
+                .Returns(new TransitionResponse()
+                {
+                    Transitions = new List<Transition>()
                 {
                     new Transition() {Id = "1",Name = "Done"},
                     new Transition() {Id = "1",Name = "In Progress"}
-                } });
+                }
+                });
             mockConnector.Setup(x => x.Post("issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey)))
                 .Verifiable();
 
             var jira = new Jira(mockConnector.Object, string.Empty);
 
-            jira.SetIssueToToDo(IssueKey, new [] {"Done"});
+            jira.SetIssueToToDo(IssueKey, new[] { "Done" });
 
             mockConnector.VerifyAll();
         }
@@ -198,7 +201,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             var jira = new Jira(mockConnector.Object, string.Empty);
 
-            jira.SetIssueToResolved(IssueKey, new[] {"Done"});
+            jira.SetIssueToResolved(IssueKey, new[] { "Done" });
 
             mockConnector.VerifyAll();
         }

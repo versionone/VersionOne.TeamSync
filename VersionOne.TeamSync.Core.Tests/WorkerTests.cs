@@ -23,7 +23,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             _mockV1 = new Mock<IV1>();
             _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
+            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
             _mockLogger = new Mock<ILog>();
             _mockLogger.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
         }
@@ -178,7 +178,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
 
             _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() {VersionNumbers = new[] {"6"}});
+            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
 
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
@@ -263,11 +263,11 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), It.IsAny<string>()), Times.Exactly(2));
         }
 
-	    [TestMethod]
-	    public void calls_SetEpicTo_ToDo_once()
-	    {
-		    _mockJira.Verify(x => x.SetIssueToToDo(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
-	    }
+        [TestMethod]
+        public void calls_SetEpicTo_ToDo_once()
+        {
+            _mockJira.Verify(x => x.SetIssueToToDo(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
+        }
     }
 
     [TestClass]
@@ -383,7 +383,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields(){ Status = new Status(){Name = "Pending"}}});
+            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "Pending" } } });
 
             _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
@@ -432,7 +432,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
             _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() {Status = new Status() {Name = "Done"} } });
+            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "Done" } } });
 
             _mockV1.Setup(x => x.GetClosedTrackedEpics(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {

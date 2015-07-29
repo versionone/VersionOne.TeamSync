@@ -176,7 +176,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public void SetIssueToResolved(string issueKey, string[] doneWords)
         {
             Log.Info("Attempting to transition " + issueKey);
-            
+
             var response = _connector.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", issueKey));
             var transition = response.Transitions.Where(t => doneWords.Contains(t.Name)).ToList();
             if (transition.Count != 1)

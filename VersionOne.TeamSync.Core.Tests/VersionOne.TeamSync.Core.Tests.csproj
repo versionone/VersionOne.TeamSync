@@ -78,6 +78,7 @@
     <Compile Include="V1DomainTests.cs" />
     <Compile Include="V1Tests.cs" />
     <Compile Include="WorkerTests.cs" />
+    <Compile Include="WorkerTests_Actual.cs" />
     <Compile Include="WorkerTests_Story.cs" />
     <Compile Include="WorkitemEqualsTests.cs" />
     <Compile Include="Xml\SetNodeTests.cs" />
