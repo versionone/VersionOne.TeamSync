@@ -42,12 +42,14 @@ namespace VersionOne.TeamSync.Worker
                         .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password);
                     break;
                 case 2:
-                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
-                        .WithWindowsIntegrated();
+                    authConnector = anonymousConnector
+                        .WithWindowsIntegrated()
+                        .UseOAuthEndpoints();
                     break;
                 case 3:
-                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
-                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password);
+                    authConnector = anonymousConnector
+                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password)
+                        .UseOAuthEndpoints();
                     break;
                 case 4:
                     authConnector = anonymousConnector

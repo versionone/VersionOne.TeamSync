@@ -21,9 +21,9 @@ namespace VersionOne.TeamSync.V1Connector
         private const string DATA_API_ENDPOINT = "rest-1.v1/Data";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(V1Connector));
-        private readonly HttpClient _client;
         private readonly Uri _baseAddress;
-        private static ICredentials _networkCreds;
+        private ICredentials _networkCreds;
+        private readonly IDictionary<string, string> _requestHeaders = new Dictionary<string, string>();
         private bool _useOAuthEndpoints;
         private IWebProxy _proxy;
 
@@ -36,12 +36,7 @@ namespace VersionOne.TeamSync.V1Connector
 
             if (Uri.TryCreate(instanceUrl, UriKind.Absolute, out _baseAddress))
             {
-                _client = new HttpClient()
-                {
-                    BaseAddress = _baseAddress
-                };
-
-                InstanceUrl = _client.BaseAddress.AbsoluteUri;
+                InstanceUrl = _baseAddress.AbsoluteUri;
             }
             else
                 throw new Exception("Instance url is not valid.");
@@ -84,7 +79,7 @@ namespace VersionOne.TeamSync.V1Connector
             }
         }
 
-        private HttpClientHandler _clientHandler
+        private HttpClientHandler ClientHandler
         {
             get
             {
@@ -102,10 +97,16 @@ namespace VersionOne.TeamSync.V1Connector
         {
             get
             {
-                return new HttpClient(_clientHandler)
+                var httpInstance = new HttpClient(ClientHandler)
                 {
                     BaseAddress = _baseAddress
                 };
+                foreach (var requestHeader in _requestHeaders)
+                {
+                    httpInstance.DefaultRequestHeaders.Add(requestHeader.Key, requestHeader.Value);
+                }
+
+                return httpInstance;
             }
         }
 
@@ -186,29 +187,22 @@ namespace VersionOne.TeamSync.V1Connector
         {
             using (var client = HttpInstance)
             {
-                try
+                var endpoint = GetResourceUrl("Member") + "?sel=IsSelf,ID";
+                var response = client.GetAsync(endpoint).Result;
+
+                if (response.IsSuccessStatusCode)
                 {
-                    var endpoint = GetResourceUrl("Member") + "?sel=IsSelf,ID";
-                    var response = client.GetAsync(endpoint).Result;
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseContent = response.Content.ReadAsStringAsync().Result;
-                        var doc = XElement.Parse(responseContent);
-                        var member = doc.Descendants("Asset").FirstOrDefault();
-                        if (member != null)
-                            MemberId = member.Attribute("id").Value;
-                    }
-
-                    if (response.StatusCode == HttpStatusCode.Unauthorized)
-                        throw new ConfigurationErrorsException("Could not connecto to V1. Bad credentials.");
-
-                    return response.IsSuccessStatusCode;
+                    var responseContent = response.Content.ReadAsStringAsync().Result;
+                    var doc = XElement.Parse(responseContent);
+                    var member = doc.Descendants("Asset").FirstOrDefault();
+                    if (member != null)
+                        MemberId = member.Attribute("id").Value;
                 }
-                catch (Exception)
-                {
-                    throw new ConfigurationErrorsException("Could not connecto to V1. Bad url.");
-                }
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    throw new ConfigurationErrorsException("Could not connect to V1. Bad credentials.");
+
+                return response.IsSuccessStatusCode;
             }
         }
 
@@ -335,7 +329,7 @@ namespace VersionOne.TeamSync.V1Connector
                 if (string.IsNullOrWhiteSpace(version))
                     throw new ArgumentNullException("version");
 
-                _instance._client.DefaultRequestHeaders.Add(name, version);
+                _instance._requestHeaders.Add(name, version);
 
                 return this;
             }
@@ -347,8 +341,8 @@ namespace VersionOne.TeamSync.V1Connector
                 if (string.IsNullOrWhiteSpace(password))
                     throw new ArgumentNullException("password");
 
-                _networkCreds = new NetworkCredential(username, password);
-                ;
+                _instance._networkCreds = new NetworkCredential(username, password);
+
                 return this;
             }
 
@@ -356,10 +350,10 @@ namespace VersionOne.TeamSync.V1Connector
             {
                 var credentialCache = new CredentialCache
                 {
-                    {_instance._client.BaseAddress, "NTLM", CredentialCache.DefaultNetworkCredentials},
-                    {_instance._client.BaseAddress, "Negotiate", CredentialCache.DefaultNetworkCredentials}
+                    {_instance._baseAddress, "NTLM", CredentialCache.DefaultNetworkCredentials},
+                    {_instance._baseAddress, "Negotiate", CredentialCache.DefaultNetworkCredentials}
                 };
-                _networkCreds = credentialCache;
+                _instance._networkCreds = credentialCache;
 
                 return this;
             }
@@ -371,7 +365,7 @@ namespace VersionOne.TeamSync.V1Connector
                 if (string.IsNullOrWhiteSpace(password))
                     throw new ArgumentNullException("password");
 
-                _networkCreds = new NetworkCredential(fullyQualifiedDomainUsername, password);
+                _instance._networkCreds = new NetworkCredential(fullyQualifiedDomainUsername, password);
 
                 return this;
             }
@@ -381,7 +375,7 @@ namespace VersionOne.TeamSync.V1Connector
                 if (string.IsNullOrWhiteSpace(accessToken))
                     throw new ArgumentNullException("accessToken");
 
-                _instance._client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                _instance._requestHeaders.Add("Authorization", "Bearer " + accessToken);
 
                 return this;
             }
@@ -391,7 +385,7 @@ namespace VersionOne.TeamSync.V1Connector
                 if (string.IsNullOrWhiteSpace(accessToken))
                     throw new ArgumentNullException("accessToken");
 
-                _instance._client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
+                _instance._requestHeaders.Add("Authorization", "Bearer " + accessToken);
 
                 return this;
             }
