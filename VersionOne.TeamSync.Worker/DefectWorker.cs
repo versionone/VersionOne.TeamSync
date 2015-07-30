@@ -91,7 +91,7 @@ namespace VersionOne.TeamSync.Worker
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
             {
                 await _v1.CloseDefect(defect.ID);
-                Log.TraceFormat("Closed V1 defect {0}", defect.Number);
+                Log.DebugClosedItem("defect", defect.Number);
             }
         }
 

@@ -88,7 +88,7 @@ namespace VersionOne.TeamSync.Worker
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && story.AssetState != "128")
             {
                 await _v1.CloseStory(story.ID);
-                Log.DebugFormat("Closed V1 story {0}", story.Number);
+                Log.DebugClosedItem("story", story.Number);
             }
         }
 
