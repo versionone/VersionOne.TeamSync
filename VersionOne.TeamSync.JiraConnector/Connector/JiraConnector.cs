@@ -284,13 +284,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             return searchResult;
         }
-
-        private JiraVersionInfo _jiraVersionInfo;
-        public JiraVersionInfo VersionInfo
-        {
-            get { return _jiraVersionInfo ?? (_jiraVersionInfo = GetVersionInfo()); }
-        }
-
+        
         public JiraVersionInfo GetVersionInfo()
         {
             var request = new RestRequest(Method.GET)

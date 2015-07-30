@@ -18,15 +18,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string EpicCategory { get; set; }
         public IJira JiraInstance { get; private set; }
 
-        public string[] DoneWords { get; private set; }
-
+        private string[] _doneWords;
+        
         public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
         {
             V1ProjectId = v1ProjectId;
             JiraKey = jiraKey;
             EpicCategory = epicCategory;
             JiraInstance = jiraInstance;
-            DoneWords = JiraVersionItems.VersionDoneWords[JiraInstance.VersionInfo.VersionNumbers[0]];
         }
 
         public V1JiraInfo(IProjectMapping projectMapping, IJira jiraInstance)
@@ -35,36 +34,28 @@ namespace VersionOne.TeamSync.Worker.Domain
             JiraKey = projectMapping.JiraProject;
             EpicCategory = projectMapping.EpicSyncType;
             JiraInstance = jiraInstance;
-            DoneWords = JiraVersionItems.VersionDoneWords[JiraInstance.VersionInfo.VersionNumbers[0]];
         }
 
-        public static IEnumerable<V1JiraInfo> BuildJiraInfo(JiraServerCollection servers, string minuteInterval)
+        public static IEnumerable<V1JiraInfo> BuildJiraInfo(JiraServerCollection servers)
         {
             var list = new HashSet<V1JiraInfo>();
 
-            foreach (var server in servers.Cast<JiraServer>().Where(s => s.Enabled))
+            foreach (var serverSettings in servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
-                IJiraConnector connector = new JiraConnector.Connector.JiraConnector(server);
-                
-                Log.InfoFormat("Verifying Jira connection...");
-                Log.DebugFormat("URL: {0}", server.Url);
-               
-                var validConnection = connector.IsConnectionValid();
-                Log.Info(validConnection ? "Jira connection successful!" : "Jira connection failed!");
-
-                if (!validConnection)
-                    continue;
-
-                connector.GetVersionInfo();
-
-                var projectMappings = server.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
+                IJiraConnector connector = new JiraConnector.Connector.JiraConnector(serverSettings);
+                var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())
                     projectMappings.ForEach(pm => list.Add(new V1JiraInfo(pm, new Jira(connector, pm.JiraProject))));
                 else
-                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", server.Name);
+                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
             }
 
             return list;
+        }
+
+        public bool ValidateConnection()
+        {
+            return JiraInstance.ValidateConnection();
         }
 
         public bool ValidateMapping(IV1 v1)
@@ -86,6 +77,15 @@ namespace VersionOne.TeamSync.Worker.Domain
                 result = false;
             }
             return result;
+        }
+
+        public string[] DoneWords
+        {
+            get
+            {
+                return _doneWords ??
+                       (_doneWords = JiraVersionItems.VersionDoneWords[JiraInstance.VersionInfo.VersionNumbers[0]]);
+            }
         }
 
         public override int GetHashCode()

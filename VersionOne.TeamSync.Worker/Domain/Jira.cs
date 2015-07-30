@@ -61,10 +61,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         private readonly IJiraConnector _connector;
         private readonly string _jiraProject;
         private MetaProject _projectMeta;
+        private JiraVersionInfo _jiraVersionInfo;
 
         public string InstanceUrl { get; private set; }
-        public JiraVersionInfo VersionInfo { get; private set; }
-
+        
         private MetaProject ProjectMeta
         {
             get
@@ -82,16 +82,13 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector = connector;
             _jiraProject = jiraProject;
             InstanceUrl = _connector.BaseUrl;
-            VersionInfo = _connector.VersionInfo;
         }
-
 
         public Jira(IJiraConnector connector, MetaProject project, ILog log)
         {
             _connector = connector;
             _projectMeta = project;
             InstanceUrl = _connector.BaseUrl;
-            VersionInfo = _connector.VersionInfo;
             _log = log;
         }
 
@@ -112,6 +109,11 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateProjectExists()
         {
             return _connector.ProjectExists(_jiraProject);
+        }
+
+        public JiraVersionInfo VersionInfo
+        {
+            get { return _jiraVersionInfo ?? (_jiraVersionInfo = _connector.GetVersionInfo()); }
         }
 
         public void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
@@ -174,7 +176,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public void SetIssueToResolved(string issueKey, string[] doneWords)
         {
             Log.Info("Attempting to transition " + issueKey);
-            
+
             var response = _connector.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", issueKey));
             var transition = response.Transitions.Where(t => doneWords.Contains(t.Name)).ToList();
             if (transition.Count != 1)
