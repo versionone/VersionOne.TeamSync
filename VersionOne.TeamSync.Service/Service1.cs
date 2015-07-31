@@ -34,7 +34,8 @@ namespace VersionOne.TeamSync.Service
                 _worker = new VersionOneToJiraWorker(_serviceDuration);
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
-            _timer = new Timer(OnTimedEvent, null, 0, (int) _serviceDuration.TotalMilliseconds);
+
+                _timer = new Timer(OnTimedEvent, null, 0, (int)_serviceDuration.TotalMilliseconds);
             }
             catch (Exception e)
             {
