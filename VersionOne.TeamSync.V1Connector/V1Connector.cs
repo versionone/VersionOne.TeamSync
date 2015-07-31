@@ -190,6 +190,8 @@ namespace VersionOne.TeamSync.V1Connector
                 var endpoint = GetResourceUrl("Member") + "?sel=IsSelf,ID";
                 var response = client.GetAsync(endpoint).Result;
 
+                LogResponse(response);
+
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = response.Content.ReadAsStringAsync().Result;

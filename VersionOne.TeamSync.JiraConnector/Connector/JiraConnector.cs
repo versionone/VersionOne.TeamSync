@@ -328,8 +328,10 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                 RequestFormat = DataFormat.Json
             };
             request.AddQueryParameter("username", _username);
+            LogRequest(_client, request);
 
             var response = _client.Execute(request);
+            LogResponse(response);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 throw new JiraLoginException("Could not connect to Jira. Bad credentials.");
