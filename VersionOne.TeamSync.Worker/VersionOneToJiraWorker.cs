@@ -1,24 +1,20 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
-using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
-using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Worker
 {
     public class VersionOneToJiraWorker
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
+        private readonly List<IAsyncWorker> _asyncWorkers;
         private readonly IEnumerable<V1JiraInfo> _jiraInstances;
         private readonly IV1 _v1;
         private static DateTime _syncTime;
@@ -29,16 +25,16 @@ namespace VersionOne.TeamSync.Worker
         {
             var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
                 .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
-            
+
             ICanSetProxyOrGetConnector authConnector;
             switch (V1Settings.Settings.AuthenticationType)
             {
                 case 0:
-                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
+                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
                         .WithAccessToken(V1Settings.Settings.AccessToken);
                     break;
                 case 1:
-                    authConnector = (ICanSetProxyOrGetConnector) anonymousConnector
+                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
                         .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password);
                     break;
                 case 2:
@@ -63,14 +59,14 @@ namespace VersionOne.TeamSync.Worker
 
             if (V1Settings.Settings.Proxy.Enabled)
             {
-                authConnector = (ICanSetProxyOrGetConnector) authConnector.WithProxy(new ProxyProvider(new Uri(V1Settings.Settings.Proxy.Url),
+                authConnector = (ICanSetProxyOrGetConnector)authConnector.WithProxy(new ProxyProvider(new Uri(V1Settings.Settings.Proxy.Url),
                     V1Settings.Settings.Proxy.Username, V1Settings.Settings.Proxy.Password,
                     V1Settings.Settings.Proxy.Domain));
             }
 
             _v1 = new V1(authConnector.Build(), serviceDuration);
 
-            asyncWorkers = new List<IAsyncWorker>
+            _asyncWorkers = new List<IAsyncWorker>
             {
                 new EpicWorker(_v1, Log),
                 new StoryWorker(_v1, Log),
@@ -82,11 +78,10 @@ namespace VersionOne.TeamSync.Worker
         }
 
 
-        private readonly List<IAsyncWorker> asyncWorkers; 
         public VersionOneToJiraWorker(IV1 v1)
         {
             _v1 = v1;
-            asyncWorkers = new List<IAsyncWorker>
+            _asyncWorkers = new List<IAsyncWorker>
             {
                 new EpicWorker(_v1, Log),
                 new StoryWorker(_v1, Log),
@@ -103,7 +98,7 @@ namespace VersionOne.TeamSync.Worker
                 _syncTime = DateTime.Now;
                 Log.Info(string.Format("Syncing between {0} and {1}", jiraInfo.JiraKey, jiraInfo.V1ProjectId));
 
-                asyncWorkers.ForEach(worker => worker.DoWork(jiraInfo));
+                _asyncWorkers.ForEach(worker => worker.DoWork(jiraInfo));
 
                 jiraInfo.JiraInstance.CleanUpAfterRun(Log);
             });
@@ -113,23 +108,32 @@ namespace VersionOne.TeamSync.Worker
 
         public void ValidateConnections()
         {
-            Log.Info("Verifying VersionOne connection...");
-            Log.DebugFormat("URL: {0}", _v1.InstanceUrl);
-            if (_v1.ValidateConnection())
+            if (_jiraInstances.Any())
             {
-                Log.Info("VersionOne connection successful!");
+                Log.Info("Verifying VersionOne connection...");
+                Log.DebugFormat("URL: {0}", _v1.InstanceUrl);
+                if (_v1.ValidateConnection())
+                {
+                    Log.Info("VersionOne connection successful!");
+                }
+                else
+                {
+                    Log.Error("VersionOne connection failed.");
+                    throw new Exception(string.Format("Unable to validate connection to {0}.", _v1.InstanceUrl));
+                }
+
+                foreach (var jiraInstanceInfo in _jiraInstances.ToList())
+                {
+                    Log.InfoFormat("Verifying Jira connection...");
+                    Log.DebugFormat("URL: {0}", jiraInstanceInfo.JiraInstance.InstanceUrl);
+                    Log.Info(jiraInstanceInfo.ValidateConnection()
+                        ? "Jira connection successful!"
+                        : "Jira connection failed!");
+                }
             }
             else
             {
-                Log.Error("VersionOne connection failed.");
-                throw new Exception(string.Format("Unable to validate connection to {0}.", _v1.InstanceUrl));
-            }
-
-            foreach (var jiraInstanceInfo in _jiraInstances.ToList())
-            {
-                Log.InfoFormat("Verifying Jira connection...");
-                Log.DebugFormat("URL: {0}", jiraInstanceInfo.JiraInstance.InstanceUrl);
-                Log.Info(jiraInstanceInfo.ValidateConnection() ? "Jira connection successful!" : "Jira connection failed!");
+                throw new Exception("The service requires at least one valid Jira server with one valid project mapping to run.");
             }
         }
 
@@ -149,7 +153,9 @@ namespace VersionOne.TeamSync.Worker
                     ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
                 }
             }
-        }
 
+            if (!_jiraInstances.Any())
+                throw new Exception("No valid projects to synchronize. You need at least one valid project mapping for the service to run.");
+        }
     }
 }

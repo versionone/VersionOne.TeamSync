@@ -19,7 +19,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public IJira JiraInstance { get; private set; }
 
         private string[] _doneWords;
-        
+
         public V1JiraInfo(string v1ProjectId, string jiraKey, string epicCategory, IJira jiraInstance)
         {
             V1ProjectId = v1ProjectId;
