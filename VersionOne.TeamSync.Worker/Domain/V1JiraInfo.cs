@@ -63,17 +63,17 @@ namespace VersionOne.TeamSync.Worker.Domain
             var result = true;
             if (!JiraInstance.ValidateProjectExists())
             {
-                Log.ErrorFormat("Jira project '{0}' does not exists. Current project mapping will be ignored", JiraKey);
+                Log.ErrorFormat("Jira project '{0}' does not exist. Current project mapping will be ignored", JiraKey);
                 result = false;
             }
             if (!v1.ValidateProjectExists(V1ProjectId))
             {
-                Log.ErrorFormat("VersionOne project '{0}' does not exists. Current project mapping will be ignored", V1ProjectId);
+                Log.ErrorFormat("VersionOne project '{0}' does not exist. Current project mapping will be ignored", V1ProjectId);
                 result = false;
             }
             if (!v1.ValidateEpicCategoryExists(EpicCategory))
             {
-                Log.ErrorFormat("VersionOne Epic Category '{0}' does not exists. Current project mapping will be ignored", EpicCategory);
+                Log.ErrorFormat("VersionOne Epic Category '{0}' does not exist. Current project mapping will be ignored", EpicCategory);
                 result = false;
             }
             return result;
