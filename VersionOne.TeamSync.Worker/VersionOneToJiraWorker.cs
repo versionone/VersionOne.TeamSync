@@ -93,6 +93,7 @@ namespace VersionOne.TeamSync.Worker
         public void DoWork()
         {
             Log.Info("Beginning sync...");
+
             _jiraInstances.ToList().ForEach(jiraInfo =>
             {
                 _syncTime = DateTime.Now;
@@ -102,6 +103,7 @@ namespace VersionOne.TeamSync.Worker
 
                 jiraInfo.JiraInstance.CleanUpAfterRun(Log);
             });
+
             Log.Info("Ending sync...");
             Log.DebugFormat("Total sync time: {0}", DateTime.Now - _syncTime);
         }
