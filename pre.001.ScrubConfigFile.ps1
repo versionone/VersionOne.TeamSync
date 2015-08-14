@@ -27,20 +27,24 @@ function Clean-ConfigFile {
 	$xml.configuration.v1Settings.password = ""
 
     ## jiraSettings
+    $scrubServer = "true"
+    
     $xml.configuration.jiraSettings.servers.server | % {
-        if ($_ -eq $xml.configuration.jiraSettings.servers.server[0]) {
+        if ($scrubServer -eq "true") {
             $_.enabled = "false"
             $_.name = ""
             $_.url = "http://server/instance"
             $_.username = ""
             $_.password = ""
-            $firstMapping = $_.projectMappings.project[0]
+            $scrubServer = "false"
+            $scrubMapping = "true"
             $_.projectMappings.project | % {
-                if ($_ -eq $firstMapping) {
+                if ($scrubMapping -eq "true") {
                     $_.enabled = "false"
                     $_.v1Project = ""
                     $_.jiraProject = ""
                     $_.epicSyncType = "EpicCategory:208"
+                    $scrubMapping = "false"
                 } else {
                     $firstMapping.ParentNode.RemoveChild($_)
                 }
