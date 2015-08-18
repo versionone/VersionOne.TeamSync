@@ -79,6 +79,11 @@ namespace VersionOne.TeamSync.Worker.Domain
             return result;
         }
 
+        public bool ValidateMemberPermissions()
+        {
+            return JiraInstance.ValidateMemberPermissions();
+        }
+
         public string[] DoneWords
         {
             get

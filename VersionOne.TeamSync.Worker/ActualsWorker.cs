@@ -24,6 +24,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoWork(V1JiraInfo jiraInfo)
         {
+            // TODO: check if we can do this validation only on startup
             ValidateRequiredV1Fields();
 
             if (!_isActualWorkEnabled)

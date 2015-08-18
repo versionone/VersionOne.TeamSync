@@ -9,12 +9,13 @@ namespace VersionOne.TeamSync.JiraConnector.Interfaces
     public interface IJiraConnector
     {
         string BaseUrl { get; }
+        string Username { get; }
 
         T Execute<T>(IRestRequest request, HttpStatusCode responseStatusCode) where T : new();
         string Execute(IRestRequest request, HttpStatusCode responseStatusCode);
 
-        string Get(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
-        T Get<T>(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>)) where T : new();
+        string Get(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>), Dictionary<string, string> queryParameters = null);
+        T Get<T>(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>), Dictionary<string, string> queryParameters = null) where T : new();
         string Post(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         T Post<T>(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>)) where T : new();
         string Put(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
@@ -29,5 +30,6 @@ namespace VersionOne.TeamSync.JiraConnector.Interfaces
         bool IsConnectionValid();
         bool ProjectExists(string projectIdOrKey);
         JiraVersionInfo GetVersionInfo();
+        UserInfo GetUserInfo();
     }
 }

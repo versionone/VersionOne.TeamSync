@@ -159,5 +159,35 @@ namespace VersionOne.TeamSync.Worker
             if (!_jiraInstances.Any())
                 throw new Exception("No valid projects to synchronize. You need at least one valid project mapping for the service to run.");
         }
+
+        public void ValidateMemberAccountPermissions()
+        {
+            Log.Info("Verifying VersionOne member account permissions...");
+            Log.DebugFormat("Member ID: {0}", _v1.MemberId);
+            if (_v1.ValidateMemberPermissions())
+            {
+                Log.Info("VersionOne member account has valid permissions!");
+            }
+            else
+            {
+                Log.Error("VersionOne member account has invalid permissions.");
+                throw new Exception(string.Format("Unable to validate permissions for Member ID {0}.", _v1.MemberId));
+            }
+
+            foreach (var jiraInstanceInfo in _jiraInstances.ToList())
+            {
+                Log.InfoFormat("Verifying Jira member account permissions...");
+                Log.DebugFormat("User: {0}", jiraInstanceInfo.JiraInstance.Username);
+                if (jiraInstanceInfo.ValidateMemberPermissions())
+                {
+                    Log.Info("JIRA member account has valid permissions!");
+                }
+                else
+                {
+                    Log.Error("JIRA member account has invalid permissions.");
+                    throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
+                }
+            }
+        }
     }
 }

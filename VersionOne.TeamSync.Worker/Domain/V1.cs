@@ -17,6 +17,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateProjectExists(string projectId);
         bool ValidateEpicCategoryExists(string epicCategoryId);
         bool ValidateActualReferenceFieldExists();
+        bool ValidateMemberPermissions();
 
         void CreateLink(IV1Asset asset, string title, string url);
         Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
@@ -231,6 +232,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateActualReferenceFieldExists()
         {
             return _connector.AssetFieldExists("Actual", "Reference");
+        }
+
+        public bool ValidateMemberPermissions()
+        {
+            // TODO: make connector call
+            // Request: http://localhost/VersionOne/rest-1.v1/Data/Member?sel=DefaultRole&where=IsSelf=%27true%27
+
+            return true;
         }
 
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)

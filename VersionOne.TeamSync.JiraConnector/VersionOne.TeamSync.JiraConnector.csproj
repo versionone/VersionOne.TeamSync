@@ -107,6 +107,7 @@
     <Compile Include="Entities\Item.cs" />
     <Compile Include="Entities\JiraVersionInfo.cs" />
     <Compile Include="Entities\Transition.cs" />
+    <Compile Include="Entities\UserInfo.cs" />
     <Compile Include="Exceptions\JiraException.cs" />
     <Compile Include="Exceptions\JiraLoginException.cs" />
     <Compile Include="Exceptions\JiraPermissionException.cs" />

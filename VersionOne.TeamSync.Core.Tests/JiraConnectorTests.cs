@@ -103,7 +103,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_request_an_update_correctly()
         {
             var mockConnector = new Mock<IJiraConnector>();
-            mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>()))
+            mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>(), It.IsAny<Dictionary<string, string>>()))
                 .Returns(new TransitionResponse()
                 {
                     Transitions = new List<Transition>()
@@ -193,7 +193,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_request_an_update_correctly()
         {
             var mockConnector = new Mock<IJiraConnector>();
-            mockConnector.Setup(x => x.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", IssueKey))).Returns(new TransitionResponse()
+            mockConnector.Setup(x => x.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", IssueKey), It.IsAny<Dictionary<string, string>>())).Returns(new TransitionResponse()
             {
                 Transitions = new List<Transition>() { new Transition() { Id = "5", Name = "Done" } }
             }).Verifiable();

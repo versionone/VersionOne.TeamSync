@@ -15,9 +15,12 @@ namespace VersionOne.TeamSync.Worker.Domain
     public interface IJira
     {
         string InstanceUrl { get; }
+        string Username { get; }
+
         JiraVersionInfo VersionInfo { get; }
         bool ValidateConnection();
         bool ValidateProjectExists();
+        bool ValidateMemberPermissions();
 
         void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
         void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
@@ -45,7 +48,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
     public class Jira : IJira
     {
-        private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
+        private const string CreatedFromV1Comment = "Created from VersionOne Portfolio GroupItem {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
         private const string TrackedInV1 = "Created as VersionOne Workitem {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
         private const string CreatedAsVersionOneActualComment = "Created as VersionOne {0} in Workitem {1}";
         private const int ConnectionAttempts = 3;
@@ -64,7 +67,12 @@ namespace VersionOne.TeamSync.Worker.Domain
         private JiraVersionInfo _jiraVersionInfo;
 
         public string InstanceUrl { get; private set; }
-        
+
+        public string Username
+        {
+            get { return _connector.Username; }
+        }
+
         private MetaProject ProjectMeta
         {
             get
@@ -109,6 +117,16 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateProjectExists()
         {
             return _connector.ProjectExists(_jiraProject);
+        }
+
+        public bool ValidateMemberPermissions()
+        {
+            var userInfo = _connector.GetUserInfo();
+            if (userInfo == null)
+                return false;
+
+            return userInfo.Groups.Items.Any(
+                item => item.Name.Equals("jira-administrators") || item.Name.Equals("jira-developers"));
         }
 
         public JiraVersionInfo VersionInfo
