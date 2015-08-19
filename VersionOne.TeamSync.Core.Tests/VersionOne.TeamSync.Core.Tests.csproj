@@ -87,6 +87,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\VersionOne.TeamSync.Interfaces\VersionOne.TeamSync.Interfaces.csproj">
+      <Project>{01ef08d0-104e-4bd9-b644-8bf712714ae5}</Project>
+      <Name>VersionOne.TeamSync.Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.V1Connector\VersionOne.TeamSync.V1Connector.csproj">
       <Project>{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}</Project>
       <Name>VersionOne.TeamSync.V1Connector</Name>

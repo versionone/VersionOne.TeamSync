@@ -315,6 +315,14 @@ namespace VersionOne.TeamSync.V1Connector
             return _useOAuthEndpoints ? DATA_API_OAUTH_ENDPOINT : DATA_API_ENDPOINT;
         }
 
+        public class V1ConnectorFactory : IV1ConnectorFactory
+        {
+            public ICanSetUserAgentHeader WithInstanceUrl(string versionOneInstanceUrl)
+            {
+                return V1Connector.WithInstanceUrl(versionOneInstanceUrl);
+            }
+        }
+
         private class Builder : ICanSetUserAgentHeader, ICanSetAuthMethod, ICanSetProxyOrEndpointOrGetConnector, ICanSetProxyOrGetConnector
         {
             private readonly V1Connector _instance;
@@ -402,7 +410,7 @@ namespace VersionOne.TeamSync.V1Connector
                 return this;
             }
 
-            public V1Connector Build()
+            public IV1Connector Build()
             {
                 return _instance;
             }

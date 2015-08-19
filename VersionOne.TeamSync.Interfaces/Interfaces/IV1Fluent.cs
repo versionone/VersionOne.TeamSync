@@ -59,7 +59,7 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
         /// Required terminating method that returns the V1Connector object.
         /// </summary>
         /// <returns>V1Connector</returns>
-        V1Connector Build();
+        IV1Connector Build();
     }
 
     public interface ICanSetProxyOrEndpointOrGetConnector : ICanSetEndpoint, ICanGetConnector

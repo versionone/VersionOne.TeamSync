@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace VersionOne.TeamSync.V1Connector.Interfaces
 {
+    [InheritedExport]
     public interface IV1Connector
     {
         string InstanceUrl { get; }

@@ -37,7 +37,7 @@ namespace VersionOne.TeamSync.V1Connector
             return credential;
         }
 
-        internal IWebProxy CreateWebProxy()
+        public IWebProxy CreateWebProxy()
         {
             if (proxy == null)
             {
