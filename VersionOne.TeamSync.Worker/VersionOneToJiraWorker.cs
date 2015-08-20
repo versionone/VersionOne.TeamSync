@@ -1,9 +1,11 @@
 ﻿using log4net;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reflection;
 using VersionOne.TeamSync.Core.Config;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.V1Connector;
 using VersionOne.TeamSync.V1Connector.Interfaces;
@@ -11,7 +13,15 @@ using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Worker
 {
-    public class VersionOneToJiraWorker
+    public class VersionOneToJiraWorkFactory : IV1StartupWorkerFactory
+    {
+        public IV1StartupWorker Create(TimeSpan serviceDuration)
+        {
+            return new VersionOneToJiraWorker(serviceDuration);
+        }
+    }
+
+    public class VersionOneToJiraWorker : IV1StartupWorker
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
         private readonly List<IAsyncWorker> _asyncWorkers;
@@ -19,11 +29,14 @@ namespace VersionOne.TeamSync.Worker
         private readonly IV1 _v1;
         private static DateTime _syncTime;
 
+        [Import]
+        private readonly IV1ConnectorFactory _connectorFactory;
+
         public bool IsActualWorkEnabled { get; private set; }
 
         public VersionOneToJiraWorker(TimeSpan serviceDuration)
         {
-            var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+            var anonymousConnector = _connectorFactory.WithInstanceUrl(V1Settings.Settings.Url)
                 .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
 
             ICanSetProxyOrGetConnector authConnector;

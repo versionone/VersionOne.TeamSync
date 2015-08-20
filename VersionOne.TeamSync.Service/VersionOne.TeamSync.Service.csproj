@@ -39,6 +39,7 @@
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
@@ -79,9 +80,9 @@
       <Project>{59dc969b-6c21-4e8a-af90-e7b6cd4f5a1f}</Project>
       <Name>VersionOne.TeamSync.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VersionOne.TeamSync.Worker\VersionOne.TeamSync.Worker.csproj">
-      <Project>{52681ef1-bae1-4e7d-82a7-9bf3638ceff9}</Project>
-      <Name>VersionOne.TeamSync.Worker</Name>
+    <ProjectReference Include="..\VersionOne.TeamSync.Interfaces\VersionOne.TeamSync.Interfaces.csproj">
+      <Project>{01ef08d0-104e-4bd9-b644-8bf712714ae5}</Project>
+      <Name>VersionOne.TeamSync.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.JiraConnector\VersionOne.TeamSync.JiraConnector.csproj">
       <Project>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</Project>

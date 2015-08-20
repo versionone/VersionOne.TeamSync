@@ -6,7 +6,6 @@ using System.Xml.Linq;
 
 namespace VersionOne.TeamSync.V1Connector.Interfaces
 {
-    [InheritedExport]
     public interface IV1Connector
     {
         string InstanceUrl { get; }

@@ -40,10 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interfaces\IV1Asset.cs" />
-    <Compile Include="Interfaces\IV1Connector.cs" />
-    <Compile Include="Interfaces\IV1ConnectorFactory.cs" />
-    <Compile Include="Interfaces\IV1Fluent.cs" />
+    <Compile Include="IV1Asset.cs" />
+    <Compile Include="IV1Connector.cs" />
+    <Compile Include="IV1ConnectorFactory.cs" />
+    <Compile Include="IV1Fluent.cs" />
+    <Compile Include="IV1StartupWorkerFactory.cs" />
+    <Compile Include="IV1StartupWorker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyProvider.cs" />
   </ItemGroup>

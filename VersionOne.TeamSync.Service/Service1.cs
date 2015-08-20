@@ -3,7 +3,11 @@ using System.ServiceProcess;
 using System.Threading;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
-using VersionOne.TeamSync.Worker;
+using VersionOne.TeamSync.Interfaces;
+using System.ComponentModel.Composition;
+using System.Collections.Generic;
+using System.Linq;
+using System.ComponentModel.Composition.Hosting;
 
 namespace VersionOne.TeamSync.Service
 {
@@ -11,12 +15,18 @@ namespace VersionOne.TeamSync.Service
     {
         private Timer _timer;
         private static TimeSpan _serviceDuration;
-        private static VersionOneToJiraWorker _worker;
+        [ImportMany]
+        private IEnumerable<IV1StartupWorkerFactory> _startupWorkerFactories;
+        private IV1StartupWorker _worker;
         private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
 
         public Service1()
         {
             InitializeComponent();
+
+            var dirCatalog = new DirectoryCatalog(@".\");
+            var container = new CompositionContainer(dirCatalog);
+            container.ComposeParts(this);
         }
 
         public void OnDebugStart()
@@ -28,12 +38,13 @@ namespace VersionOne.TeamSync.Service
         {
             try
             {
+                var firstStartupWorkerFactory = _startupWorkerFactories.FirstOrDefault();
                 _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
 
                 StartMessage();
-                _worker = new VersionOneToJiraWorker(_serviceDuration);
+                _worker = firstStartupWorkerFactory.Create(_serviceDuration);
                 _worker.ValidateConnections();
-                _worker.ValidateProjectMappings();
+                //_worker.ValidateProjectMappings();
 
                 _timer = new Timer(OnTimedEvent, null, 0, (int)_serviceDuration.TotalMilliseconds);
             }
@@ -53,7 +64,7 @@ namespace VersionOne.TeamSync.Service
             StopMessage();
         }
 
-        private static void OnTimedEvent(object stateInfo)
+        private void OnTimedEvent(object stateInfo)
         {
             Log.DebugFormat("The service event was raised at {0}", DateTime.Now);
             _worker.DoWork();
