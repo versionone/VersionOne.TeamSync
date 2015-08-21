@@ -166,11 +166,11 @@ namespace VersionOne.TeamSync.Worker
             Log.DebugFormat("Member ID: {0}", _v1.MemberId);
             if (_v1.ValidateMemberPermissions())
             {
-                Log.Info("VersionOne member account has valid permissions!");
+                Log.Info("VersionOne member account has valid permissions.");
             }
             else
             {
-                Log.Error("VersionOne member account has invalid permissions.");
+                Log.Error("VersionOne member account is not valid, default role must be Team Member or higher.");
                 throw new Exception(string.Format("Unable to validate permissions for Member ID {0}.", _v1.MemberId));
             }
 
@@ -180,11 +180,11 @@ namespace VersionOne.TeamSync.Worker
                 Log.DebugFormat("User: {0}", jiraInstanceInfo.JiraInstance.Username);
                 if (jiraInstanceInfo.ValidateMemberPermissions())
                 {
-                    Log.Info("JIRA member account has valid permissions!");
+                    Log.Info("JIRA user has valid permissions.");
                 }
                 else
                 {
-                    Log.Error("JIRA member account has invalid permissions.");
+                    Log.Error("JIRA user is not valid, must have at least following permissions set: EDIT_ISSUES, DELETE_ISSUES and TRANSITION_ISSUES");
                     throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
                 }
             }
