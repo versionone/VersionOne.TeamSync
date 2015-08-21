@@ -17,7 +17,7 @@ namespace VersionOne.TeamSync.Worker
         public static ILog Log { get; private set; }
         private const string CreatedFromV1Comment = "Created from VersionOne Work Item {0} in Project {1}";
         private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
-        private const string V1AssetDetailWebLinkTitle = "VersionOne Work Item ({0})";
+        private const string V1AssetDetailWebLinkTitle = "VersionOne Defect ({0})";
 
         public DefectWorker(IV1 v1, ILog log)
         {
