@@ -15,6 +15,9 @@ namespace VersionOne.TeamSync.Worker
     {
         private readonly IV1 _v1;
         public static ILog Log { get; private set; }
+        private const string CreatedFromV1Comment = "Created from VersionOne Work Item {0} in Project {1}";
+        private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
+        private const string V1AssetDetailWebLinkTitle = "VersionOne Work Item ({0})";
 
         public DefectWorker(IV1 v1, ILog log)
         {
@@ -137,8 +140,14 @@ namespace VersionOne.TeamSync.Worker
 
             jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraDefect.Fields.Labels), jiraDefect.Key);
             Log.TraceFormat("Updated labels on Jira defect {0}", jiraDefect.Key);
-            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ScopeName, _v1.InstanceUrl);
-            Log.TraceFormat("Added link to V1 defect {0} on Jira defect {1}", newDefect.Number, jiraDefect.Key);
+
+            jiraInfo.JiraInstance.AddComment(jiraDefect.Key, string.Format(CreatedFromV1Comment, newDefect.Number, newDefect.ScopeName));
+            Log.TraceFormat("Added comment to Jira defect {0}", jiraDefect.Key);
+
+            jiraInfo.JiraInstance.AddWebLink(jiraDefect.Key,
+                        string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newDefect.Number),
+                        string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
+            Log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newDefect.Number, jiraDefect.Key);
 
             var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraDefect.Key;
             _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraDefect.Key), link);

@@ -39,5 +39,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             _mockV1.Verify(x => x.CreateLink(It.IsAny<Epic>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
+
     }
 }

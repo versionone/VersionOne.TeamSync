@@ -15,6 +15,9 @@ namespace VersionOne.TeamSync.Worker
     {
         private readonly IV1 _v1;
         public static ILog Log { get; private set; }
+        private const string CreatedFromV1Comment = "Created from VersionOne Work Item {0} in Project {1}";
+        private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
+        private const string V1AssetDetailWebLinkTitle = "VersionOne Work Item ({0})";
 
         public StoryWorker(IV1 v1, ILog log)
         {
@@ -135,9 +138,13 @@ namespace VersionOne.TeamSync.Worker
             jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
             Log.TraceFormat("Updated labels on Jira story {0}", jiraStory.Key);
 
-            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ScopeName,
-                _v1.InstanceUrl);
-            Log.TraceFormat("Added link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
+            jiraInfo.JiraInstance.AddComment(jiraStory.Key, string.Format(CreatedFromV1Comment, newStory.Number, newStory.ScopeName));
+            Log.TraceFormat("Added comment to Jira story {0}", jiraStory.Key);
+
+            jiraInfo.JiraInstance.AddWebLink(jiraStory.Key,
+                        string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newStory.Number),
+                        string.Format(V1AssetDetailWebLinkTitle, newStory.Number));
+            Log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
 
             var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraStory.Key;
             _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);
