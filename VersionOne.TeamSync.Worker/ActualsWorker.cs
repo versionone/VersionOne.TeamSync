@@ -15,6 +15,7 @@ namespace VersionOne.TeamSync.Worker
         private readonly IV1 _v1;
 		private string _pluralAsset = "actuals";
         private readonly ILog _log;
+        private const string CreatedAsVersionOneActualComment = "Created as VersionOne {0} in Workitem {1}";
         private bool _isActualWorkEnabled;
 
         public ActualsWorker(IV1 v1, ILog log)
@@ -92,7 +93,7 @@ namespace VersionOne.TeamSync.Worker
                 _log.DebugFormat("Created V1 actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
 
                 var actualOid = string.Format("{0}:{1}", newActual.AssetType, newActual.ID);
-                jiraInfo.JiraInstance.AddCreatedAsVersionOneActualComment(issueKey, actualOid, v1Number);
+                jiraInfo.JiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, actualOid, v1Number));
                 _log.TraceFormat("Added comment on Jira worklog id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
 
                 processedActuals++;

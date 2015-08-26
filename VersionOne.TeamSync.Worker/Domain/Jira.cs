@@ -19,9 +19,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateConnection();
         bool ValidateProjectExists();
 
-        void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
-        void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance);
-        void AddCreatedAsVersionOneActualComment(string issueKey, string v1ActualOid, string v1WorkitemOid);
+        void AddComment(string issueKey, string comment);
+        void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle);
 
         void UpdateIssue(Issue issue, string issueKey);
         void SetIssueToToDo(string issueKey, string[] doneWords);
@@ -45,9 +44,6 @@ namespace VersionOne.TeamSync.Worker.Domain
 
     public class Jira : IJira
     {
-        private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
-        private const string TrackedInV1 = "Created as VersionOne Workitem {0} in Project {1}\r\nURL:  {2}assetdetail.v1?Number={0}";
-        private const string CreatedAsVersionOneActualComment = "Created as VersionOne {0} in Workitem {1}";
         private const int ConnectionAttempts = 3;
 
         private ILog _log;
@@ -116,22 +112,15 @@ namespace VersionOne.TeamSync.Worker.Domain
             get { return _jiraVersionInfo ?? (_jiraVersionInfo = _connector.GetVersionInfo()); }
         }
 
-        public void AddCreatedByV1Comment(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
+        public void AddComment(string issueKey, string comment)
         {
-            var body = string.Format(CreatedFromV1Comment, v1Number, v1ProjectName, v1Instance);
-            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
+            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(comment), HttpStatusCode.NoContent);
         }
 
-        public void AddLinkToV1InComments(string issueKey, string v1Number, string v1ProjectName, string v1Instance)
+        public void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle)
         {
-            var body = string.Format(TrackedInV1, v1Number, v1ProjectName, v1Instance);
-            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
-        }
-
-        public void AddCreatedAsVersionOneActualComment(string issueKey, string v1ActualOid, string v1Number)
-        {
-            var body = string.Format(CreatedAsVersionOneActualComment, v1ActualOid, v1Number);
-            _connector.Put(JiraResource.Issue.Value + "/" + issueKey, AddComment(body), HttpStatusCode.NoContent);
+            var body = new { @object = new { url = webLinkUrl, title = webLinkTitle } };
+            _connector.Post(JiraResource.Issue.Value + "/" + issueKey + "/remotelink", body, HttpStatusCode.Created);
         }
 
         public void UpdateIssue(Issue issue, string issueKey)

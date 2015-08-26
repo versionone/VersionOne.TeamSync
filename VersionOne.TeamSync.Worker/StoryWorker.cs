@@ -14,8 +14,11 @@ namespace VersionOne.TeamSync.Worker
     public class StoryWorker : IAsyncWorker
     {
         private readonly IV1 _v1;
-	    private string _pluralAsset = "stories";
-	    public static ILog Log { get; private set; }
+	private string _pluralAsset = "stories";
+	public static ILog Log { get; private set; }
+        private const string CreatedFromV1Comment = "Created from VersionOne Work Item {0} in Project {1}";
+        private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
+        private const string V1AssetDetailWebLinkTitle = "VersionOne Story ({0})";
 
         public StoryWorker(IV1 v1, ILog log)
         {
@@ -56,8 +59,8 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-	        Log.InfoUpdated(processedStories, _pluralAsset);
-			Log.TraceUpdateFinished(_pluralAsset);
+	    Log.InfoUpdated(processedStories, _pluralAsset);
+	    Log.TraceUpdateFinished(_pluralAsset);
         }
 
         public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
@@ -113,9 +116,9 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-			Log.InfoCreated(processedStories, _pluralAsset);
-			Log.TraceCreateFinished(_pluralAsset);
-		}
+	    Log.InfoCreated(processedStories, _pluralAsset);
+	    Log.TraceCreateFinished(_pluralAsset);
+	}
 
         public async Task CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
@@ -136,9 +139,13 @@ namespace VersionOne.TeamSync.Worker
             jiraInfo.JiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
             Log.TraceFormat("Updated labels on Jira story {0}", jiraStory.Key);
 
-            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraStory.Key, newStory.Number, newStory.ScopeName,
-                _v1.InstanceUrl);
-            Log.TraceFormat("Added link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
+            jiraInfo.JiraInstance.AddComment(jiraStory.Key, string.Format(CreatedFromV1Comment, newStory.Number, newStory.ScopeName));
+            Log.TraceFormat("Added comment to Jira story {0}", jiraStory.Key);
+
+            jiraInfo.JiraInstance.AddWebLink(jiraStory.Key,
+                        string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newStory.Number),
+                        string.Format(V1AssetDetailWebLinkTitle, newStory.Number));
+            Log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
 
             var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraStory.Key;
             _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);
@@ -166,7 +173,7 @@ namespace VersionOne.TeamSync.Worker
             });
 
             Log.InfoDelete(processedStories, _pluralAsset);
-			Log.TraceDeleteFinished(_pluralAsset);
+	    Log.TraceDeleteFinished(_pluralAsset);
         }
 
     }
