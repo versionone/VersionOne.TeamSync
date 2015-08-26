@@ -15,6 +15,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         string MemberId { get; }
         bool ValidateConnection();
         bool ValidateProjectExists(string projectId);
+        bool ValidateScheduleExists(string projectId);
         bool ValidateEpicCategoryExists(string epicCategoryId);
         bool ValidateActualReferenceFieldExists();
 
@@ -45,6 +46,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
         Task<Actual> CreateActual(Actual actual);
+        Task<XDocument> CreateSchedule();
+        Task<XDocument> SetScheduleToProject(string projectId, string scheduleId);
     }
 
     public class V1 : IV1
@@ -56,6 +59,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private readonly IV1Connector _connector;
         private readonly string _aDayAgo;
+        private string projectName;
 
         public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
         {
@@ -175,7 +179,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async void CreateLink(IV1Asset asset, string title, string url)
         {
-            var link = new Link()
+            var link = new Link
             {
                 Asset = asset.AssetType + ":" + asset.ID, //TODO: add a token
                 OnMenu = true,
@@ -220,12 +224,37 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public bool ValidateProjectExists(string projectId)
         {
-            return _connector.ProjectExists(projectId);
+            var result = _connector.Query("Scope", new[] { "Name" }, new[] { string.Format("ID='{0}'", projectId) },
+                element =>
+                {
+                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Name")).Select(e => e.Value).SingleOrDefault();
+                }).Result;
+
+            projectName = result.SingleOrDefault();
+
+            return result.Any() && !string.IsNullOrEmpty(projectName);
+        }
+
+        public bool ValidateScheduleExists(string projectId)
+        {
+            var result = _connector.Query("Scope", new[] { "Schedule" }, new[] { string.Format("ID='{0}'", projectId) },
+                element =>
+                {
+                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Schedule.Name")).Select(e => e.Value).SingleOrDefault();
+                }).Result;
+
+            return result.Any() && !string.IsNullOrEmpty(result.SingleOrDefault());
         }
 
         public bool ValidateEpicCategoryExists(string epicCategoryId)
         {
-            return _connector.EpicCategoryExists(epicCategoryId);
+            var result = _connector.Query("EpicCategory", new[] { "Name" }, new[] { string.Format("ID='{0}'", epicCategoryId) },
+                element =>
+                {
+                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Name")).Select(e => e.Value).SingleOrDefault();
+                }).Result;
+
+            return result.Any() && !string.IsNullOrEmpty(result.SingleOrDefault());
         }
 
         public bool ValidateActualReferenceFieldExists()
@@ -291,13 +320,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             await _connector.Operation("Defect", defectId, "Reactivate");
         }
 
-        public async Task<Actual> CreateActual(Actual actual)
-        {
-            var xDoc = await _connector.Post(actual, actual.CreatePayload());
-            actual.FromCreate(xDoc.Root);
-            return actual;
-        }
-
         public async Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId)
         {
             return await _connector.Query("Actual",
@@ -308,6 +330,33 @@ namespace VersionOne.TeamSync.Worker.Domain
                     string.Format("Workitem=\"{0}\"", workItemId),
                     string.Format(WhereProject, projectId)
                 }, Actual.FromQuery);
+        }
+
+        public async Task<Actual> CreateActual(Actual actual)
+        {
+            var xDoc = await _connector.Post(actual, actual.CreatePayload());
+            actual.FromCreate(xDoc.Root);
+
+            return actual;
+        }
+
+        public async Task<XDocument> CreateSchedule()
+        {
+            var payload = XDocument.Parse("<Asset></Asset>")
+                .AddSetNode("Name", string.Format("{0} Schedule", projectName))
+                .AddSetNode("TimeboxGap", "0")
+                .AddSetNode("TimeboxLength", "2 Weeks")
+                .AddSetNode("Description", "Created by TeamSync.");
+
+            return await _connector.Post("Schedule", payload.ToString());
+        }
+
+        public async Task<XDocument> SetScheduleToProject(string projectId, string scheduleId)
+        {
+            var payload = XDocument.Parse("<Asset></Asset>")
+                .AddSetRelationNode("Schedule", scheduleId);
+
+            return await _connector.Post(projectId.Replace(':', '/'), payload.ToString());
         }
     }
 
