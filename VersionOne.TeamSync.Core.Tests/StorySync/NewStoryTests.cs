@@ -49,9 +49,15 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         }
 
         [TestMethod]
-        public void should_call_add_a_comment_to_jira_issue()
+        public void makes_a_call_add_a_comment_back_to_jira()
         {
-            _mockJira.Verify(x => x.AddLinkToV1InComments(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _mockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+        }
+
+        [TestMethod]
+        public void makes_a_call_add_a_link_back_to_jira()
+        {
+            _mockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         }
     }
 

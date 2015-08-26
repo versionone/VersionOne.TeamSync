@@ -27,5 +27,48 @@ namespace VersionOne.TeamSync.Core
         {
             log.Verbose(message, null);
         }
+
+	    private static string _infoCreatedMessage = "Created {0} V1 {1}";
+		private static string _traceCreateFinished = "Finished creating V1 {0}";
+		private static string _infoUpdatedMessage = "Updated {0} V1 {1}";
+		private static string _traceUpdateFinished = "Finished updating V1 {0}";
+		private static string _infoDeleteMessage = "Deleted {0} V1 {1}";
+		private static string _traceDeleteFinished = "Finished deleting V1 {0}";
+		private static string _debugClosedMessage = "Closed V1 {0} {1}";
+
+	    public static void InfoCreated(this ILog log, int count, string pluralAsset)
+	    {
+		    log.Info(string.Format(_infoCreatedMessage, count, pluralAsset));
+	    }
+
+	    public static void TraceCreateFinished(this ILog log, string pluralAsset)
+	    {
+			log.Trace(string.Format(_traceCreateFinished, pluralAsset));
+	    }
+
+		public static void InfoUpdated(this ILog log, int count, string pluralAsset)
+		{
+			log.Info(string.Format(_infoUpdatedMessage, count, pluralAsset));
+		}
+
+		public static void TraceUpdateFinished(this ILog log, string pluralAsset)
+		{
+			log.Trace(string.Format(_traceUpdateFinished, pluralAsset));
+		}
+
+		public static void InfoDelete(this ILog log, int count, string pluralAsset)
+		{
+			log.Info(string.Format(_infoDeleteMessage, count, pluralAsset));
+		}
+
+		public static void TraceDeleteFinished(this ILog log, string pluralAsset)
+		{
+			log.Trace(string.Format(_traceDeleteFinished, pluralAsset));
+		}
+
+	    public static void DebugClosedItem(this ILog log, string singularAsset, string assetNumber)
+	    {
+		    log.Debug(string.Format(_debugClosedMessage, singularAsset, assetNumber));
+	    }
     }
 }

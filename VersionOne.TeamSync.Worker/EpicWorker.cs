@@ -14,7 +14,10 @@ namespace VersionOne.TeamSync.Worker
     {
         private readonly IV1 _v1;
         private readonly ILog _log;
-
+        private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}";
+        private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
+        private const string V1AssetDetailWebLinkTitle = "VersionOne Portfolio Item ({0})";
+        
         public EpicWorker(IV1 v1, ILog log)
         {
             _v1 = v1;
@@ -159,8 +162,12 @@ namespace VersionOne.TeamSync.Worker
                 }
                 else
                 {
-                    jiraInfo.JiraInstance.AddCreatedByV1Comment(jiraData.Key, epic.Number, epic.ScopeName, _v1.InstanceUrl);
+                    jiraInfo.JiraInstance.AddComment(jiraData.Key, string.Format(CreatedFromV1Comment, epic.Number, epic.ScopeName));
                     _log.TraceFormat("Added comment to Jira epic {0}", jiraData.Key);
+                    jiraInfo.JiraInstance.AddWebLink(jiraData.Key,
+                        string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, epic.Number),
+                        string.Format(V1AssetDetailWebLinkTitle, epic.Number));
+                    _log.TraceFormat("Added web link to Jira epic {0}", jiraData.Key);
                     epic.Reference = jiraData.Key;
                     _v1.UpdateEpicReference(epic);
                     _log.TraceFormat("Added reference in V1 epic {0}", epic.Number);
