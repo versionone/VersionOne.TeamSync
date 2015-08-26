@@ -14,7 +14,11 @@ namespace VersionOne.TeamSync.Worker
     public class DefectWorker : IAsyncWorker
     {
         private readonly IV1 _v1;
+		private string _pluralAsset = "defects";
         public static ILog Log { get; private set; }
+        private const string CreatedFromV1Comment = "Created from VersionOne Work Item {0} in Project {1}";
+        private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
+        private const string V1AssetDetailWebLinkTitle = "VersionOne Defect ({0})";
 
         public DefectWorker(IV1 v1, ILog log)
         {
@@ -55,9 +59,9 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.InfoFormat("Finished checking {0} V1 defects", processedDefects);
-            Log.Trace("Updating defects stopped");
-        }
+			Log.InfoUpdated(processedDefects, _pluralAsset);
+			Log.TraceUpdateFinished(_pluralAsset);
+		}
 
         public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
@@ -90,7 +94,7 @@ namespace VersionOne.TeamSync.Worker
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
             {
                 await _v1.CloseDefect(defect.ID);
-                Log.TraceFormat("Closed V1 defect {0}", defect.Number);
+                Log.DebugClosedItem("defect", defect.Number);
             }
         }
 
@@ -115,9 +119,9 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.TraceFormat("Created {0} V1 defects", processedDefects);
-            Log.Trace("Creating defects stopped");
-        }
+			Log.InfoCreated(processedDefects, _pluralAsset);
+			Log.TraceCreateFinished(_pluralAsset);
+		}
 
         public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
         {
@@ -137,8 +141,14 @@ namespace VersionOne.TeamSync.Worker
 
             jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraDefect.Fields.Labels), jiraDefect.Key);
             Log.TraceFormat("Updated labels on Jira defect {0}", jiraDefect.Key);
-            jiraInfo.JiraInstance.AddLinkToV1InComments(jiraDefect.Key, newDefect.Number, newDefect.ScopeName, _v1.InstanceUrl);
-            Log.TraceFormat("Added link to V1 defect {0} on Jira defect {1}", newDefect.Number, jiraDefect.Key);
+
+            jiraInfo.JiraInstance.AddComment(jiraDefect.Key, string.Format(CreatedFromV1Comment, newDefect.Number, newDefect.ScopeName));
+            Log.TraceFormat("Added comment to Jira defect {0}", jiraDefect.Key);
+
+            jiraInfo.JiraInstance.AddWebLink(jiraDefect.Key,
+                        string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newDefect.Number),
+                        string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
+            Log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newDefect.Number, jiraDefect.Key);
 
             var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraDefect.Key;
             _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraDefect.Key), link);
@@ -166,9 +176,9 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.InfoFormat("Deleted {0} V1 defects", processedDefects);
-            Log.Trace("Deleting defects stopped");
-        }
+			Log.InfoDelete(processedDefects, _pluralAsset);
+			Log.TraceDeleteFinished(_pluralAsset);
+		}
 
     }
 }

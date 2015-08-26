@@ -63,8 +63,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void makes_a_call_add_created_as_VersionOne_actual_comment()
         {
-            var actualOid = string.Format("{0}:{1}", Actual.AssetType, Actual.ID);
-            _mockJira.Verify(x => x.AddCreatedAsVersionOneActualComment(IssueKey, actualOid, V1Number), Times.Once());
+            _mockJira.Verify(x => x.AddComment(IssueKey, It.IsAny<string>()), Times.Once());
         }
     }
 

@@ -1,0 +1,1 @@
+Get-ChildItem -Filter "*Installer.msi" -Recurse | Rename-Item -NewName {$_.name -replace 'Installer',"Installer_$version" }
