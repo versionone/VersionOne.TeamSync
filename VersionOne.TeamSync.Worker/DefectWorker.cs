@@ -14,6 +14,7 @@ namespace VersionOne.TeamSync.Worker
     public class DefectWorker : IAsyncWorker
     {
         private readonly IV1 _v1;
+		private string _pluralAsset = "defects";
         public static ILog Log { get; private set; }
 
         public DefectWorker(IV1 v1, ILog log)
@@ -55,9 +56,9 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.InfoFormat("Finished checking {0} V1 defects", processedDefects);
-            Log.Trace("Updating defects stopped");
-        }
+			Log.InfoUpdated(processedDefects, _pluralAsset);
+			Log.TraceUpdateFinished(_pluralAsset);
+		}
 
         public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
@@ -90,7 +91,7 @@ namespace VersionOne.TeamSync.Worker
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
             {
                 await _v1.CloseDefect(defect.ID);
-                Log.TraceFormat("Closed V1 defect {0}", defect.Number);
+                Log.DebugClosedItem("defect", defect.Number);
             }
         }
 
@@ -115,9 +116,9 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.TraceFormat("Created {0} V1 defects", processedDefects);
-            Log.Trace("Creating defects stopped");
-        }
+			Log.InfoCreated(processedDefects, _pluralAsset);
+			Log.TraceCreateFinished(_pluralAsset);
+		}
 
         public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
         {
@@ -166,9 +167,9 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            Log.InfoFormat("Deleted {0} V1 defects", processedDefects);
-            Log.Trace("Deleting defects stopped");
-        }
+			Log.InfoDelete(processedDefects, _pluralAsset);
+			Log.TraceDeleteFinished(_pluralAsset);
+		}
 
     }
 }

@@ -14,7 +14,8 @@ namespace VersionOne.TeamSync.Worker
     public class StoryWorker : IAsyncWorker
     {
         private readonly IV1 _v1;
-        public static ILog Log { get; private set; }
+	    private string _pluralAsset = "stories";
+	    public static ILog Log { get; private set; }
 
         public StoryWorker(IV1 v1, ILog log)
         {
@@ -55,8 +56,8 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-            Log.InfoFormat("Finished checking {0} V1 stories", processedStories);
-            Log.Trace("Updating stories stopped");
+	        Log.InfoUpdated(processedStories, _pluralAsset);
+			Log.TraceUpdateFinished(_pluralAsset);
         }
 
         public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
@@ -87,7 +88,7 @@ namespace VersionOne.TeamSync.Worker
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && story.AssetState != "128")
             {
                 await _v1.CloseStory(story.ID);
-                Log.DebugFormat("Closed V1 story {0}", story.Number);
+                Log.DebugClosedItem("story", story.Number);
             }
         }
 
@@ -112,9 +113,9 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-            Log.InfoFormat("Created {0} V1 stories", processedStories);
-            Log.Trace("Creating stories stopped");
-        }
+			Log.InfoCreated(processedStories, _pluralAsset);
+			Log.TraceCreateFinished(_pluralAsset);
+		}
 
         public async Task CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
@@ -164,8 +165,8 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-            Log.InfoFormat("Deleted {0} V1 stories", processedStories);
-            Log.Trace("Delete stories stopped");
+            Log.InfoDelete(processedStories, _pluralAsset);
+			Log.TraceDeleteFinished(_pluralAsset);
         }
 
     }
