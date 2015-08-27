@@ -163,7 +163,7 @@ namespace VersionOne.TeamSync.Worker
         public void ValidateMemberAccountPermissions()
         {
             Log.Info("Verifying VersionOne member account permissions...");
-            Log.DebugFormat("Member ID: {0}", _v1.MemberId);
+            Log.DebugFormat("Member: {0}", _v1.MemberId);
             if (_v1.ValidateMemberPermissions())
             {
                 Log.Info("VersionOne member account has valid permissions.");
@@ -171,20 +171,20 @@ namespace VersionOne.TeamSync.Worker
             else
             {
                 Log.Error("VersionOne member account is not valid, default role must be Team Member or higher.");
-                throw new Exception(string.Format("Unable to validate permissions for Member ID {0}.", _v1.MemberId));
+                throw new Exception(string.Format("Unable to validate permissions for {0}.", _v1.MemberId));
             }
 
             foreach (var jiraInstanceInfo in _jiraInstances.ToList())
             {
-                Log.InfoFormat("Verifying Jira member account permissions...");
-                Log.DebugFormat("User: {0}", jiraInstanceInfo.JiraInstance.Username);
+                Log.InfoFormat("Verifying JIRA member account permissions...");
+                Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.JiraInstance.InstanceUrl, jiraInstanceInfo.JiraInstance.Username);
                 if (jiraInstanceInfo.ValidateMemberPermissions())
                 {
                     Log.Info("JIRA user has valid permissions.");
                 }
                 else
                 {
-                    Log.Error("JIRA user is not valid, must have at least following permissions set: EDIT_ISSUES, DELETE_ISSUES and TRANSITION_ISSUES");
+                    Log.Error("JIRA user is not valid, must have at least the following permissions set: EDIT_ISSUES, DELETE_ISSUES and TRANSITION_ISSUES.");
                     throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
                 }
             }
