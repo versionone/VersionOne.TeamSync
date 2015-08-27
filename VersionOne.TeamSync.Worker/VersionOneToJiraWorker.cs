@@ -166,26 +166,28 @@ namespace VersionOne.TeamSync.Worker
         {
             foreach (var jiraInstance in _jiraInstances.ToList())
             {
-                Log.InfoFormat("Checking V1ProjectID={0} has a schedule set.", jiraInstance.V1ProjectId);
+                Log.InfoFormat("Validating iteration schedule for {0}.", jiraInstance.V1ProjectId);
 
-                if (!_v1.ValidateScheduleExists(jiraInstance.V1ProjectId))
+                if (_v1.ValidateScheduleExists(jiraInstance.V1ProjectId))
                 {
-                    Log.InfoFormat("Creating schedule for project {0}", jiraInstance.V1ProjectId);
+                    Log.DebugFormat("Schedule found!");
+                }
+                else 
+                {
                     var result = _v1.CreateSchedule().Result;
                     if (!result.Root.Name.LocalName.Equals("Error"))
-                        Log.DebugFormat("Schedule: {0}", result);
+                        Log.DebugFormat("Created schedule: {0}", result);
                     else
                     {
                         LogVersionOneErrorMessage(result);
-                        throw new Exception("Error occurred while creating the schedule. Service will not be stopped.");
+                        throw new Exception("Error occurred while creating the schedule. Service will now be stopped.");
                     }
 
-                    Log.InfoFormat("Setting the newly created schedule to V1ProjectID={0}...", jiraInstance.V1ProjectId);
                     var id = result.Root.Attribute("id").Value;
                     var scheduleId = id.Substring(0, id.LastIndexOf(':'));
                     result = _v1.SetScheduleToProject(jiraInstance.V1ProjectId, scheduleId).Result;
                     if (!result.Root.Name.LocalName.Equals("Error"))
-                        Log.DebugFormat("Scope: {0}", result);
+                        Log.DebugFormat("Set schedule for {0}", jiraInstance.V1ProjectId);
                     else
                     {
                         LogVersionOneErrorMessage(result);
