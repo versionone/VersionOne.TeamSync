@@ -9,7 +9,9 @@ namespace VersionOne.TeamSync.Worker.Extensions
     {
         public static bool ItMatches(this Epic epic, Issue other)
         {
-            return string.Equals(epic.Name, other.Fields.Summary) &&
+            string dataValue = epic.Number + " " + epic.Name;
+
+            return string.Equals(dataValue, other.Fields.Summary) &&
                 string.Equals(epic.Description, other.Fields.Description.ToEmptyIfNull()) &&
                 string.Equals(epic.Reference, other.Key);
         }
@@ -18,13 +20,15 @@ namespace VersionOne.TeamSync.Worker.Extensions
         {
             dynamic expando = new ExpandoObject(); //not sure if this is entirely necessary ... ?
 
+            string dataValue = epic.Number + " " + epic.Name;
+
             expando.fields = new Dictionary<string, object>
             {
                 { "description", epic.Description ?? "-"},
-                { "summary", epic.Name},
+                { "summary", dataValue},
                 { "issuetype", new {name = "Epic"} },
                 { "project", new {Key = projectKey}},
-                { jiraEpicNameId, epic.Number}
+                { jiraEpicNameId,   dataValue}
             };
 
             return expando;
