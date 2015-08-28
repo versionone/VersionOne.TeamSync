@@ -1,7 +1,6 @@
 ﻿using log4net;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
@@ -172,35 +171,42 @@ namespace VersionOne.TeamSync.Worker
                 {
                     Log.DebugFormat("Schedule found!");
                 }
-                else 
+                else
                 {
                     var result = _v1.CreateSchedule().Result;
                     if (!result.Root.Name.LocalName.Equals("Error"))
+                    {
                         Log.DebugFormat("Created schedule: {0}", result);
-                    else
-                    {
-                        LogVersionOneErrorMessage(result);
-                        throw new Exception("Error occurred while creating the schedule. Service will now be stopped.");
-                    }
 
-                    var id = result.Root.Attribute("id").Value;
-                    var scheduleId = id.Substring(0, id.LastIndexOf(':'));
-                    result = _v1.SetScheduleToProject(jiraInstance.V1ProjectId, scheduleId).Result;
-                    if (!result.Root.Name.LocalName.Equals("Error"))
-                        Log.DebugFormat("Set schedule for {0}", jiraInstance.V1ProjectId);
+                        var id = result.Root.Attribute("id").Value;
+                        var scheduleId = id.Substring(0, id.LastIndexOf(':')); // OID without snapshot ID
+
+                        result = _v1.SetScheduleToProject(jiraInstance.V1ProjectId, scheduleId).Result;
+                        if (!result.Root.Name.LocalName.Equals("Error"))
+                        {
+                            Log.DebugFormat("New schedule is set to project {0}", jiraInstance.V1ProjectId);
+                        }
+                        else
+                        {
+                            LogVersionOneErrorMessage(result);
+                            Log.ErrorFormat("Error occurred while setting schedule {0} to project {1}.", scheduleId, jiraInstance.V1ProjectId);
+                            ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                        }
+                    }
                     else
                     {
                         LogVersionOneErrorMessage(result);
-                        throw new Exception(
-                            string.Format(
-                                "Error occurred while setting schedule {0} to project {1}. Service will now be stopped.",
-                                scheduleId, jiraInstance.V1ProjectId));
+                        Log.Error("Error occurred while creating the schedule.");
+                        ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
                     }
                 }
             }
+
+            if (!_jiraInstances.Any())
+                throw new Exception("No valid projects to synchronize. You need at least one VersionOne project with a valid schedule for the service to run.");
         }
 
-        private static void LogVersionOneErrorMessage(XDocument error)
+        private void LogVersionOneErrorMessage(XDocument error)
         {
             if (error.Root != null)
             {
@@ -209,7 +215,9 @@ namespace VersionOne.TeamSync.Worker
                 {
                     var messageNode = exceptionNode.Element("Message");
                     if (messageNode != null)
+                    {
                         Log.Error(messageNode.Value);
+                    }
                 }
             }
         }
