@@ -28,7 +28,8 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 { "summary", dataValue},
                 { "issuetype", new {name = "Epic"} },
                 { "project", new {Key = projectKey}},
-                { jiraEpicNameId,   dataValue}
+                { jiraEpicNameId,   dataValue},
+                {"labels", new List<string>() {epic.Number}}
             };
 
             return expando;
