@@ -169,7 +169,7 @@ namespace VersionOne.TeamSync.Worker
             }
             else
             {
-                Log.Error("VersionOne member account is not valid, default role must be Team Member or higher.");
+                Log.Error("VersionOne member account is not valid, default role must be Project Lead or higher.");
                 throw new Exception(string.Format("Unable to validate permissions for {0}.", _v1.MemberId));
             }
 

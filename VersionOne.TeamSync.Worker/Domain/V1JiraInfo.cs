@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using log4net;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
@@ -68,7 +69,9 @@ namespace VersionOne.TeamSync.Worker.Domain
             }
             if (!v1.ValidateProjectExists(V1ProjectId))
             {
-                Log.ErrorFormat("VersionOne project '{0}' does not exist. Current project mapping will be ignored", V1ProjectId);
+                Log.ErrorFormat(
+                    "VersionOne project '{0}' does not exist or does not have a role assigned for user {1}. Current project mapping will be ignored",
+                    V1ProjectId, V1Settings.Settings.Username);
                 result = false;
             }
             if (!v1.ValidateEpicCategoryExists(EpicCategory))

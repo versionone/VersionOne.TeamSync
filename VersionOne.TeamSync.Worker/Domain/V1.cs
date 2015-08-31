@@ -54,7 +54,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const int ConnectionAttempts = 3;
         private const string WhereProject = "Scope=\"{0}\"";
         private const string WhereEpicCategory = "Category=\"{0}\"";
-        private const int TeamLeadOrder = 4;
+        private const int ProjectLeadOrder = 3;
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private readonly IV1Connector _connector;
         private readonly string _aDayAgo;
@@ -241,7 +241,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 _connector.Query("Member", new[] {"DefaultRole.Order"}, new[] {"IsSelf='True'"},
                     element => element.Descendants("Attribute").First().Value).Result.First();
 
-            return Convert.ToInt32(defaultRoleOrder) <= TeamLeadOrder;
+            return Convert.ToInt32(defaultRoleOrder) <= ProjectLeadOrder;
         }
 
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
