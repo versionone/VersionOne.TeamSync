@@ -117,15 +117,12 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public bool ValidateMemberPermissions()
         {
-            var content = _connector.Get("mypermissions");
-            dynamic data = JObject.Parse(content);
-            var editIssuesPermission = data.permissions.EDIT_ISSUES;
-            var deleteIssuesPermission = data.permissions.DELETE_ISSUES;
-            var transitionIssuesPermission = data.permissions.TRANSITION_ISSUES;
+            var userInfo = _connector.GetUserInfo();
+            if (userInfo == null)
+                return false;
 
-            return editIssuesPermission != null && ((bool)editIssuesPermission.havePermission) &&
-                   deleteIssuesPermission != null && ((bool)deleteIssuesPermission.havePermission) &&
-                   transitionIssuesPermission != null && ((bool)transitionIssuesPermission.havePermission);
+            return userInfo.Groups.Items.Any(
+                item => item.Name.Equals("jira-administrators") || item.Name.Equals("jira-developers"));
         }
 
         public JiraVersionInfo VersionInfo

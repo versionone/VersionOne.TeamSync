@@ -77,7 +77,6 @@ namespace VersionOne.TeamSync.Worker
             _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers);
         }
 
-
         public VersionOneToJiraWorker(IV1 v1)
         {
             _v1 = v1;
@@ -184,7 +183,7 @@ namespace VersionOne.TeamSync.Worker
                 }
                 else
                 {
-                    Log.Error("JIRA user is not valid, must have at least the following permissions set: EDIT_ISSUES, DELETE_ISSUES and TRANSITION_ISSUES.");
+                    Log.Error("JIRA user is not valid, must belong to 'jira-developers' or 'jira-administrators' group.");
                     throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
                 }
             }
