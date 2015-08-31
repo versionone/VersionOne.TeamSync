@@ -41,7 +41,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 Fields = new Fields()
                 {
                     Description = epic.Description ?? "-",
-                    Summary = epic.Name,
+                    Summary = epic.Number + " " + epic.Name,
                 }
             };
         }
