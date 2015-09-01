@@ -176,27 +176,27 @@ namespace VersionOne.TeamSync.Worker
                     var result = _v1.CreateSchedule().Result;
                     if (!result.Root.Name.LocalName.Equals("Error"))
                     {
-                        Log.DebugFormat("Created schedule: {0}", result);
-
                         var id = result.Root.Attribute("id").Value;
                         var scheduleId = id.Substring(0, id.LastIndexOf(':')); // OID without snapshot ID
+                        Log.DebugFormat("Created schedule {0} for project {1}.", scheduleId, jiraInstance.V1ProjectId);
+
 
                         result = _v1.SetScheduleToProject(jiraInstance.V1ProjectId, scheduleId).Result;
                         if (!result.Root.Name.LocalName.Equals("Error"))
                         {
-                            Log.DebugFormat("New schedule is set to project {0}", jiraInstance.V1ProjectId);
+                            Log.DebugFormat("Schedule {0} is now set to project {1}", scheduleId, jiraInstance.V1ProjectId);
                         }
                         else
                         {
                             LogVersionOneErrorMessage(result);
-                            Log.ErrorFormat("Error occurred while setting schedule {0} to project {1}.", scheduleId, jiraInstance.V1ProjectId);
+                            Log.WarnFormat("Unable to set schedule {0} to project {1}.", scheduleId, jiraInstance.V1ProjectId);
                             ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
                         }
                     }
                     else
                     {
                         LogVersionOneErrorMessage(result);
-                        Log.Error("Error occurred while creating the schedule.");
+                        Log.WarnFormat("Unable to create schedule for {0}, project will not be synchronized.", jiraInstance.V1ProjectId);
                         ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
                     }
                 }
