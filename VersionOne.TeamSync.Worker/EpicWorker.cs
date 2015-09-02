@@ -128,7 +128,7 @@ namespace VersionOne.TeamSync.Worker
 
                 if (!epic.ItMatches(relatedJiraEpic))
                 {
-                    jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(), relatedJiraEpic.Key);
+                    jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels), relatedJiraEpic.Key);
                     _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
                 }
 
