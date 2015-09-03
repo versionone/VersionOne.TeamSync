@@ -173,7 +173,7 @@ namespace VersionOne.TeamSync.Worker
                 }
                 else
                 {
-                    var result = _v1.CreateSchedule().Result;
+                    var result = _v1.CreateScheduleForProject(jiraInstance.V1ProjectId).Result;
                     if (!result.Root.Name.LocalName.Equals("Error"))
                     {
                         var id = result.Root.Attribute("id").Value;

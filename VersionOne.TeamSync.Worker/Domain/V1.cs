@@ -46,7 +46,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
         Task<Actual> CreateActual(Actual actual);
-        Task<XDocument> CreateSchedule();
+        Task<XDocument> CreateScheduleForProject(string projectId);
         Task<XDocument> SetScheduleToProject(string projectId, string scheduleId);
     }
 
@@ -59,7 +59,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private readonly IV1Connector _connector;
         private readonly string _aDayAgo;
-        private string projectName;
 
         public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
         {
@@ -230,9 +229,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                     return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Name")).Select(e => e.Value).SingleOrDefault();
                 }).Result;
 
-            projectName = result.SingleOrDefault();
-
-            return result.Any() && !string.IsNullOrEmpty(projectName);
+            return result.Any() && !string.IsNullOrEmpty(result.SingleOrDefault());
         }
 
         public bool ValidateScheduleExists(string projectId)
@@ -340,8 +337,14 @@ namespace VersionOne.TeamSync.Worker.Domain
             return actual;
         }
 
-        public async Task<XDocument> CreateSchedule()
+        public async Task<XDocument> CreateScheduleForProject(string projectId)
         {
+            var projectName = _connector.Query("Scope", new[] { "Name" }, new[] { string.Format("ID='{0}'", projectId) },
+                element =>
+                {
+                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Name")).Select(e => e.Value).SingleOrDefault();
+                }).Result.First();
+
             var payload = XDocument.Parse("<Asset></Asset>")
                 .AddSetNode("Name", string.Format("{0} Schedule", projectName))
                 .AddSetNode("TimeboxGap", "0")
