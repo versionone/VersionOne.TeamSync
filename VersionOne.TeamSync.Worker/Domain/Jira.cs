@@ -231,7 +231,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", "Epic")
             },
-                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self" }
+                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self", "labels" }
             );
         }
 

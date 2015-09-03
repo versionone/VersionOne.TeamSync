@@ -24,20 +24,22 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 { "summary", epic.Name},
                 { "issuetype", new {name = "Epic"} },
                 { "project", new {Key = projectKey}},
-                { jiraEpicNameId, epic.Number}
+                { jiraEpicNameId,   epic.Name},
+                {"labels", new List<string>() {epic.Number}}
             };
 
             return expando;
         }
 
-        public static Issue UpdateJiraEpic(this Epic epic)
+        public static Issue UpdateJiraEpic(this Epic epic, List<string> labels)
         {
             return new Issue()
             {
                 Fields = new Fields()
                 {
                     Description = epic.Description ?? "-",
-                    Summary = epic.Name,
+                    Summary =  epic.Name,
+                    Labels = labels
                 }
             };
         }
