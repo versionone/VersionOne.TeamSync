@@ -46,6 +46,9 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
         Task<Actual> CreateActual(Actual actual);
+        Task<Member> GetMember(string jiraUsername);
+        Task<Member> CreateMember(Member member);
+        //Task<Member> GetStoryOwner(Story story, string ownerNickname);
     }
 
     public class V1 : IV1
@@ -247,7 +250,11 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
+                new[]
+                {
+                    "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number",
+                    "Owners"
+                },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Story.FromQuery);
         }
 
@@ -320,6 +327,34 @@ namespace VersionOne.TeamSync.Worker.Domain
                     string.Format(WhereProject, projectId)
                 }, Actual.FromQuery);
         }
+
+        public async Task<Member> GetMember(string jiraUsername)
+        {
+            var members =
+                await
+                    _connector.Query("Member", new[] {"Name", "Nickname", "Email", "Username"},
+                        new[] {string.Format("Nickname='{0}'|Username='{0}'", jiraUsername)}, Member.FromQuery);
+            
+            return members.FirstOrDefault();
+        }
+
+        public async Task<Member> CreateMember(Member member)
+        {
+            var xDoc = await _connector.Post(member, member.CreatePayload());
+            member.FromCreate(xDoc.Root);
+            return member;
+        }
+
+        //public async Task<Member> GetStoryOwner(Story story, string ownerNickname)
+        //{
+        //    var idsCondition = string.Join("|", story.OwnersIds.Select(item => string.Format("ID='{0}'", item)).ToArray());
+        //    var nicknameCondition = string.Format("Nickname='{0}'", ownerNickname);
+        //    var members = await
+        //        _connector.Query("Member", new[] {"Name", "Nickname", "Email"}, new[] {idsCondition, nicknameCondition},
+        //            Member.FromQuery);
+
+        //    return members.FirstOrDefault();
+        //}
     }
 
     public interface IDateTime

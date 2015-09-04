@@ -80,7 +80,37 @@ namespace VersionOne.TeamSync.Worker
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
             update.ID = story.ID;
+            update.OwnersIds = story.OwnersIds;
 
+            if (issue.HasAssignee())
+            {
+                string ownerOid;
+                var assigneeName = issue.Fields.Assignee.Name;
+                var storyOwner = await _v1.GetMember(assigneeName);
+                if (storyOwner != null)
+                {
+                    if (!issue.Fields.Assignee.ItMatchesMember(storyOwner))
+                    {
+                        storyOwner.Name = issue.Fields.Assignee.DisplayName;
+                        storyOwner.Nickname = assigneeName;
+                        storyOwner.Email = issue.Fields.Assignee.EmailAddress;
+                        await _v1.UpdateAsset(storyOwner, storyOwner.CreateUpdatePayload());
+                    }
+                    ownerOid = string.Format("{0}:{1}", storyOwner.AssetType, storyOwner.ID);
+                }
+                else
+                {
+                    var member = await GetV1MemberFromAssignee(issue);
+                    ownerOid = string.Format("{0}:{1}", member.AssetType, member.ID);
+                }
+                if (!update.OwnersIds.Any(i => i.Equals(ownerOid)))
+                    await _v1.UpdateAsset(update, update.CreateOwnersPayload(ownerOid));
+            }
+            else if (update.OwnersIds.Any())
+            {
+                await _v1.UpdateAsset(update,update.CreateOwnersPayload());
+            }
+            
             if (!issue.ItMatchesStory(story))
             {
                 update.Super = v1EpicId;
@@ -125,6 +155,12 @@ namespace VersionOne.TeamSync.Worker
             Log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
             var story = jiraStory.ToV1Story(jiraInfo.V1ProjectId);
 
+            if (jiraStory.HasAssignee())
+            {
+                var member = await GetV1MemberFromAssignee(jiraStory);
+                story.OwnersIds.Add(string.Format("{0}:{1}", member.AssetType, member.ID));
+            }
+
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
                 var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraStory.Fields.EpicLink);
@@ -150,6 +186,12 @@ namespace VersionOne.TeamSync.Worker
             var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraStory.Key;
             _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);
             Log.TraceFormat("Added link in V1 story {0}", newStory.Number);
+        }
+
+        private async Task<Member> GetV1MemberFromAssignee(Issue jiraStory)
+        {
+            return await _v1.GetMember(jiraStory.Fields.Assignee.Name) ??
+                         await _v1.CreateMember(jiraStory.Fields.Assignee.ToV1Member());
         }
 
         public void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)

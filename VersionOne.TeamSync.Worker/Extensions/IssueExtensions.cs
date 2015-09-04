@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
@@ -75,6 +76,28 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 string.Equals(defect.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
                 string.Equals(defect.Reference, issue.Key) &&
                 string.Equals(defect.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull());
+        }
+
+        public static bool HasAssignee(this Issue issue)
+        {
+            return issue.Fields.Assignee != null;
+        }
+
+        public static bool ItMatchesMember(this Assignee assignee, Member member)
+        {
+            return string.Equals(member.Name, assignee.DisplayName) &&
+                   string.Equals(member.Nickname, assignee.Name) &&
+                   string.Equals(member.Email, assignee.EmailAddress);
+        }
+
+        public static Member ToV1Member(this Assignee assignee)
+        {
+            return new Member()
+            {
+                Name = assignee.DisplayName,
+                Nickname = assignee.Name,
+                Email = assignee.EmailAddress
+            };
         }
     }
 }

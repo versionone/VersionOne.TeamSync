@@ -271,7 +271,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story")
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
             (issueKey, fields, properties) =>
             {
                 properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, Log);

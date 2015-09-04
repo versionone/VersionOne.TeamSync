@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Collections.Generic;
+using System.Xml.Linq;
 using VersionOne.TeamSync.Worker.Domain.Xml;
 
 namespace VersionOne.TeamSync.Worker.Extensions
@@ -18,6 +19,13 @@ namespace VersionOne.TeamSync.Worker.Extensions
 			node.AddNode(doc);
 			return doc;
 		}
+
+        public static XDocument AddMultiRelationNode(this XDocument doc, string attributeName,IDictionary<string, string> values)
+        {
+            var node = new V1MultiRelationNode(attributeName, values);
+            node.AddNode(doc);
+            return doc;
+        }
 
 		public static XDocument AddNullableSetRelationNode(this XDocument doc, string attributeName, string value)
 		{
