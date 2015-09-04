@@ -18,6 +18,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 {
     public class JiraConnector : IJiraConnector
     {
+        public const string JiraRestApiUrl = "api/latest";
+        public const string JiraAgileApiUrl = "agile/latest";
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(JiraConnector));
         private const string InQuery = "{0} in ({1})";
 
@@ -53,7 +56,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                 proxy = new WebProxy(new Uri(settings.Proxy.Url), false, new string[] { }, cred);
             }
 
-            _client = new RestClient(new Uri(new Uri(settings.Url), "/rest/api/latest").ToString()) { Proxy = proxy };
+            _client = new RestClient(new Uri(new Uri(settings.Url), "/rest").ToString()) { Proxy = proxy };
             BaseUrl = settings.Url;
 
             if (!string.IsNullOrEmpty(settings.Username) && !string.IsNullOrEmpty(settings.Password))
@@ -225,25 +228,25 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties) //not entirely convinced this belongs here
         {
-            var request = BuildGetRequest("search", default(KeyValuePair<string, string>),
+            var path = string.Format("{0}/search", JiraRestApiUrl);
+            var content = Get(path, default(KeyValuePair<string, string>),
                 new Dictionary<string, string>
                 {
                     {"jql",  string.Join(" AND ", query.Select(item => item.ToString()))},
                     {"fields", string.Join(",", properties)}
                 });
-            var content = Execute(request, HttpStatusCode.OK);
 
             return JsonConvert.DeserializeObject<SearchResult>(content);
         }
 
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
         {
-            var request = BuildGetRequest("search?expand=renderedFields", default(KeyValuePair<string, string>), new Dictionary<string, string>
+            var path = string.Format("{0}/search?expand=renderedFields", JiraRestApiUrl);
+            var content = Get(path, default(KeyValuePair<string, string>), new Dictionary<string, string>
                 {
                     {"jql", string.Join(" AND ", query.Select(item => item.ToString()))},
                     {"fields", string.Join(",", properties)}
                 });
-            var content = Execute(request, HttpStatusCode.OK);
             var result = JObject.Parse(content);
             var issues = result.Property("issues").Value;
             var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
@@ -259,15 +262,16 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public JiraVersionInfo GetVersionInfo()
         {
-            var request = BuildGetRequest("serverInfo", default(KeyValuePair<string, string>), null);
-            var content = Execute(request, HttpStatusCode.OK);
+            var path = string.Format("{0}/serverInfo", JiraRestApiUrl);
+            var content = Get(path);
 
             return JsonConvert.DeserializeObject<JiraVersionInfo>(content);
         }
 
         public UserInfo GetUserInfo()
         {
-            var content = Get("user", default(KeyValuePair<string, string>), new Dictionary<string, string>
+            var path = string.Format("{0}/user", JiraRestApiUrl);
+            var content = Get(path, default(KeyValuePair<string, string>), new Dictionary<string, string>
             {
                 {"username", Username},
                 {"expand", "groups"}
@@ -285,7 +289,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
         {
-            var request = BuildGetRequest("issue/createmeta", default(KeyValuePair<string, string>),
+            var path = string.Format("{0}/issue/createmeta", JiraRestApiUrl);
+            var request = BuildGetRequest(path, default(KeyValuePair<string, string>),
                 new Dictionary<string, string>
                 {
                     {"projectKeys", string.Join(",", projectKey)},
@@ -299,7 +304,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public bool IsConnectionValid()
         {
-            var request = BuildGetRequest("user", default(KeyValuePair<string, string>), new Dictionary<string, string> { { "username", Username } });
+            var path = string.Format("{0}/user", JiraRestApiUrl);
+            var request = BuildGetRequest(path, default(KeyValuePair<string, string>), new Dictionary<string, string> { { "username", Username } });
             LogRequest(_client, request);
 
             var response = _client.Execute(request);
@@ -316,7 +322,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public bool ProjectExists(string projectIdOrKey)
         {
-            var request = BuildGetRequest("project/{projectIdOrKey}", new KeyValuePair<string, string>("projectIdOrKey", projectIdOrKey), null);
+            var path = string.Format("{0}/project/{{projectIdOrKey}}", JiraRestApiUrl);
+            var request = BuildGetRequest(path, new KeyValuePair<string, string>("projectIdOrKey", projectIdOrKey), null);
 
             try
             {
@@ -359,7 +366,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             var request = new RestRequest
             {
                 Method = Method.GET,
-                Resource = "search",
+                Resource = string.Format("{0}/search", JiraRestApiUrl)
             };
 
             var queryString = string.Join(" AND ", query.Select(item =>

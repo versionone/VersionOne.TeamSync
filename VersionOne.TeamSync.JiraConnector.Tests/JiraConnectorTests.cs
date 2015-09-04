@@ -29,7 +29,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
                     customfield_10104 = "Test Epic" // TODO: call createmeta first? app.config value?
                 }
             };
-            _connector.Post(JiraResource.Issue.Value, epic, HttpStatusCode.Created);
+            _connector.Post("api/latest/issue", epic, HttpStatusCode.Created);
         }
 
         [Ignore]
@@ -48,7 +48,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
                     }
                 }
             };
-            _connector.Put(JiraResource.Issue.Value + "/{issueIdOrKey}", epicUpdate, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-6"));
+            _connector.Put("api/latest/issue/{issueIdOrKey}", epicUpdate, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-6"));
         }
 
         [Ignore]
@@ -61,7 +61,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
                 transition = new { id = 31 } // id 31 == Done
             };
 
-            _connector.Post(JiraResource.Issue.Value + "/{issueIdOrKey}/transitions", transition, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-6"));
+            _connector.Post("api/latest/issue/{issueIdOrKey}/transitions", transition, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-6"));
         }
 
         [Ignore]
@@ -69,7 +69,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         public void DeleteEpicTest()
         {
             //http://jira-64.cloudapp.net:8080/plugins/servlet/restbrowser#/resource/api-2-issue-issueidorkey/DELETE
-            _connector.Delete(JiraResource.Issue.Value + "/{issueIdOrKey}", HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-7"));
+            _connector.Delete("api/latest/issue/{issueIdOrKey}", HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", "OPC-7"));
         }
 
         [Ignore]
@@ -77,7 +77,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         public void GetIssueWorklogsTest()
         {
             //http://jira-6.cloudapp.net:8080/plugins/servlet/restbrowser#/resource/api-2-issue-issueidorkey-worklog
-            var result = _connector.Get("issue/{issueIdOrKey}/worklog", new KeyValuePair<string, string>("issueIdOrKey", "STP-1"));
+            _connector.Get("api/latest/issue/{issueIdOrKey}/worklog", new KeyValuePair<string, string>("issueIdOrKey", "STP-1"));
         }
     }
 }
