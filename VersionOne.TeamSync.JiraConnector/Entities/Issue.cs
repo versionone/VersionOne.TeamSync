@@ -129,6 +129,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         //late binding properties
         public string StoryPoints { get; set; }
         public string EpicLink { get; set; }
+        public IList<Sprint> Sprints { get; set; }
     }
 
     public class RenderedFields
@@ -173,5 +174,16 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public string displayName;
         public bool active;
         public string timeZone;
+    }
+
+    public class Sprint
+    {
+        public int id;
+        public int rapidViewId;
+        public string state;
+        public string name;
+        public DateTime? startDate;
+        public DateTime? completeDate;
+        public int sequence;
     }
 }

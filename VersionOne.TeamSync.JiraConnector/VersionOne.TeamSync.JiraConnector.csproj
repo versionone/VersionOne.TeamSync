@@ -100,7 +100,6 @@
   <ItemGroup>
     <Compile Include="Config\JiraSettings.cs" />
     <Compile Include="Connector\JiraConnector.cs" />
-    <Compile Include="Connector\JiraResource.cs" />
     <Compile Include="Connector\JiraSerializer.cs" />
     <Compile Include="Entities\CreateMeta.cs" />
     <Compile Include="Entities\Issue.cs" />
