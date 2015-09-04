@@ -21,11 +21,10 @@ namespace VersionOne.TeamSync.JiraConnector.Interfaces
         string Put(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         string Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
 
-        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
-        CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey);
-
+        SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customProperties);
+        CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey);
 
         bool IsConnectionValid();
         bool ProjectExists(string projectIdOrKey);

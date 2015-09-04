@@ -129,7 +129,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         //late binding properties
         public string StoryPoints { get; set; }
         public string EpicLink { get; set; }
-        public IList<Sprint> Sprints { get; set; }
+        public IEnumerable<Sprint> Sprints { get; set; }
     }
 
     public class RenderedFields

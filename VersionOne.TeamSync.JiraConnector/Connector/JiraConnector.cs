@@ -20,9 +20,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
     {
         public const string JiraRestApiUrl = "api/latest";
         public const string JiraAgileApiUrl = "agile/latest";
+        public const string InQuery = "{0} in ({1})";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(JiraConnector));
-        private const string InQuery = "{0} in ({1})";
 
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new JiraSerializer();
@@ -71,12 +71,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         }
 
         public JiraConnector(string baseUrl, string username, string password)
-            : this(new JiraServer
-            {
-                Url = baseUrl,
-                Username = username,
-                Password = password
-            })
+            : this(new JiraServer { Url = baseUrl, Username = username, Password = password })
         {
         }
 
@@ -226,6 +221,25 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         #endregion
 
+        public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties) //not entirely convinced this belongs here
+        {
+            var path = string.Format("{0}/search", JiraRestApiUrl);
+            var queryString = string.Join(" AND ", query.Select(item =>
+            {
+                if (item.Value.Count() == 1)
+                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
+                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
+            }));
+            var content = Get(path, default(KeyValuePair<string, string>),
+                new Dictionary<string, string>
+                {
+                    {"jql",  queryString},
+                    {"fields", string.Join(",", properties)}
+                });
+
+            return JsonConvert.DeserializeObject<SearchResult>(content);
+        }
+
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties) //not entirely convinced this belongs here
         {
             var path = string.Format("{0}/search", JiraRestApiUrl);
@@ -278,13 +292,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             });
 
             return JsonConvert.DeserializeObject<UserInfo>(content);
-        }
-
-        public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
-        {
-            var content = Execute(BuildSearchRequest(query, properties), HttpStatusCode.OK);
-
-            return JsonConvert.DeserializeObject<SearchResult>(content);
         }
 
         public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
@@ -357,27 +364,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             if (queryParameters != null)
                 foreach (var param in queryParameters)
                     request.AddQueryParameter(param.Key, param.Value);
-
-            return request;
-        }
-
-        public static RestRequest BuildSearchRequest(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
-        {
-            var request = new RestRequest
-            {
-                Method = Method.GET,
-                Resource = string.Format("{0}/search", JiraRestApiUrl)
-            };
-
-            var queryString = string.Join(" AND ", query.Select(item =>
-            {
-                if (item.Value.Count() == 1)
-                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
-                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
-            }));
-
-            request.AddQueryParameter("jql", queryString);
-            request.AddQueryParameter("fields", string.Join(",", properties));
 
             return request;
         }

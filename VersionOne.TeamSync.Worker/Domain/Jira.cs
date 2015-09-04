@@ -269,40 +269,10 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public SearchResult GetStoriesInProject(string jiraProject)
         {
-            return _connector.GetSearchResults(new List<JqOperator>
-            {
-               JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
-               JqOperator.Equals("issuetype", "Story")
-            },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key, ProjectMeta.Sprint.Key },
-            (issueKey, fields, properties) =>
-            {
-                properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, _log);
-                properties.EvalLateBinding(issueKey, ProjectMeta.EpicLink, value => fields.EpicLink = value, _log);
-                properties.EvalLateBinding(issueKey, ProjectMeta.Sprint, value =>
-                {
-                    fields.Sprints = new List<Sprint>();
-                    foreach (var values in JArray.Parse(value).Values<string>())
-                    {
-                        var propsStartIndex = values.IndexOf('[') + 1;
-                        var sprint = values.Substring(propsStartIndex, (values.Length - 1) - propsStartIndex);
-                        var props = sprint.Split(',').Select(item => item.Split('=')).ToDictionary(pair => pair[0], pair => pair[1]);
-                        fields.Sprints.Add(new Sprint
-                        {
-                            id = Convert.ToInt32(props["id"]),
-                            rapidViewId = Convert.ToInt32(props["rapidViewId"]),
-                            state = props["state"],
-                            name = props["name"],
-                            startDate = props["startDate"] != "<null>" ? DateTime.Parse(props["startDate"]) : default(DateTime?),
-                            completeDate = props["completeDate"] != "<null>" ? DateTime.Parse(props["completeDate"]) : default(DateTime?),
-                            sequence = Convert.ToInt32(props["sequence"])
-                        });
-                    }
-                }, _log);
-            });
+            return GetIssuesInProject(jiraProject, "Story");
         }
 
-        public SearchResult GetStoriesWithNoEpicInProject(string projectKey)
+        public SearchResult GetStoriesWithNoEpicInProject(string projectKey) // TODO: Remove??? This method is only used on a unit test
         {
             return _connector.GetSearchResults(new List<JqOperator>
             {
@@ -319,17 +289,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public SearchResult GetDefectsInProject(string jiraProject)
         {
-            return _connector.GetSearchResults(new List<JqOperator>()
-            {
-               JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
-               JqOperator.Equals("issuetype", "Bug")
-            },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key },
-            (issueKey, fields, properties) =>
-            {
-                properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, _log);
-                properties.EvalLateBinding(issueKey, ProjectMeta.EpicLink, value => fields.EpicLink = value, _log);
-            });
+            return GetIssuesInProject(jiraProject, "Bug");
         }
 
         public IEnumerable<Worklog> GetIssueWorkLogs(string issueKey)
@@ -375,6 +335,8 @@ namespace VersionOne.TeamSync.Worker.Domain
             _projectMeta = null;
         }
 
+        #region PRIVATE METHODS
+
         private object AddComment(string body)
         {
             return new
@@ -391,5 +353,47 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }
             };
         }
+
+        private SearchResult GetIssuesInProject(string jiraProject, string issueType)
+        {
+            return _connector.GetSearchResults(new List<JqOperator>
+            {
+                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
+                JqOperator.Equals("issuetype", issueType)
+            },
+                new[]
+                {
+                    "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking",
+                    ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key, ProjectMeta.Sprint.Key
+                },
+                (issueKey, fields, properties) =>
+                {
+                    properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, _log);
+                    properties.EvalLateBinding(issueKey, ProjectMeta.EpicLink, value => fields.EpicLink = value, _log);
+                    properties.EvalLateBinding(issueKey, ProjectMeta.Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
+                });
+        }
+
+        private IEnumerable<Sprint> GetSprintsFromSearchResult(string encodedSprints)
+        {
+            foreach (var encodedSprint in JArray.Parse(encodedSprints).Values<string>())
+            {
+                var propsStartIndex = encodedSprint.IndexOf('[') + 1;
+                var sprint = encodedSprint.Substring(propsStartIndex, (encodedSprint.Length - 1) - propsStartIndex);
+                var props = sprint.Split(',').Select(item => item.Split('=')).ToDictionary(pair => pair[0], pair => pair[1]);
+                yield return new Sprint
+                {
+                    id = Convert.ToInt32(props["id"]),
+                    rapidViewId = Convert.ToInt32(props["rapidViewId"]),
+                    state = props["state"],
+                    name = props["name"],
+                    startDate = props["startDate"] != "<null>" ? DateTime.Parse(props["startDate"]) : default(DateTime?),
+                    completeDate = props["completeDate"] != "<null>" ? DateTime.Parse(props["completeDate"]) : default(DateTime?),
+                    sequence = Convert.ToInt32(props["sequence"])
+                };
+            }
+        }
+
+        #endregion
     }
 }
