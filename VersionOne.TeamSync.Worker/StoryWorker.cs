@@ -68,6 +68,7 @@ namespace VersionOne.TeamSync.Worker
                         closedStories++;
                         break;
                 }      
+                
             });
 
             if (updatedStories > 0) _log.InfoUpdated(updatedStories, PluralAsset);
