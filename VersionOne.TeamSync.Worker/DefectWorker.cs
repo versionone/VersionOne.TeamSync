@@ -33,7 +33,7 @@ namespace VersionOne.TeamSync.Worker
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateDefects(jiraInfo, allJiraDefects, allV1Defects);
-            CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
+            await CreateDefects(jiraInfo, allJiraDefects, allV1Defects);
             DeleteV1Defects(jiraInfo, allJiraDefects, allV1Defects);
 
             _log.Trace("Defect sync stopped...");
@@ -54,20 +54,24 @@ namespace VersionOne.TeamSync.Worker
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
-                processedDefects++;
+                if (UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics))
+                {
+                    processedDefects++;    
+                }; 
+                
             });
 
             _log.InfoUpdated(processedDefects, PluralAsset);
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
+        public bool UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
+            bool defectUpdated = false;
             //need to reopen a Defect first before we can update it
             if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState == "128")
             {
-                await _v1.ReOpenDefect(defect.ID);
+                _v1.ReOpenDefect(defect.ID);
                 _log.TraceFormat("Reopened V1 defect {0}", defect.Number);
             }
 
@@ -94,20 +98,23 @@ namespace VersionOne.TeamSync.Worker
             {
                 update.Super = v1EpicId;
                 _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
-                await _v1.UpdateAsset(update, update.CreateUpdatePayload()).ContinueWith(task =>
+                _v1.UpdateAsset(update, update.CreateUpdatePayload()).ContinueWith(task =>
                 {
                     _log.DebugFormat("Updated V1 defect {0}", defect.Number);
+                    defectUpdated = true;
                 });
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
             {
-                await _v1.CloseDefect(defect.ID);
+                _v1.CloseDefect(defect.ID);
                 _log.DebugClosedItem("defect", defect.Number);
+                defectUpdated = true;
             }
+            return defectUpdated;
         }
 
-        public void CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
+        public async Task CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
         {
             _log.Trace("Creating defects started");
             var processedDefects = 0;
@@ -122,9 +129,9 @@ namespace VersionOne.TeamSync.Worker
 
             _log.DebugFormat("Found {0} defects to check for create", newStories.Count);
 
-            newStories.ForEach(async newJDefect =>
+            newStories.ForEach(newJDefect =>
             {
-                await CreateDefectFromJira(jiraInfo, newJDefect);
+                CreateDefectFromJira(jiraInfo, newJDefect).Wait();
                 processedDefects++;
             });
 
