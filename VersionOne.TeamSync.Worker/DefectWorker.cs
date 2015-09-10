@@ -42,7 +42,9 @@ namespace VersionOne.TeamSync.Worker
         public async void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraDefects, List<Defect> allV1Defects)
         {
             _log.Trace("Updating defects started");
-            var processedDefects = 0;
+            var updatedDefects = 0;
+            var closedDefects = 0;
+
             var existingDefects =
                 allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
                     .ToList();
@@ -54,20 +56,27 @@ namespace VersionOne.TeamSync.Worker
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-                if (UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics))
+                var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics);
+                switch (returnedValue)
                 {
-                    processedDefects++;    
-                }; 
+                    case 1:
+                        updatedDefects++;
+                        break;
+                    case 2:
+                        closedDefects++;
+                        break;
+                } 
                 
             });
 
-            _log.InfoUpdated(processedDefects, PluralAsset);
+            _log.InfoUpdated(updatedDefects, PluralAsset);
+            _log.InfoClosed(closedDefects, PluralAsset);
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public bool UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
+        public int UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
-            bool defectUpdated = false;
+            int defectUpdatedClosed = 0;
             //need to reopen a Defect first before we can update it
             if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState == "128")
             {
@@ -101,17 +110,18 @@ namespace VersionOne.TeamSync.Worker
                 _v1.UpdateAsset(update, update.CreateUpdatePayload()).ContinueWith(task =>
                 {
                     _log.DebugFormat("Updated V1 defect {0}", defect.Number);
-                    defectUpdated = true;
+                   
                 });
+                defectUpdatedClosed = 1;
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
             {
                 _v1.CloseDefect(defect.ID);
                 _log.DebugClosedItem("defect", defect.Number);
-                defectUpdated = true;
+                defectUpdatedClosed = 2;
             }
-            return defectUpdated;
+            return defectUpdatedClosed;
         }
 
         public async Task CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)

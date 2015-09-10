@@ -78,7 +78,7 @@ namespace VersionOne.TeamSync.Worker
 
         public int  UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
         {
-            int defectUpdatedClosed = 0;
+            int storytUpdatedClosed = 0;
             _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
 
             //need to reopen a story first before we can update it
@@ -112,17 +112,17 @@ namespace VersionOne.TeamSync.Worker
                 update.Super = v1EpicId;
                 _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated story V1 {0}", story.Number);
-                defectUpdatedClosed = 1;
+                storytUpdatedClosed = 1;
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && story.AssetState != "128")
             {
                 _v1.CloseStory(story.ID);
                 _log.DebugClosedItem("story", story.Number);
-                defectUpdatedClosed = 2;
+                storytUpdatedClosed = 2;
             }
 
-            return defectUpdatedClosed;
+            return storytUpdatedClosed;
 
             //var x = issue.Fields.Sprints
         }
