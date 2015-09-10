@@ -43,7 +43,7 @@ namespace VersionOne.TeamSync.Core.Tests.JsonConverter
         public void epic_type_should_have_3_official_custom_fields()
         {
             _result.Projects.Single()
-                .OfficialEpicCustomFields
+                .AgileCustomFields
                 .Count.ShouldEqual(3);
         }
 

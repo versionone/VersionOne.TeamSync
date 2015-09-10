@@ -18,6 +18,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateScheduleExists(string projectId);
         bool ValidateEpicCategoryExists(string epicCategoryId);
         bool ValidateActualReferenceFieldExists();
+        bool ValidateMemberPermissions();
 
         void CreateLink(IV1Asset asset, string title, string url);
         Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
@@ -56,6 +57,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const int ConnectionAttempts = 3;
         private const string WhereProject = "Scope=\"{0}\"";
         private const string WhereEpicCategory = "Category=\"{0}\"";
+        private const int ProjectLeadOrder = 3;
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
         private readonly IV1Connector _connector;
         private readonly string _aDayAgo;
@@ -257,6 +259,15 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateActualReferenceFieldExists()
         {
             return _connector.AssetFieldExists("Actual", "Reference");
+        }
+
+        public bool ValidateMemberPermissions()
+        {
+            var defaultRoleOrder =
+                _connector.Query("Member", new[] {"DefaultRole.Order"}, new[] {"IsSelf='True'"},
+                    element => element.Descendants("Attribute").First().Value).Result.First();
+
+            return Convert.ToInt32(defaultRoleOrder) <= ProjectLeadOrder;
         }
 
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)

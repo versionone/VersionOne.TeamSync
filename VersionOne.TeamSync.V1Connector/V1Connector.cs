@@ -170,7 +170,7 @@ namespace VersionOne.TeamSync.V1Connector
         {
             using (var client = HttpInstance)
             {
-                var endpoint = GetResourceUrl("Member") + "?sel=IsSelf,ID";
+                var endpoint = GetResourceUrl("Member") + "?sel=IsSelf,ID&where=IsSelf='true'";
                 var response = client.GetAsync(endpoint).Result;
 
                 LogResponse(response);

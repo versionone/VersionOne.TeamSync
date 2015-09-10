@@ -19,7 +19,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestInitialize]
         public void Context()
         {
-            var epic = new Epic()
+            var epic = new Epic
             {
                 AssetState = "64",
                 Description = "a description",
@@ -45,7 +45,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_include_the_custom_field_for_epic_name()
         {
-            ((string)_result.fields["fake_customfield_10000"]).ShouldEqual("E-1000");
+            ((string)_result.fields["fake_customfield_10000"]).ShouldEqual("create new features");
         }
 
         [Ignore]
@@ -53,6 +53,12 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_include_issue_type()
         {
             ((Dictionary<string, object>)_result.fields["issuetype"])["name"].ShouldEqual("Epic");
+        }
+
+        [TestMethod]
+        public void should_include_labels()
+        {
+            ((string)_result.fields["labels"][0]).ShouldEqual("E-1000");
         }
     }
 
@@ -104,7 +110,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             _issue.Fields.Summary = "Ithica";
             _epic.ItMatches(_issue).ShouldBeFalse();
-         }
+        }
 
         [TestMethod]
         public void reference_is_null_or_empty()

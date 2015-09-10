@@ -78,7 +78,6 @@ namespace VersionOne.TeamSync.Worker
             _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers);
         }
 
-
         public VersionOneToJiraWorker(IV1 v1)
         {
             _v1 = v1;
@@ -159,6 +158,36 @@ namespace VersionOne.TeamSync.Worker
 
             if (!_jiraInstances.Any())
                 throw new Exception("No valid projects to synchronize. You need at least one valid project mapping for the service to run.");
+        }
+
+        public void ValidateMemberAccountPermissions()
+        {
+            Log.Info("Verifying VersionOne member account permissions...");
+            Log.DebugFormat("Member: {0}", _v1.MemberId);
+            if (_v1.ValidateMemberPermissions())
+            {
+                Log.Info("VersionOne member account has valid permissions.");
+            }
+            else
+            {
+                Log.Error("VersionOne member account is not valid, default role must be Project Lead or higher.");
+                throw new Exception(string.Format("Unable to validate permissions for {0}.", _v1.MemberId));
+            }
+
+            foreach (var jiraInstanceInfo in _jiraInstances.ToList())
+            {
+                Log.InfoFormat("Verifying JIRA member account permissions...");
+                Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.JiraInstance.InstanceUrl, jiraInstanceInfo.JiraInstance.Username);
+                if (jiraInstanceInfo.ValidateMemberPermissions())
+                {
+                    Log.Info("JIRA user has valid permissions.");
+                }
+                else
+                {
+                    Log.Error("JIRA user is not valid, must belong to 'jira-developers' or 'jira-administrators' group.");
+                    throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
+                }
+            }
         }
 
         public void ValidateVersionOneSchedules()

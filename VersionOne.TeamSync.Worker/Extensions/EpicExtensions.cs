@@ -24,20 +24,22 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 { "summary", epic.Name},
                 { "issuetype", new {name = "Epic"} },
                 { "project", new {Key = projectKey}},
-                { jiraEpicNameId, epic.Number}
+                { jiraEpicNameId,   epic.Name},
+                {"labels", new List<string> {epic.Number}}
             };
 
             return expando;
         }
 
-        public static Issue UpdateJiraEpic(this Epic epic)
+        public static Issue UpdateJiraEpic(this Epic epic, List<string> labels)
         {
-            return new Issue()
+            return new Issue
             {
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Description = epic.Description ?? "-",
                     Summary = epic.Name,
+                    Labels = labels
                 }
             };
         }
@@ -45,7 +47,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static void ReOpen(this Issue issue)
         {
             if (issue.Fields.Status == null)
-                issue.Fields.Status = new Status() { Name = "ToDo" };
+                issue.Fields.Status = new Status { Name = "ToDo" };
             else
                 issue.Fields.Status.Name = "ToDo";
         }

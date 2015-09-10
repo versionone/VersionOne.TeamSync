@@ -1,11 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using RestSharp.Deserializers;
 
 namespace VersionOne.TeamSync.JiraConnector.Entities
 {
@@ -40,7 +37,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
             get { return IssueTypes.SingleOrDefault(x => x.Name == "Story"); }
         }
 
-        public List<MetaProperty> OfficialEpicCustomFields
+        public List<MetaProperty> AgileCustomFields
         {
             get { return Epic.Fields.Properties.Where(x => !string.IsNullOrWhiteSpace(x.Schema) && x.Schema.StartsWith("com.pyxis.greenhopper.jira:gh")).ToList(); }
         }
@@ -52,24 +49,29 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
 
         public MetaProperty EpicName
         {
-            get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Name"); }
+            get { return AgileCustomFields.FirstOrDefault(x => x.Property == "Epic Name"); }
         }
 
         public MetaProperty EpicLink
         {
-            get { return OfficialEpicCustomFields.FirstOrDefault(x => x.Property == "Epic Link"); }
+            get { return AgileCustomFields.FirstOrDefault(x => x.Property == "Epic Link"); }
         }
 
-	    private MetaProperty _storyPoint;
+        public MetaProperty Sprint
+        {
+            get { return AgileCustomFields.FirstOrDefault(x => x.Property == "Sprint"); }
+        }
+
+        private MetaProperty _storyPoint;
         public MetaProperty StoryPoints
         {
             get
             {
-	            if (_storyPoint != null) return _storyPoint;
-	            var property = StoryCustomFields.SingleOrDefault(x => x.Property == "Story Points");
-	            _storyPoint = property ?? MetaProperty.EmptyProperty("Story Points");
+                if (_storyPoint != null) return _storyPoint;
+                var property = StoryCustomFields.SingleOrDefault(x => x.Property == "Story Points");
+                _storyPoint = property ?? MetaProperty.EmptyProperty("Story Points");
 
-				return _storyPoint;
+                return _storyPoint;
             }
         }
     }

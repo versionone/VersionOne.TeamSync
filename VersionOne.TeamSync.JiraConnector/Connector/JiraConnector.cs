@@ -18,14 +18,18 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 {
     public class JiraConnector : IJiraConnector
     {
+        public const string JiraRestApiUrl = "api/latest";
+        public const string JiraAgileApiUrl = "agile/latest";
+        public const string InQuery = "{0} in ({1})";
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(JiraConnector));
-        private const string InQuery = "{0} in ({1})";
 
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new JiraSerializer();
-        private readonly string _username;
 
         public string BaseUrl { get; private set; }
+
+        public string Username { get; private set; }
 
         public JiraConnector(JiraServer settings)
         {
@@ -52,13 +56,13 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                 proxy = new WebProxy(new Uri(settings.Proxy.Url), false, new string[] { }, cred);
             }
 
-            _client = new RestClient(new Uri(new Uri(settings.Url), "/rest/api/latest").ToString()) { Proxy = proxy };
+            _client = new RestClient(new Uri(new Uri(settings.Url), "/rest").ToString()) { Proxy = proxy };
             BaseUrl = settings.Url;
 
             if (!string.IsNullOrEmpty(settings.Username) && !string.IsNullOrEmpty(settings.Password))
             {
                 _client.Authenticator = new HttpBasicAuthenticator(settings.Username, settings.Password);
-                _username = settings.Username;
+                Username = settings.Username;
             }
 
             if (settings.IgnoreCertificate)
@@ -67,12 +71,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         }
 
         public JiraConnector(string baseUrl, string username, string password)
-            : this(new JiraServer
-            {
-                Url = baseUrl,
-                Username = username,
-                Password = password
-            })
+            : this(new JiraServer { Url = baseUrl, Username = username, Password = password })
         {
         }
 
@@ -115,42 +114,20 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         #region HTTP VERBS
 
-        public string Get(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
+        public string Get(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>), Dictionary<string, string> queryParameters = null)
         {
             if (string.IsNullOrEmpty(path))
                 return string.Empty; // TODO: Exception?
 
-            var request = new RestRequest
-            {
-                Method = Method.GET,
-                Resource = path,
-                RequestFormat = DataFormat.Json,
-                JsonSerializer = _serializer
-            };
-
-            if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
-                request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
-
-            return Execute(request, HttpStatusCode.OK);
+            return Execute(BuildGetRequest(path, urlSegment, queryParameters), HttpStatusCode.OK);
         }
 
-        public T Get<T>(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>)) where T : new()
+        public T Get<T>(string path, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>), Dictionary<string, string> queryParameters = null) where T : new()
         {
             if (string.IsNullOrEmpty(path))
                 return default(T); // TODO: Exception?
 
-            var request = new RestRequest
-            {
-                Method = Method.GET,
-                Resource = path,
-                RequestFormat = DataFormat.Json,
-                JsonSerializer = _serializer
-            };
-
-            if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
-                request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
-
-            return Execute<T>(request, HttpStatusCode.OK);
+            return Execute<T>(BuildGetRequest(path, urlSegment, queryParameters), HttpStatusCode.OK);
         }
 
         public string Post(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>))
@@ -244,34 +221,46 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         #endregion
 
+        public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties) //not entirely convinced this belongs here
+        {
+            var path = string.Format("{0}/search", JiraRestApiUrl);
+            var queryString = string.Join(" AND ", query.Select(item =>
+            {
+                if (item.Value.Count() == 1)
+                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
+                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
+            }));
+            var content = Get(path, default(KeyValuePair<string, string>),
+                new Dictionary<string, string>
+                {
+                    {"jql",  queryString},
+                    {"fields", string.Join(",", properties)}
+                });
+
+            return JsonConvert.DeserializeObject<SearchResult>(content);
+        }
+
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties) //not entirely convinced this belongs here
         {
-            var request = new RestRequest(Method.GET)
-            {
-                Resource = "search",
-            };
-
-            var queryString = string.Join(" AND ", query.Select(item => item.ToString()));
-            request.AddQueryParameter("jql", queryString);
-            request.AddQueryParameter("fields", string.Join(",", properties));
-
-            var content = Execute(request, HttpStatusCode.OK);
+            var path = string.Format("{0}/search", JiraRestApiUrl);
+            var content = Get(path, default(KeyValuePair<string, string>),
+                new Dictionary<string, string>
+                {
+                    {"jql",  string.Join(" AND ", query.Select(item => item.ToString()))},
+                    {"fields", string.Join(",", properties)}
+                });
 
             return JsonConvert.DeserializeObject<SearchResult>(content);
         }
 
         public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
         {
-            var request = new RestRequest(Method.GET)
-            {
-                Resource = "search?expand=renderedFields",
-            };
-
-            var queryString = string.Join(" AND ", query.Select(item => item.ToString()));
-            request.AddQueryParameter("jql", queryString);
-            request.AddQueryParameter("fields", string.Join(",", properties));
-
-            var content = Execute(request, HttpStatusCode.OK);
+            var path = string.Format("{0}/search?expand=renderedFields", JiraRestApiUrl);
+            var content = Get(path, default(KeyValuePair<string, string>), new Dictionary<string, string>
+                {
+                    {"jql", string.Join(" AND ", query.Select(item => item.ToString()))},
+                    {"fields", string.Join(",", properties)}
+                });
             var result = JObject.Parse(content);
             var issues = result.Property("issues").Value;
             var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
@@ -284,35 +273,36 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             return searchResult;
         }
-        
+
         public JiraVersionInfo GetVersionInfo()
         {
-            var request = new RestRequest(Method.GET)
-            {
-                Resource = "serverInfo"
-            };
-
-            var content = Execute(request, HttpStatusCode.OK);
+            var path = string.Format("{0}/serverInfo", JiraRestApiUrl);
+            var content = Get(path);
 
             return JsonConvert.DeserializeObject<JiraVersionInfo>(content);
         }
 
-        public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
+        public UserInfo GetUserInfo()
         {
-            var content = Execute(BuildSearchRequest(query, properties), HttpStatusCode.OK);
+            var path = string.Format("{0}/user", JiraRestApiUrl);
+            var content = Get(path, default(KeyValuePair<string, string>), new Dictionary<string, string>
+            {
+                {"username", Username},
+                {"expand", "groups"}
+            });
 
-            return JsonConvert.DeserializeObject<SearchResult>(content);
+            return JsonConvert.DeserializeObject<UserInfo>(content);
         }
 
         public CreateMeta GetCreateMetaInfoForProjects(IEnumerable<string> projectKey)
         {
-            var request = new RestRequest(Method.GET)
-            {
-                Resource = "issue/createmeta"
-            };
-
-            request.AddQueryParameter("projectKeys", string.Join(",", projectKey));
-            request.AddQueryParameter("expand", "projects.issuetypes.fields");
+            var path = string.Format("{0}/issue/createmeta", JiraRestApiUrl);
+            var request = BuildGetRequest(path, default(KeyValuePair<string, string>),
+                new Dictionary<string, string>
+                {
+                    {"projectKeys", string.Join(",", projectKey)},
+                    {"expand", "projects.issuetypes.fields"}
+                });
 
             var content = Execute(request, HttpStatusCode.OK);
 
@@ -321,13 +311,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public bool IsConnectionValid()
         {
-            var request = new RestRequest
-            {
-                Method = Method.GET,
-                Resource = "user",
-                RequestFormat = DataFormat.Json
-            };
-            request.AddQueryParameter("username", _username);
+            var path = string.Format("{0}/user", JiraRestApiUrl);
+            var request = BuildGetRequest(path, default(KeyValuePair<string, string>), new Dictionary<string, string> { { "username", Username } });
             LogRequest(_client, request);
 
             var response = _client.Execute(request);
@@ -344,13 +329,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public bool ProjectExists(string projectIdOrKey)
         {
-            var request = new RestRequest
-            {
-                Method = Method.GET,
-                Resource = "project/{projectIdOrKey}",
-                RequestFormat = DataFormat.Json
-            };
-            request.AddUrlSegment("projectIdOrKey", projectIdOrKey);
+            var path = string.Format("{0}/project/{{projectIdOrKey}}", JiraRestApiUrl);
+            var request = BuildGetRequest(path, new KeyValuePair<string, string>("projectIdOrKey", projectIdOrKey), null);
 
             try
             {
@@ -368,22 +348,23 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         #region HELPER METHODS
 
-        public static RestRequest BuildSearchRequest(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)// ..|..
+        private RestRequest BuildGetRequest(string path, KeyValuePair<string, string> urlSegment, Dictionary<string, string> queryParameters)
         {
-            var request = new RestRequest(Method.GET)
+            var request = new RestRequest
             {
-                Resource = "search",
+                Method = Method.GET,
+                Resource = path,
+                RequestFormat = DataFormat.Json,
+                JsonSerializer = _serializer
             };
 
-            var queryString = string.Join(" AND ", query.Select(item =>
-            {
-                if (item.Value.Count() == 1)
-                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
-                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
-            }));
+            if (!urlSegment.Equals(default(KeyValuePair<string, string>)))
+                request.AddUrlSegment(urlSegment.Key, urlSegment.Value);
 
-            request.AddQueryParameter("jql", queryString);
-            request.AddQueryParameter("fields", string.Join(",", properties));
+            if (queryParameters != null)
+                foreach (var param in queryParameters)
+                    request.AddQueryParameter(param.Key, param.Value);
+
             return request;
         }
 

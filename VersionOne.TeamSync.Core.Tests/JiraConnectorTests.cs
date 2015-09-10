@@ -24,7 +24,23 @@ namespace VersionOne.TeamSync.Core.Tests
 
         public void MakeRequest()
         {
-            ResultRequest = JiraConnector.Connector.JiraConnector.BuildSearchRequest(Query, new[] { "item", "item2", "item3" });
+            var request = new RestRequest
+            {
+                Method = Method.GET,
+                Resource = string.Format("{0}/search", JiraConnector.Connector.JiraConnector.JiraRestApiUrl)
+            };
+
+            var queryString = string.Join(" AND ", Query.Select(item =>
+            {
+                if (item.Value.Count() == 1)
+                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
+                return string.Format(JiraConnector.Connector.JiraConnector.InQuery, item.Key, string.Join(", ", item.Value));
+            }));
+
+            request.AddQueryParameter("jql", queryString);
+            request.AddQueryParameter("fields", string.Join(",", new[] { "item", "item2", "item3" }));
+
+            ResultRequest = request;
         }
 
         [TestMethod]
@@ -103,7 +119,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_request_an_update_correctly()
         {
             var mockConnector = new Mock<IJiraConnector>();
-            mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>()))
+            mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>(), It.IsAny<Dictionary<string, string>>()))
                 .Returns(new TransitionResponse()
                 {
                     Transitions = new List<Transition>()
@@ -112,7 +128,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     new Transition() {Id = "1",Name = "In Progress"}
                 }
                 });
-            mockConnector.Setup(x => x.Post("issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey)))
+            mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey)))
                 .Verifiable();
 
             var jira = new Jira(mockConnector.Object, string.Empty);
@@ -193,11 +209,11 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_request_an_update_correctly()
         {
             var mockConnector = new Mock<IJiraConnector>();
-            mockConnector.Setup(x => x.Get<TransitionResponse>("issue/{issueOrKey}/transitions", new KeyValuePair<string, string>("issueOrKey", IssueKey))).Returns(new TransitionResponse()
+            mockConnector.Setup(x => x.Get<TransitionResponse>("api/latest/issue/{issueIdOrKey}/transitions", new KeyValuePair<string, string>("issueIdOrKey", IssueKey), It.IsAny<Dictionary<string, string>>())).Returns(new TransitionResponse()
             {
                 Transitions = new List<Transition>() { new Transition() { Id = "5", Name = "Done" } }
             }).Verifiable();
-            mockConnector.Setup(x => x.Post("issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey))).Verifiable();
+            mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey))).Verifiable();
 
             var jira = new Jira(mockConnector.Object, string.Empty);
 
