@@ -1,4 +1,5 @@
-﻿using VersionOne.TeamSync.V1Connector.Interfaces;
+﻿using System.Collections.Generic;
+using VersionOne.TeamSync.V1Connector.Interfaces;
 
 namespace VersionOne.TeamSync.Worker.Domain
 {

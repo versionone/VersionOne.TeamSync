@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using log4net;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -48,7 +49,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Actual> CreateActual(Actual actual);
         Task<Member> GetMember(string jiraUsername);
         Task<Member> CreateMember(Member member);
-        //Task<Member> GetStoryOwner(Story story, string ownerNickname);
+        Task<Member> GetMemberFromAssignee(Issue jiraIssue);
     }
 
     public class V1 : IV1
@@ -241,7 +242,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateMemberPermissions()
         {
             var defaultRoleOrder =
-                _connector.Query("Member", new[] {"DefaultRole.Order"}, new[] {"IsSelf='True'"},
+                _connector.Query("Member", new[] { "DefaultRole.Order" }, new[] { "IsSelf='True'" },
                     element => element.Descendants("Attribute").First().Value).Result.First();
 
             return Convert.ToInt32(defaultRoleOrder) <= ProjectLeadOrder;
@@ -250,18 +251,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
-                new[]
-                {
-                    "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number",
-                    "Owners"
-                },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Owners" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Story.FromQuery);
         }
 
         public async Task<List<Defect>> GetDefectsWithJiraReference(string projectId)
         {
             return await _connector.Query("Defect",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Owners" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Defect.FromQuery);
         }
 
@@ -332,9 +329,9 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             var members =
                 await
-                    _connector.Query("Member", new[] {"Name", "Nickname", "Email", "Username"},
-                        new[] {string.Format("Nickname='{0}'|Username='{0}'", jiraUsername)}, Member.FromQuery);
-            
+                    _connector.Query("Member", new[] { "Name", "Nickname", "Email", "Username" },
+                        new[] { string.Format("Nickname='{0}'|Username='{0}'", jiraUsername) }, Member.FromQuery);
+
             return members.FirstOrDefault();
         }
 
@@ -345,16 +342,11 @@ namespace VersionOne.TeamSync.Worker.Domain
             return member;
         }
 
-        //public async Task<Member> GetStoryOwner(Story story, string ownerNickname)
-        //{
-        //    var idsCondition = string.Join("|", story.OwnersIds.Select(item => string.Format("ID='{0}'", item)).ToArray());
-        //    var nicknameCondition = string.Format("Nickname='{0}'", ownerNickname);
-        //    var members = await
-        //        _connector.Query("Member", new[] {"Name", "Nickname", "Email"}, new[] {idsCondition, nicknameCondition},
-        //            Member.FromQuery);
-
-        //    return members.FirstOrDefault();
-        //}
+        public async Task<Member> GetMemberFromAssignee(Issue jiraIssue)
+        {
+            return await GetMember(jiraIssue.Fields.Assignee.Name) ??
+                         await CreateMember(jiraIssue.Fields.Assignee.ToV1Member());
+        }
     }
 
     public interface IDateTime

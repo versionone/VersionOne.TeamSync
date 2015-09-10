@@ -14,7 +14,7 @@ namespace VersionOne.TeamSync.Worker
     public class DefectWorker : IAsyncWorker
     {
         private readonly IV1 _v1;
-		private string _pluralAsset = "defects";
+        private string _pluralAsset = "defects";
         public static ILog Log { get; private set; }
         private const string CreatedFromV1Comment = "Created from VersionOne Work Item {0} in Project {1}";
         private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
@@ -28,7 +28,7 @@ namespace VersionOne.TeamSync.Worker
 
 
         public async Task DoWork(V1JiraInfo jiraInfo)
-        { 
+        {
             Log.Trace("Defect sync started...");
             var allJiraDefects = jiraInfo.JiraInstance.GetDefectsInProject(jiraInfo.JiraKey).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
@@ -55,13 +55,13 @@ namespace VersionOne.TeamSync.Worker
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
+                 UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
                 processedDefects++;
             });
 
-			Log.InfoUpdated(processedDefects, _pluralAsset);
-			Log.TraceUpdateFinished(_pluralAsset);
-		}
+            Log.InfoUpdated(processedDefects, _pluralAsset);
+            Log.TraceUpdateFinished(_pluralAsset);
+        }
 
         public async Task UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
@@ -74,12 +74,40 @@ namespace VersionOne.TeamSync.Worker
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
-
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-
             var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
             update.ID = defect.ID;
+            update.OwnersIds = defect.OwnersIds;
+
+            if (issue.HasAssignee())
+            {
+                string ownerOid;
+                var assigneeName = issue.Fields.Assignee.Name;
+                var owner = await _v1.GetMember(assigneeName);
+                if (owner != null)
+                {
+                    if (!issue.Fields.Assignee.ItMatchesMember(owner))
+                    {
+                        owner.Name = issue.Fields.Assignee.DisplayName;
+                        owner.Nickname = assigneeName;
+                        owner.Email = issue.Fields.Assignee.EmailAddress;
+                        await _v1.UpdateAsset(owner, owner.CreateUpdatePayload());
+                    }
+                    ownerOid = string.Format("{0}:{1}", owner.AssetType, owner.ID);
+                }
+                else
+                {
+                    var member = await _v1.GetMemberFromAssignee(issue);
+                    ownerOid = string.Format("{0}:{1}", member.AssetType, member.ID);
+                }
+                if (!update.OwnersIds.Any(i => i.Equals(ownerOid)))
+                    await _v1.UpdateAsset(update, update.CreateOwnersPayload(ownerOid));
+            }
+            else if (update.OwnersIds.Any())
+            {
+                await _v1.UpdateAsset(update, update.CreateOwnersPayload());
+            }
 
             if (!issue.ItMatchesDefect(defect))
             {
@@ -119,13 +147,19 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-			Log.InfoCreated(processedDefects, _pluralAsset);
-			Log.TraceCreateFinished(_pluralAsset);
-		}
+            Log.InfoCreated(processedDefects, _pluralAsset);
+            Log.TraceCreateFinished(_pluralAsset);
+        }
 
         public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
         {
             var defect = jiraDefect.ToV1Defect(jiraInfo.V1ProjectId);
+
+            if (jiraDefect.HasAssignee())
+            {
+                var member = await _v1.GetMemberFromAssignee(jiraDefect);
+                defect.OwnersIds.Add(string.Format("{0}:{1}", member.AssetType, member.ID));
+            }
 
             if (!string.IsNullOrEmpty(jiraDefect.Fields.EpicLink))
             {
@@ -176,9 +210,9 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-			Log.InfoDelete(processedDefects, _pluralAsset);
-			Log.TraceDeleteFinished(_pluralAsset);
-		}
+            Log.InfoDelete(processedDefects, _pluralAsset);
+            Log.TraceDeleteFinished(_pluralAsset);
+        }
 
     }
 }

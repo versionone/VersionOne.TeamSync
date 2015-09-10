@@ -14,8 +14,8 @@ namespace VersionOne.TeamSync.Worker
     public class StoryWorker : IAsyncWorker
     {
         private readonly IV1 _v1;
-	private string _pluralAsset = "stories";
-	public static ILog Log { get; private set; }
+        private string _pluralAsset = "stories";
+        public static ILog Log { get; private set; }
         private const string CreatedFromV1Comment = "Created from VersionOne Work Item {0} in Project {1}";
         private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
         private const string V1AssetDetailWebLinkTitle = "VersionOne Story ({0})";
@@ -59,8 +59,8 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-	    Log.InfoUpdated(processedStories, _pluralAsset);
-	    Log.TraceUpdateFinished(_pluralAsset);
+            Log.InfoUpdated(processedStories, _pluralAsset);
+            Log.TraceUpdateFinished(_pluralAsset);
         }
 
         public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
@@ -86,21 +86,21 @@ namespace VersionOne.TeamSync.Worker
             {
                 string ownerOid;
                 var assigneeName = issue.Fields.Assignee.Name;
-                var storyOwner = await _v1.GetMember(assigneeName);
-                if (storyOwner != null)
+                var owner = await _v1.GetMember(assigneeName);
+                if (owner != null)
                 {
-                    if (!issue.Fields.Assignee.ItMatchesMember(storyOwner))
+                    if (!issue.Fields.Assignee.ItMatchesMember(owner))
                     {
-                        storyOwner.Name = issue.Fields.Assignee.DisplayName;
-                        storyOwner.Nickname = assigneeName;
-                        storyOwner.Email = issue.Fields.Assignee.EmailAddress;
-                        await _v1.UpdateAsset(storyOwner, storyOwner.CreateUpdatePayload());
+                        owner.Name = issue.Fields.Assignee.DisplayName;
+                        owner.Nickname = assigneeName;
+                        owner.Email = issue.Fields.Assignee.EmailAddress;
+                        await _v1.UpdateAsset(owner, owner.CreateUpdatePayload());
                     }
-                    ownerOid = string.Format("{0}:{1}", storyOwner.AssetType, storyOwner.ID);
+                    ownerOid = string.Format("{0}:{1}", owner.AssetType, owner.ID);
                 }
                 else
                 {
-                    var member = await GetV1MemberFromAssignee(issue);
+                    var member = await _v1.GetMemberFromAssignee(issue);
                     ownerOid = string.Format("{0}:{1}", member.AssetType, member.ID);
                 }
                 if (!update.OwnersIds.Any(i => i.Equals(ownerOid)))
@@ -108,9 +108,9 @@ namespace VersionOne.TeamSync.Worker
             }
             else if (update.OwnersIds.Any())
             {
-                await _v1.UpdateAsset(update,update.CreateOwnersPayload());
+                await _v1.UpdateAsset(update, update.CreateOwnersPayload());
             }
-            
+
             if (!issue.ItMatchesStory(story))
             {
                 update.Super = v1EpicId;
@@ -146,9 +146,9 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-	    Log.InfoCreated(processedStories, _pluralAsset);
-	    Log.TraceCreateFinished(_pluralAsset);
-	}
+            Log.InfoCreated(processedStories, _pluralAsset);
+            Log.TraceCreateFinished(_pluralAsset);
+        }
 
         public async Task CreateStoryFromJira(V1JiraInfo jiraInfo, Issue jiraStory)
         {
@@ -157,7 +157,7 @@ namespace VersionOne.TeamSync.Worker
 
             if (jiraStory.HasAssignee())
             {
-                var member = await GetV1MemberFromAssignee(jiraStory);
+                var member = await _v1.GetMemberFromAssignee(jiraStory);
                 story.OwnersIds.Add(string.Format("{0}:{1}", member.AssetType, member.ID));
             }
 
@@ -188,12 +188,6 @@ namespace VersionOne.TeamSync.Worker
             Log.TraceFormat("Added link in V1 story {0}", newStory.Number);
         }
 
-        private async Task<Member> GetV1MemberFromAssignee(Issue jiraStory)
-        {
-            return await _v1.GetMember(jiraStory.Fields.Assignee.Name) ??
-                         await _v1.CreateMember(jiraStory.Fields.Assignee.ToV1Member());
-        }
-
         public void DeleteV1Stories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             Log.Trace("Deleting stories started");
@@ -215,7 +209,7 @@ namespace VersionOne.TeamSync.Worker
             });
 
             Log.InfoDelete(processedStories, _pluralAsset);
-	    Log.TraceDeleteFinished(_pluralAsset);
+            Log.TraceDeleteFinished(_pluralAsset);
         }
 
     }

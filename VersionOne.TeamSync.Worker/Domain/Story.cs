@@ -96,7 +96,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                     .Where(e => e.Attribute("name").Value == "Owners")
                     .Elements("Asset")
                     .Select(i => i.Attribute("idref").Value);
-            return new Story()
+            return new Story
             {
                 ID = asset.GetAssetID(),
                 Number = attributes.GetValueOrDefault("ID.Number"),
