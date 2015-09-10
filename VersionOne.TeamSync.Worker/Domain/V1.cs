@@ -49,7 +49,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Actual> CreateActual(Actual actual);
         Task<Member> GetMember(string jiraUsername);
         Task<Member> CreateMember(Member member);
-        Task<Member> GetMemberFromAssignee(Issue jiraIssue);
+        Task<Member> GetMemberFromJiraUser(User jiraUser);
     }
 
     public class V1 : IV1
@@ -342,10 +342,10 @@ namespace VersionOne.TeamSync.Worker.Domain
             return member;
         }
 
-        public async Task<Member> GetMemberFromAssignee(Issue jiraIssue)
+        public async Task<Member> GetMemberFromJiraUser(User jiraUser)
         {
-            return await GetMember(jiraIssue.Fields.Assignee.Name) ??
-                         await CreateMember(jiraIssue.Fields.Assignee.ToV1Member());
+            return await GetMember(jiraUser.name) ??
+                         await CreateMember(jiraUser.ToV1Member());
         }
     }
 

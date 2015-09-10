@@ -55,7 +55,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-                 UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
+                UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics).Wait();
                 processedDefects++;
             });
 
@@ -83,23 +83,23 @@ namespace VersionOne.TeamSync.Worker
             if (issue.HasAssignee())
             {
                 string ownerOid;
-                var assigneeName = issue.Fields.Assignee.Name;
+                var assigneeName = issue.Fields.Assignee.name;
                 var owner = await _v1.GetMember(assigneeName);
                 if (owner != null)
                 {
                     if (!issue.Fields.Assignee.ItMatchesMember(owner))
                     {
-                        owner.Name = issue.Fields.Assignee.DisplayName;
+                        owner.Name = issue.Fields.Assignee.displayName;
                         owner.Nickname = assigneeName;
-                        owner.Email = issue.Fields.Assignee.EmailAddress;
+                        owner.Email = issue.Fields.Assignee.emailAddress;
                         await _v1.UpdateAsset(owner, owner.CreateUpdatePayload());
                     }
-                    ownerOid = string.Format("{0}:{1}", owner.AssetType, owner.ID);
+                    ownerOid = owner.Oid();
                 }
                 else
                 {
-                    var member = await _v1.GetMemberFromAssignee(issue);
-                    ownerOid = string.Format("{0}:{1}", member.AssetType, member.ID);
+                    var member = await _v1.GetMemberFromJiraUser(issue.Fields.Assignee);
+                    ownerOid = member.Oid();
                 }
                 if (!update.OwnersIds.Any(i => i.Equals(ownerOid)))
                     await _v1.UpdateAsset(update, update.CreateOwnersPayload(ownerOid));
@@ -157,8 +157,8 @@ namespace VersionOne.TeamSync.Worker
 
             if (jiraDefect.HasAssignee())
             {
-                var member = await _v1.GetMemberFromAssignee(jiraDefect);
-                defect.OwnersIds.Add(string.Format("{0}:{1}", member.AssetType, member.ID));
+                var member = await _v1.GetMemberFromJiraUser(jiraDefect.Fields.Assignee);
+                defect.OwnersIds.Add(member.Oid());
             }
 
             if (!string.IsNullOrEmpty(jiraDefect.Fields.EpicLink))

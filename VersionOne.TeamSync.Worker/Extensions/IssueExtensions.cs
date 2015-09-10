@@ -83,20 +83,20 @@ namespace VersionOne.TeamSync.Worker.Extensions
             return issue.Fields.Assignee != null;
         }
 
-        public static bool ItMatchesMember(this Assignee assignee, Member member)
+        public static bool ItMatchesMember(this User assignee, Member member)
         {
-            return string.Equals(member.Name, assignee.DisplayName) &&
-                   string.Equals(member.Nickname, assignee.Name) &&
-                   string.Equals(member.Email, assignee.EmailAddress);
+            return string.Equals(member.Name, assignee.displayName) &&
+                   string.Equals(member.Nickname, assignee.name) &&
+                   string.Equals(member.Email, assignee.emailAddress);
         }
 
-        public static Member ToV1Member(this Assignee assignee)
+        public static Member ToV1Member(this User assignee)
         {
-            return new Member()
+            return new Member
             {
-                Name = assignee.DisplayName,
-                Nickname = assignee.Name,
-                Email = assignee.EmailAddress
+                Name = assignee.displayName,
+                Nickname = assignee.name,
+                Email = assignee.emailAddress
             };
         }
     }

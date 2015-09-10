@@ -91,7 +91,7 @@
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\EpicExtensions.cs" />
     <Compile Include="Extensions\IssueExtensions.cs" />
-    <Compile Include="Extensions\StoryExtensions.cs" />
+    <Compile Include="Extensions\V1AssetExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\XDocumentExtensions.cs" />
     <Compile Include="HtmlToPlainText.cs" />
