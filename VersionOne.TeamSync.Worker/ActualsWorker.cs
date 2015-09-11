@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -66,10 +67,11 @@ namespace VersionOne.TeamSync.Worker
                     // Have started date changed?
                     (!w.started.ToString(CultureInfo.InvariantCulture).Equals(a.Date.ToString(CultureInfo.InvariantCulture)) ||
                     // Have worked hours changed?
-                    double.Parse(a.Value).CompareTo(w.timeSpentSeconds / 3600d) != 0)) //||
+                    Convert.ToInt32(double.Parse(a.Value) * 3600) != w.timeSpentSeconds //||
                     // Have updated author changed?
                     // TODO
-                    ).ToList();
+                    )
+                    )).ToList();
                 if (updateWorklogs.Any())
                     UpdateActualsFromWorklogs(jiraInfo, updateWorklogs, workItem.Oid(), actuals);
                 _log.TraceUpdateFinished(_pluralAsset);
