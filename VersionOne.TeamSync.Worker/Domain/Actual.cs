@@ -51,7 +51,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 ID = asset.GetAssetID(),
                 Date = DateTime.Parse(attributes.GetValueOrDefault("Date")),
                 Value = attributes.GetValueOrDefault("Value"),
-                Reference = attributes.GetValueOrDefault("Reference")
+                Reference = attributes.GetValueOrDefault("Reference"),
+                MemberId = asset.Elements("Relation").Where(e => e.Attribute("name").Value.Equals("Member")).Elements("Asset").Single().Attribute("idref").Value
             };
         }
     }

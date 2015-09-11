@@ -67,9 +67,9 @@ namespace VersionOne.TeamSync.Worker
                     // Have started date changed?
                     (!w.started.ToString(CultureInfo.InvariantCulture).Equals(a.Date.ToString(CultureInfo.InvariantCulture)) ||
                     // Have worked hours changed?
-                    Convert.ToInt32(double.Parse(a.Value) * 3600) != w.timeSpentSeconds //||
+                    Convert.ToInt32(double.Parse(a.Value) * 3600) != w.timeSpentSeconds ||
                     // Have updated author changed?
-                    // TODO
+                    !ActualMemberMatchesWorklogUpdateAuthor(w, a)
                     )
                     )).ToList();
                 if (updateWorklogs.Any())
@@ -83,6 +83,12 @@ namespace VersionOne.TeamSync.Worker
                     DeleteActualsFromWorklogs(actualsToDelete);
                 _log.TraceDeleteFinished(_pluralAsset);
             }
+        }
+
+        private bool ActualMemberMatchesWorklogUpdateAuthor(Worklog worklog, Actual actual)
+        {
+            var member = _v1.GetMember(worklog.updateAuthor.name).Result;
+            return member != null && member.Oid().Equals(actual.MemberId);
         }
 
         public void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
@@ -112,6 +118,12 @@ namespace VersionOne.TeamSync.Worker
             foreach (var worklog in updateWorklogs)
             {
                 var member = _v1.GetMemberFromJiraUser(worklog.updateAuthor).Result;
+
+                if (!worklog.updateAuthor.ItMatchesMember(member))
+                {
+                    //TOOD: update member
+                }
+
                 var actual = worklog.ToV1Actual(member.Oid(), jiraInfo.V1ProjectId, workItemId);
                 actual.ID = actuals.Single(a => a.Reference.Equals(worklog.id.ToString())).ID;
 

@@ -316,7 +316,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId)
         {
             return await _connector.Query("Actual",
-                new[] { "Date", "Value", "Reference", "Scope.Name", "Workitem.Name", "Workitem.Number" },
+                new[] { "Date", "Value", "Reference", "Scope.Name", "Workitem.Name", "Workitem.Number", "Member" },
                 new[]
                 {
                     "Reference!=\"\"",
