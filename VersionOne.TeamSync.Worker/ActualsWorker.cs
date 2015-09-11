@@ -85,12 +85,6 @@ namespace VersionOne.TeamSync.Worker
             }
         }
 
-        private bool ActualMemberMatchesWorklogUpdateAuthor(Worklog worklog, Actual actual)
-        {
-            var member = _v1.GetMember(worklog.updateAuthor.name).Result;
-            return member != null && member.Oid().Equals(actual.MemberId);
-        }
-
         public void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
         {
             _log.DebugFormat("Found {0} worklogs to check for create", newWorklogs.Count());
@@ -98,7 +92,7 @@ namespace VersionOne.TeamSync.Worker
             foreach (var worklog in newWorklogs)
             {
                 _log.TraceFormat("Attempting to create actual from Jira worklog id {0}", worklog.id);
-                var member = _v1.GetMemberFromJiraUser(worklog.updateAuthor).Result;
+                var member = _v1.SyncMemberFromJiraUser(worklog.updateAuthor).Result;
                 var actual = worklog.ToV1Actual(member.Oid(), jiraInfo.V1ProjectId, workItemId);
                 var newActual = _v1.CreateActual(actual).Result;
                 _log.DebugFormat("Created V1 actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
@@ -117,13 +111,7 @@ namespace VersionOne.TeamSync.Worker
             var processedActuals = 0;
             foreach (var worklog in updateWorklogs)
             {
-                var member = _v1.GetMemberFromJiraUser(worklog.updateAuthor).Result;
-
-                if (!worklog.updateAuthor.ItMatchesMember(member))
-                {
-                    //TOOD: update member
-                }
-
+                var member = _v1.SyncMemberFromJiraUser(worklog.updateAuthor).Result;
                 var actual = worklog.ToV1Actual(member.Oid(), jiraInfo.V1ProjectId, workItemId);
                 actual.ID = actuals.Single(a => a.Reference.Equals(worklog.id.ToString())).ID;
 
@@ -159,6 +147,12 @@ namespace VersionOne.TeamSync.Worker
             {
                 _log.Warn("Actual.Reference field is missing in VersionOne instance. JIRA worklogs will not be synced.");
             }
+        }
+
+        private bool ActualMemberMatchesWorklogUpdateAuthor(Worklog worklog, Actual actual)
+        {
+            var member = _v1.GetMember(worklog.updateAuthor.name).Result;
+            return member != null && member.Oid().Equals(actual.MemberId) && worklog.updateAuthor.ItMatchesMember(member);
         }
     }
 }

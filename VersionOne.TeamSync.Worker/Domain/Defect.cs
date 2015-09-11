@@ -75,7 +75,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
                 .AddSetRelationNode("Super", Super)
-                .AddMultiRelationNode("Owners", OwnersIds.ToDictionary(memberId => "add", memberId => memberId));
+                .AddMultiRelationNode("Owners", OwnersIds.ToDictionary(memberId => memberId, memberId => "add"));
             return doc;
         }
 

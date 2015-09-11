@@ -80,31 +80,13 @@ namespace VersionOne.TeamSync.Worker
             update.ID = defect.ID;
             update.OwnersIds = defect.OwnersIds;
 
-            if (issue.HasAssignee())
+            if (issue.HasAssignee()) // Assign Owner
             {
-                string ownerOid;
-                var assigneeName = issue.Fields.Assignee.name;
-                var owner = await _v1.GetMember(assigneeName);
-                if (owner != null)
-                {
-                    if (!issue.Fields.Assignee.ItMatchesMember(owner))
-                    {
-                        owner.Name = issue.Fields.Assignee.displayName;
-                        owner.Nickname = assigneeName;
-                        owner.Email = issue.Fields.Assignee.emailAddress;
-                        await _v1.UpdateAsset(owner, owner.CreateUpdatePayload());
-                    }
-                    ownerOid = owner.Oid();
-                }
-                else
-                {
-                    var member = await TryGetMemberFromJiraUser(issue.Fields.Assignee);
-                    ownerOid = member != null ? member.Oid() : null;
-                }
-                if (!update.OwnersIds.Any(i => i.Equals(ownerOid)))
-                    await _v1.UpdateAsset(update, update.CreateOwnersPayload(ownerOid));
+                var member = await TrySyncMemberFromJiraUser(issue.Fields.Assignee);
+                if (member != null && !update.OwnersIds.Any(i => i.Equals(member.Oid())))
+                    await _v1.UpdateAsset(update, update.CreateOwnersPayload(member.Oid()));
             }
-            else if (update.OwnersIds.Any())
+            else if (update.OwnersIds.Any()) // Unassign Owner
             {
                 await _v1.UpdateAsset(update, update.CreateOwnersPayload());
             }
@@ -157,9 +139,9 @@ namespace VersionOne.TeamSync.Worker
 
             if (jiraDefect.HasAssignee())
             {
-                var member = await TryGetMemberFromJiraUser(jiraDefect.Fields.Assignee);
+                var member = await TrySyncMemberFromJiraUser(jiraDefect.Fields.Assignee);
                 if (member != null)
-                    defect.OwnersIds.Add(member.Oid()); 
+                    defect.OwnersIds.Add(member.Oid());
             }
 
             if (!string.IsNullOrEmpty(jiraDefect.Fields.EpicLink))
@@ -215,19 +197,19 @@ namespace VersionOne.TeamSync.Worker
             Log.TraceDeleteFinished(_pluralAsset);
         }
 
-        private async Task<Member> TryGetMemberFromJiraUser(User jiraUser)
+        private async Task<Member> TrySyncMemberFromJiraUser(User jiraUser)
         {
             Member member = null;
             try
             {
-                member = await _v1.GetMember(jiraUser.name) ?? await _v1.CreateMember(jiraUser.ToV1Member());
+                member = await _v1.SyncMemberFromJiraUser(jiraUser);
             }
             catch (Exception e)
             {
                 Log.WarnFormat("Can not get or create Version One Member for Jira User '{0}'", jiraUser.name);
                 Log.Error(e);
             }
-                
+
             return member;
         }
     }

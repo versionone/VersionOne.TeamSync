@@ -35,8 +35,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Super { get; set; }
         public string SuperNumber { get; set; }
         public bool IsInactive { get; private set; }
-        public IList<string> OwnersIds { get; set; } 
-        
+        public IList<string> OwnersIds { get; set; }
+
         public XDocument CreatePayload()
         {
             var doc = XDocument.Parse("<Asset></Asset>");
@@ -47,7 +47,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
                 .AddSetRelationNode("Super", Super)
-                .AddMultiRelationNode("Owners", OwnersIds.ToDictionary(memberId => "add", memberId => memberId));
+                .AddMultiRelationNode("Owners", OwnersIds.ToDictionary(memberId => memberId, memberId => "add"));
 
             return doc;
         }
@@ -60,7 +60,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableCDataSetNode("Description", Description)
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
-				.AddNullableSetRelationNode("Super", Super)
+                .AddNullableSetRelationNode("Super", Super)
                 .AddSetNode("Reference", Reference);
             return doc;
         }
