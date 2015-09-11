@@ -344,8 +344,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<Member> GetMemberFromJiraUser(User jiraUser)
         {
-            return await GetMember(jiraUser.name) ??
-                         await CreateMember(jiraUser.ToV1Member());
+            return await GetMember(jiraUser.name) ?? await CreateMember(jiraUser.ToV1Member());
         }
     }
 

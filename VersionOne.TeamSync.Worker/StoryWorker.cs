@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
@@ -100,8 +99,8 @@ namespace VersionOne.TeamSync.Worker
                 }
                 else
                 {
-                    var member = await _v1.GetMemberFromJiraUser(issue.Fields.Assignee);
-                    ownerOid = member.Oid();
+                    var member = await TryGetMemberFromJiraUser(issue.Fields.Assignee);
+                    ownerOid = member != null  ? member.Oid() : null;
                 }
                 if (!update.OwnersIds.Any(i => i.Equals(ownerOid)))
                     await _v1.UpdateAsset(update, update.CreateOwnersPayload(ownerOid));
@@ -157,8 +156,9 @@ namespace VersionOne.TeamSync.Worker
 
             if (jiraStory.HasAssignee())
             {
-                var member = await _v1.GetMemberFromJiraUser(jiraStory.Fields.Assignee);
-                story.OwnersIds.Add(member.Oid());
+                var member = await TryGetMemberFromJiraUser(jiraStory.Fields.Assignee);
+                if (member != null)
+                    story.OwnersIds.Add(member.Oid());
             }
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
@@ -212,5 +212,20 @@ namespace VersionOne.TeamSync.Worker
             Log.TraceDeleteFinished(_pluralAsset);
         }
 
+        private async Task<Member> TryGetMemberFromJiraUser(User jiraUser)
+        {
+            Member member = null;
+            try
+            {
+                member = await _v1.GetMember(jiraUser.name) ?? await _v1.CreateMember(jiraUser.ToV1Member());
+            }
+            catch (Exception e)
+            {
+                Log.WarnFormat("Can not get or create Version One Member for Jira User '{0}'", jiraUser.name);
+                Log.Error(e);
+            }
+
+            return member;
+        }
     }
 }
