@@ -58,7 +58,7 @@ namespace VersionOne.TeamSync.Worker
                 var story = allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number));
 
                 var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics);
-
+                //checking if was an update or close
                 switch (returnValue)
                 {
                     case 1:
@@ -67,8 +67,7 @@ namespace VersionOne.TeamSync.Worker
                     case 2:
                         closedStories++;
                         break;
-                } 
-                
+                }      
             });
 
             _log.InfoUpdated(updatedStories, PluralAsset);
