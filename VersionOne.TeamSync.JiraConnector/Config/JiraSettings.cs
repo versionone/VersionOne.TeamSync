@@ -225,4 +225,75 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             }
         }
     }
+
+    public class PriorityMapping : ConfigurationElement
+    {
+        [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
+        public bool Enabled
+        {
+            get { return (bool) this["enabled"]; }
+            set { this["enabled"] = value; }
+        }
+
+        [ConfigurationProperty("v1Priority", IsRequired = true)]
+        public string V1Priority
+        {
+            get { return (string) this["v1Priority"]; }
+            set { this["v1Priority"] = value; }
+        }
+
+        [ConfigurationProperty("jiraPriority", IsRequired = true)]
+        public string JiraPriority
+        {
+            get { return (string) this["jiraPriority"]; }
+            set { this["jiraPriority"] = value; }
+        }
+    }
+
+    [ConfigurationCollection(typeof(PriorityMapping), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]
+    public class PriorityMappingCollection : ConfigurationElementCollection
+    {
+        internal const string PropertyName = "priority";
+
+        protected override string ElementName
+        {
+            get
+            {
+                return PropertyName;
+            }
+        }
+
+        protected override bool IsElementName(string elementName)
+        {
+            return elementName.Equals(PropertyName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new PriorityMapping();
+        }
+
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return ((PriorityMapping)(element)).V1Priority + "/" + ((PriorityMapping)(element)).JiraPriority;
+        }
+
+        public override ConfigurationElementCollectionType CollectionType
+        {
+            get
+            {
+                return ConfigurationElementCollectionType.BasicMapAlternate;
+            }
+        }
+
+        public override bool IsReadOnly()
+        {
+            return false;
+        }
+
+        public PriorityMapping this[int idx]
+        {
+            get { return (PriorityMapping) BaseGet(idx); }
+        }
+    }
 }
