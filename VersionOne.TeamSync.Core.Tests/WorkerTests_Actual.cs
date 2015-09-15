@@ -13,8 +13,6 @@ namespace VersionOne.TeamSync.Core.Tests
 {
     public abstract class actual_bits : worker_bits
     {
-        protected V1JiraInfo JiraInfo;
-
         protected Worklog Worklog;
         protected Actual Actual;
 
@@ -32,8 +30,6 @@ namespace VersionOne.TeamSync.Core.Tests
             };
 
             Actual = new Actual { ID = "1080" };
-
-            JiraInfo = MakeInfo();
         }
     }
 
@@ -51,7 +47,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockV1.Setup(x => x.CreateActual(It.IsAny<Actual>())).ReturnsAsync(Actual);
 
             var worker = new ActualsWorker(_mockV1.Object, _mockLogger.Object);
-            worker.CreateActualsFromWorklogs(JiraInfo, new List<Worklog> { Worklog }, WorkItemId, V1Number, IssueKey);
+            worker.CreateActualsFromWorklogs(_mockJira.Object, new List<Worklog> { Worklog }, WorkItemId, V1Number, IssueKey);
         }
 
         [TestMethod]
@@ -99,7 +95,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>())).ReturnsAsync(_updatedActual);
 
             var worker = new ActualsWorker(_mockV1.Object, _mockLogger.Object);
-            worker.UpdateActualsFromWorklogs(JiraInfo, new List<Worklog> { Worklog }, WorkItemId, new List<Actual> { Actual });
+            worker.UpdateActualsFromWorklogs(_mockJira.Object, new List<Worklog> { Worklog }, WorkItemId, new List<Actual> { Actual });
         }
 
         [TestMethod]

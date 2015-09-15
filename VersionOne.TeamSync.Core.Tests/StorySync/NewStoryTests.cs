@@ -22,7 +22,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             BuildContext();
             _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(new Story());
             _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
-            await _worker.CreateStoryFromJira(MakeInfo(), new Issue()
+            await _worker.CreateStoryFromJira(_mockJira.Object, new Issue()
             {
                 Key = _issueKey,
                 RenderedFields = new RenderedFields(){Description = "descript"},
@@ -82,7 +82,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
 
             _story.ID = _storyId;
             _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
-            await _worker.UpdateStoryFromJiraToV1(MakeInfo(), new Issue()
+            await _worker.UpdateStoryFromJiraToV1(_mockJira.Object, new Issue()
             {
                 Key = _issueKey,
                 RenderedFields = new RenderedFields()

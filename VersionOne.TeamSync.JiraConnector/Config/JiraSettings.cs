@@ -137,15 +137,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         }
     }
 
-    public interface IProjectMapping
-    {
-        bool Enabled { get; set; }
-        string V1Project { get; set; }
-        string JiraProject { get; set; }
-        string EpicSyncType { get; set; }
-    }
-
-    public class ProjectMapping : ConfigurationElement, IProjectMapping
+    public class ProjectMapping : ConfigurationElement
     {
         [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
         public bool Enabled

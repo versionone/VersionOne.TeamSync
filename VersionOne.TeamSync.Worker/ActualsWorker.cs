@@ -25,7 +25,7 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
-        public async Task DoWork(V1JiraInfo jiraInfo)
+        public async Task DoWork(IJira jiraInstance)
         {
             // TODO: check if we can do this validation only on startup
             ValidateRequiredV1Fields();
@@ -33,17 +33,17 @@ namespace VersionOne.TeamSync.Worker
             if (!_isActualWorkEnabled)
                 return;
 
-            var allJiraDefects = jiraInfo.JiraInstance.GetDefectsInProject(jiraInfo.JiraKey).issues;
-            var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
-            DoActualWork(jiraInfo, allJiraDefects, allV1Defects);
+            var allJiraDefects = jiraInstance.GetDefectsInProject(jiraInstance.JiraProject).issues;
+            var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
+            DoActualWork(jiraInstance, allJiraDefects, allV1Defects);
 
-            var allJiraStories = jiraInfo.JiraInstance.GetStoriesInProject(jiraInfo.JiraKey).issues;
-            var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
-            DoActualWork(jiraInfo, allJiraStories, allV1Stories);
+            var allJiraStories = jiraInstance.GetStoriesInProject(jiraInstance.JiraProject).issues;
+            var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project);
+            DoActualWork(jiraInstance, allJiraStories, allV1Stories);
 
         }
 
-        public void DoActualWork<T>(V1JiraInfo jiraInfo, IEnumerable<Issue> allJiraIssues, List<T> allV1WorkItems) where T : IPrimaryWorkItem
+        public void DoActualWork<T>(IJira jiraInstance, IEnumerable<Issue> allJiraIssues, List<T> allV1WorkItems) where T : IPrimaryWorkItem
         {
             foreach (var issueKey in allJiraIssues.Select(issue => issue.Key))
             {
@@ -53,15 +53,15 @@ namespace VersionOne.TeamSync.Worker
                 var workItemId = string.Format("{0}:{1}", workItem.GetType().Name, workItem.ID);
 
                 _log.TraceFormat("Getting Jira Worklogs for Issue key: {0}", issueKey);
-                var worklogs = jiraInfo.JiraInstance.GetIssueWorkLogs(issueKey).ToList();
+                var worklogs = jiraInstance.GetIssueWorkLogs(issueKey).ToList();
 
                 _log.TraceFormat("Getting V1 actuals for Workitem Oid: {0}", workItemId);
-                var actuals = _v1.GetWorkItemActuals(jiraInfo.V1ProjectId, workItemId).Result.ToList();
+                var actuals = _v1.GetWorkItemActuals(jiraInstance.V1Project, workItemId).Result.ToList();
 
                 _log.Trace("Creating actuals started");
                 var newWorklogs = worklogs.Where(w => !actuals.Any(a => a.Reference.Equals(w.id.ToString()))).ToList();
                 if (newWorklogs.Any())
-                    CreateActualsFromWorklogs(jiraInfo, newWorklogs, workItemId, workItem.Number, issueKey);
+                    CreateActualsFromWorklogs(jiraInstance, newWorklogs, workItemId, workItem.Number, issueKey);
                 _log.TraceCreateFinished(PluralAsset);
 
                 _log.Trace("Updating actual started");
@@ -71,7 +71,7 @@ namespace VersionOne.TeamSync.Worker
                     // Have worked hours changed?
                     double.Parse(a.Value).CompareTo(w.timeSpentSeconds / 3600d) != 0))).ToList();
                 if (updateWorklogs.Any())
-                    UpdateActualsFromWorklogs(jiraInfo, updateWorklogs, workItemId, actuals);
+                    UpdateActualsFromWorklogs(jiraInstance, updateWorklogs, workItemId, actuals);
                 _log.TraceUpdateFinished(PluralAsset);
 
                 _log.Trace("Deleting actuals started");
@@ -83,19 +83,19 @@ namespace VersionOne.TeamSync.Worker
             }
         }
 
-        public void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
+        public void CreateActualsFromWorklogs(IJira jiraInstance, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
         {
             _log.DebugFormat("Found {0} worklogs to check for create", newWorklogs.Count());
             var processedActuals = 0;
             foreach (var worklog in newWorklogs)
             {
                 _log.TraceFormat("Attempting to create actual from Jira worklog id {0}", worklog.id);
-                var actual = worklog.ToV1Actual(_v1.MemberId, jiraInfo.V1ProjectId, workItemId);
+                var actual = worklog.ToV1Actual(_v1.MemberId, jiraInstance.V1Project, workItemId);
                 var newActual = _v1.CreateActual(actual).Result;
                 _log.DebugFormat("Created V1 actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
 
                 var actualOid = string.Format("{0}:{1}", newActual.AssetType, newActual.ID);
-                jiraInfo.JiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, actualOid, v1Number));
+                jiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, actualOid, v1Number));
                 _log.TraceFormat("Added comment on Jira worklog id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
 
                 processedActuals++;
@@ -103,13 +103,13 @@ namespace VersionOne.TeamSync.Worker
             _log.InfoCreated(processedActuals, PluralAsset);
         }
 
-        public void UpdateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
+        public void UpdateActualsFromWorklogs(IJira jiraInstance, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
         {
             _log.DebugFormat("Found {0} worklogs to check for update", updateWorklogs.Count());
             var processedActuals = 0;
             foreach (var worklog in updateWorklogs)
             {
-                var actual = worklog.ToV1Actual(_v1.MemberId, jiraInfo.V1ProjectId, workItemId);
+                var actual = worklog.ToV1Actual(_v1.MemberId, jiraInstance.V1Project, workItemId);
                 actual.ID = actuals.Single(a => a.Reference.Equals(worklog.id.ToString())).ID;
 
                 _log.TraceFormat("Attempting to update actual id {0} from Jira worklog id {1}", actual.ID, worklog.id);

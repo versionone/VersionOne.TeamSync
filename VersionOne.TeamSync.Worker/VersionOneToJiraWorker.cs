@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.Worker.Domain;
 
@@ -12,7 +13,7 @@ namespace VersionOne.TeamSync.Worker
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
         private readonly List<IAsyncWorker> _asyncWorkers;
-        private readonly IEnumerable<V1JiraInfo> _jiraInstances;
+        private readonly IList<Jira> _jiraInstances;
         private readonly IV1 _v1;
         private static DateTime _syncTime;
 
@@ -30,21 +31,32 @@ namespace VersionOne.TeamSync.Worker
                 new ActualsWorker(_v1, Log)
             };
 
-            _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers);
+            foreach (var serverSettings in JiraSettings.Settings.Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            {
+                var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
+                var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
+                if (projectMappings.Any())
+                {
+                    _jiraInstances = new List<Jira>();
+                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
+                }
+                else
+                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
+            }
         }
 
         public void DoWork()
         {
             Log.Info("Beginning sync...");
 
-            _jiraInstances.ToList().ForEach(jiraInfo =>
+            _jiraInstances.ToList().ForEach(jiraInstance =>
             {
                 _syncTime = DateTime.Now;
-                Log.Info(string.Format("Syncing between {0} and {1}", jiraInfo.JiraKey, jiraInfo.V1ProjectId));
+                Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
-                _asyncWorkers.ForEach(worker => worker.DoWork(jiraInfo));
+                _asyncWorkers.ForEach(worker => worker.DoWork(jiraInstance));
 
-                jiraInfo.JiraInstance.CleanUpAfterRun(Log);
+                jiraInstance.CleanUpAfterRun(Log);
             });
 
             Log.Info("Ending sync...");
@@ -70,7 +82,7 @@ namespace VersionOne.TeamSync.Worker
                 foreach (var jiraInstanceInfo in _jiraInstances.ToList())
                 {
                     Log.InfoFormat("Verifying Jira connection...");
-                    Log.DebugFormat("URL: {0}", jiraInstanceInfo.JiraInstance.InstanceUrl);
+                    Log.DebugFormat("URL: {0}", jiraInstanceInfo.InstanceUrl);
                     Log.Info(jiraInstanceInfo.ValidateConnection()
                         ? "Jira connection successful!"
                         : "Jira connection failed!");
@@ -86,16 +98,35 @@ namespace VersionOne.TeamSync.Worker
         {
             foreach (var jiraInstance in _jiraInstances.ToList())
             {
-                Log.InfoFormat("Verifying V1ProjectID={1} to JiraProjectID={0} project mapping...", jiraInstance.JiraKey, jiraInstance.V1ProjectId);
+                var isMappingValid = true;
+                Log.InfoFormat("Verifying V1ProjectID={1} to JiraProjectID={0} project mapping...", jiraInstance.JiraProject, jiraInstance.V1Project);
 
-                if (jiraInstance.ValidateMapping(_v1))
+                if (!jiraInstance.ValidateProjectExists())
+                {
+                    Log.ErrorFormat("Jira project '{0}' does not exist. Current project mapping will be ignored", jiraInstance.JiraProject);
+                    isMappingValid = false;
+                }
+                if (!_v1.ValidateProjectExists(jiraInstance.V1Project))
+                {
+                    Log.ErrorFormat(
+                        "VersionOne project '{0}' does not exist or does not have a role assigned for user {1}. Current project mapping will be ignored",
+                        jiraInstance.V1Project, V1Settings.Settings.Username);
+                    isMappingValid = false;
+                }
+                if (!_v1.ValidateEpicCategoryExists(jiraInstance.EpicCategory))
+                {
+                    Log.ErrorFormat("VersionOne Epic Category '{0}' does not exist. Current project mapping will be ignored", jiraInstance.EpicCategory);
+                    isMappingValid = false;
+                }
+
+                if (isMappingValid)
                 {
                     Log.Info("Mapping successful! Projects will be synchronized.");
                 }
                 else
                 {
                     Log.Error("Mapping failed. Projects will not be synchronized.");
-                    ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                    _jiraInstances.Remove(jiraInstance);
                 }
             }
 
@@ -120,7 +151,7 @@ namespace VersionOne.TeamSync.Worker
             foreach (var jiraInstanceInfo in _jiraInstances.ToList())
             {
                 Log.InfoFormat("Verifying JIRA member account permissions...");
-                Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.JiraInstance.InstanceUrl, jiraInstanceInfo.JiraInstance.Username);
+                Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.InstanceUrl, jiraInstanceInfo.Username);
                 if (jiraInstanceInfo.ValidateMemberPermissions())
                 {
                     Log.Info("JIRA user has valid permissions.");
@@ -128,7 +159,7 @@ namespace VersionOne.TeamSync.Worker
                 else
                 {
                     Log.Error("JIRA user is not valid, must belong to 'jira-developers' or 'jira-administrators' group.");
-                    throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
+                    throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.Username));
                 }
             }
         }
@@ -137,39 +168,39 @@ namespace VersionOne.TeamSync.Worker
         {
             foreach (var jiraInstance in _jiraInstances.ToList())
             {
-                Log.InfoFormat("Validating iteration schedule for {0}.", jiraInstance.V1ProjectId);
+                Log.InfoFormat("Validating iteration schedule for {0}.", jiraInstance.V1Project);
 
-                if (_v1.ValidateScheduleExists(jiraInstance.V1ProjectId))
+                if (_v1.ValidateScheduleExists(jiraInstance.V1Project))
                 {
                     Log.DebugFormat("Schedule found!");
                 }
                 else
                 {
-                    var result = _v1.CreateScheduleForProject(jiraInstance.V1ProjectId).Result;
+                    var result = _v1.CreateScheduleForProject(jiraInstance.V1Project).Result;
                     if (!result.Root.Name.LocalName.Equals("Error"))
                     {
                         var id = result.Root.Attribute("id").Value;
                         var scheduleId = id.Substring(0, id.LastIndexOf(':')); // OID without snapshot ID
-                        Log.DebugFormat("Created schedule {0} for project {1}.", scheduleId, jiraInstance.V1ProjectId);
+                        Log.DebugFormat("Created schedule {0} for project {1}.", scheduleId, jiraInstance.V1Project);
 
 
-                        result = _v1.SetScheduleToProject(jiraInstance.V1ProjectId, scheduleId).Result;
+                        result = _v1.SetScheduleToProject(jiraInstance.V1Project, scheduleId).Result;
                         if (!result.Root.Name.LocalName.Equals("Error"))
                         {
-                            Log.DebugFormat("Schedule {0} is now set to project {1}", scheduleId, jiraInstance.V1ProjectId);
+                            Log.DebugFormat("Schedule {0} is now set to project {1}", scheduleId, jiraInstance.V1Project);
                         }
                         else
                         {
                             LogVersionOneErrorMessage(result);
-                            Log.WarnFormat("Unable to set schedule {0} to project {1}.", scheduleId, jiraInstance.V1ProjectId);
-                            ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                            Log.WarnFormat("Unable to set schedule {0} to project {1}.", scheduleId, jiraInstance.V1Project);
+                            _jiraInstances.Remove(jiraInstance);
                         }
                     }
                     else
                     {
                         LogVersionOneErrorMessage(result);
-                        Log.WarnFormat("Unable to create schedule for {0}, project will not be synchronized.", jiraInstance.V1ProjectId);
-                        ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                        Log.WarnFormat("Unable to create schedule for {0}, project will not be synchronized.", jiraInstance.V1Project);
+                        _jiraInstances.Remove(jiraInstance);
                     }
                 }
             }

@@ -5,6 +5,7 @@ using System.Net;
 using log4net;
 using Newtonsoft.Json.Linq;
 using VersionOne.TeamSync.JiraConnector;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -18,6 +19,11 @@ namespace VersionOne.TeamSync.Worker.Domain
         string Username { get; }
 
         JiraVersionInfo VersionInfo { get; }
+        string JiraProject { get; }
+        string V1Project { get; }
+        string EpicCategory { get; }
+        string[] DoneWords { get; }
+
         bool ValidateConnection();
         bool ValidateProjectExists();
         bool ValidateMemberPermissions();
@@ -51,9 +57,10 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         private readonly ILog _log;
         private readonly IJiraConnector _connector;
-        private readonly string _jiraProject;
+        //private readonly string _jiraProject;
         private MetaProject _projectMeta;
         private JiraVersionInfo _jiraVersionInfo;
+        private string[] _doneWords;
 
         public string InstanceUrl { get; private set; }
 
@@ -68,27 +75,46 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 if (_projectMeta == null)
                 {
-                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string> { _jiraProject });
-                    _projectMeta = createMeta.Projects.Single(p => p.Key == _jiraProject);
+                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string> { JiraProject });
+                    _projectMeta = createMeta.Projects.Single(p => p.Key == JiraProject);
                 }
 
                 return _projectMeta;
             }
         }
 
-        public Jira(IJiraConnector connector, string jiraProject)
+        public string JiraProject { get; private set; }
+
+        public string V1Project { get; private set; }
+
+        public string EpicCategory { get; private set; }
+
+        public string[] DoneWords
         {
-            _connector = connector;
-            _jiraProject = jiraProject;
-            InstanceUrl = _connector.BaseUrl;
-            _log = LogManager.GetLogger(typeof(Jira));
+            get
+            {
+                return _doneWords ??
+                       (_doneWords = JiraVersionItems.VersionDoneWords[VersionInfo.VersionNumbers[0]]);
+            }
         }
 
-        public Jira(IJiraConnector connector, MetaProject project, ILog log)
+        public Jira(IJiraConnector connector)
         {
             _connector = connector;
-            _projectMeta = project;
             InstanceUrl = _connector.BaseUrl;
+        }
+
+        public Jira(IJiraConnector connector, ProjectMapping projectMapping) : this(connector)
+        {
+            JiraProject = projectMapping.JiraProject;
+            V1Project = projectMapping.V1Project;
+            EpicCategory = projectMapping.EpicSyncType;
+            _log = LogManager.GetLogger(typeof(Jira));
+        }
+        
+        public Jira(IJiraConnector connector, MetaProject project, ILog log) : this(connector)
+        {
+            _projectMeta = project;
             _log = log;
         }
 
@@ -108,7 +134,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public bool ValidateProjectExists()
         {
-            return _connector.ProjectExists(_jiraProject);
+            return _connector.ProjectExists(JiraProject);
         }
 
         public bool ValidateMemberPermissions()
@@ -334,7 +360,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             _projectMeta = null;
         }
-
+        
         #region PRIVATE METHODS
 
         private object AddComment(string body)

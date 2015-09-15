@@ -5,6 +5,6 @@ namespace VersionOne.TeamSync.Worker
 {
     public interface IAsyncWorker
     {
-        Task DoWork(V1JiraInfo jiraInfo);
+        Task DoWork(IJira jiraInstance);
     }
 }

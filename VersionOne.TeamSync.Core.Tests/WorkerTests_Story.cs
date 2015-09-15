@@ -22,18 +22,17 @@ namespace VersionOne.TeamSync.Core.Tests
         public void Context()
         {
             BuildContext();
-            var jiraInfo = MakeInfo();
 
-            _updatedStory = new Story() { Reference = "J-100", Name = "Johnny", Number = "S-9000", Estimate = "", ToDo = "", SuperNumber = "", Description = ""};
+            _updatedStory = new Story { Reference = "J-100", Name = "Johnny", Number = "S-9000", Estimate = "", ToDo = "", SuperNumber = "", Description = ""};
             _johnnyIsAlive = "Johnny 5 is alive";
-            var updatedIssue = new Issue()
+            var updatedIssue = new Issue
             {
                 Key = "J-100",
-                RenderedFields = new RenderedFields()
+                RenderedFields = new RenderedFields
                 {
                     Description = "a new description"
                 },
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Summary = _johnnyIsAlive,
                     Labels = new List<string> { "S-9000" }
@@ -50,7 +49,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 }).ReturnsAsync(new XDocument());
             _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
 
-            _worker.UpdateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Story> { _existingStory, _updatedStory });
+            _worker.UpdateStories(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Story> { _existingStory, _updatedStory });
         }
 
         [TestMethod]
@@ -131,9 +130,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_never_call_delete_asset()
         {
             // All jira stories referenced in V1 exist in Jira - No stories should be deleted
-            var jiraInfo = MakeInfo();
-
-            _worker.DeleteV1Stories(jiraInfo, _allJiraStories, _allV1Stories);
+            _worker.DeleteV1Stories(_mockJira.Object, _allJiraStories, _allV1Stories);
             _mockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
         }
 
@@ -142,8 +139,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-2")));
             // OPC-2 removed - Story 3 should be deleted
-            var jiraInfo = MakeInfo();
-            _worker.DeleteV1Stories(jiraInfo, _allJiraStories, _allV1Stories);
+            _worker.DeleteV1Stories(_mockJira.Object, _allJiraStories, _allV1Stories);
             _mockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), "OPC-2"), Times.Once);
         }
 
@@ -153,8 +149,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-1")));
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-3")));
             // OPC-1 and OPC-3 removed - Story 2 and Story 4 should be deleted
-            var jiraInfo = MakeInfo();
-            _worker.DeleteV1Stories(jiraInfo, _allJiraStories, _allV1Stories);
+            _worker.DeleteV1Stories(_mockJira.Object, _allJiraStories, _allV1Stories);
             _mockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), It.IsIn("OPC-1", "OPC-3")), Times.Exactly(2));
         }
     }
@@ -210,10 +205,9 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             _newIssue.Fields.EpicLink = null;
 
-            var jiraInfo = MakeInfo();
             _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
 
-            _worker.CreateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue }, new List<Story> { _existingStory });
+            _worker.CreateStories(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue }, new List<Story> { _existingStory });
         }
 
         [TestMethod]
@@ -265,8 +259,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             _newIssue.Fields.EpicLink = _epicLink;
 
-            var jiraInfo = MakeInfo();
-            _worker.CreateStories(jiraInfo, new List<Issue> { _existingIssue, _newIssue }, new List<Story> { _existingStory });
+            _worker.CreateStories(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue }, new List<Story> { _existingStory });
         }
 
         [TestMethod]

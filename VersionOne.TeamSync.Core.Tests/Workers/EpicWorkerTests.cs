@@ -15,11 +15,10 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             BuildContext();
             _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
-            var jiraInfo = MakeInfo();
 
             _epicWorker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
-            await _epicWorker.CreateEpics(jiraInfo);
+            await _epicWorker.CreateEpics(_mockJira.Object);
         }
 
         [TestMethod]
