@@ -31,7 +31,7 @@ namespace VersionOne.TeamSync.Service
                 _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
 
                 StartMessage();
-                _worker = new VersionOneToJiraWorker(_serviceDuration);
+                _worker = new VersionOneToJiraWorker();
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
                 _worker.ValidateMemberAccountPermissions();

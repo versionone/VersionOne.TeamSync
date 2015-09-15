@@ -2,12 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Xml.Linq;
-using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
-using VersionOne.TeamSync.V1Connector;
-using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Worker
@@ -22,50 +18,9 @@ namespace VersionOne.TeamSync.Worker
 
         public bool IsActualWorkEnabled { get; private set; }
 
-        public VersionOneToJiraWorker(TimeSpan serviceDuration)
+        public VersionOneToJiraWorker()
         {
-            var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
-
-            ICanSetProxyOrGetConnector authConnector;
-            switch (V1Settings.Settings.AuthenticationType)
-            {
-                case 0:
-                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
-                        .WithAccessToken(V1Settings.Settings.AccessToken);
-                    break;
-                case 1:
-                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
-                        .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password);
-                    break;
-                case 2:
-                    authConnector = anonymousConnector
-                        .WithWindowsIntegrated()
-                        .UseOAuthEndpoints();
-                    break;
-                case 3:
-                    authConnector = anonymousConnector
-                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password)
-                        .UseOAuthEndpoints();
-                    break;
-                case 4:
-                    authConnector = anonymousConnector
-                        .WithAccessToken(V1Settings.Settings.AccessToken)
-                        .UseOAuthEndpoints();
-                    break;
-
-                default:
-                    throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
-            }
-
-            if (V1Settings.Settings.Proxy.Enabled)
-            {
-                authConnector = (ICanSetProxyOrGetConnector)authConnector.WithProxy(new ProxyProvider(new Uri(V1Settings.Settings.Proxy.Url),
-                    V1Settings.Settings.Proxy.Username, V1Settings.Settings.Proxy.Password,
-                    V1Settings.Settings.Proxy.Domain));
-            }
-
-            _v1 = new V1(authConnector.Build(), serviceDuration);
+            _v1 = new V1();
 
             _asyncWorkers = new List<IAsyncWorker>
             {
@@ -76,18 +31,6 @@ namespace VersionOne.TeamSync.Worker
             };
 
             _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers);
-        }
-
-        public VersionOneToJiraWorker(IV1 v1)
-        {
-            _v1 = v1;
-            _asyncWorkers = new List<IAsyncWorker>
-            {
-                new EpicWorker(_v1, Log),
-                new StoryWorker(_v1, Log),
-                new DefectWorker(_v1, Log),
-                new ActualsWorker(_v1, Log)
-            };
         }
 
         public void DoWork()

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using log4net;
+using VersionOne.TeamSync.Core.Config;
+using VersionOne.TeamSync.V1Connector;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -59,28 +62,22 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const string WhereEpicCategory = "Category=\"{0}\"";
         private const int ProjectLeadOrder = 3;
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
-        private readonly IV1Connector _connector;
-        private readonly string _aDayAgo;
+        private IV1Connector _connector;
 
-        public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
+        public V1()
         {
-            _connector = connector;
-
-            //need properties from the connector for this
-            InstanceUrl = _connector.InstanceUrl;
-            _aDayAgo = dateTime.UtcNow.Add(-serviceDuration).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
+            BuildConnectorFromConfig();
         }
 
-        public V1(IV1Connector connector, TimeSpan serviceDuration)
+        public V1(IV1Connector v1Connector)
         {
-            _connector = connector;
-
-            //need properties from the connector for this
-            InstanceUrl = _connector.InstanceUrl;
-            _aDayAgo = DateTime.UtcNow.Add(-serviceDuration).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
+            _connector = v1Connector;
         }
 
-        public string InstanceUrl { get; private set; }
+        public string InstanceUrl
+        {
+            get { return _connector.InstanceUrl; }
+        }
 
         public string MemberId { get; private set; }
 
@@ -371,6 +368,52 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetRelationNode("Schedule", scheduleId);
 
             return await _connector.Post(projectId.Replace(':', '/'), payload.ToString());
+        }
+
+        private void BuildConnectorFromConfig()
+        {
+            var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
+
+            ICanSetProxyOrGetConnector authConnector;
+            switch (V1Settings.Settings.AuthenticationType)
+            {
+                case 0:
+                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
+                        .WithAccessToken(V1Settings.Settings.AccessToken);
+                    break;
+                case 1:
+                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
+                        .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password);
+                    break;
+                case 2:
+                    authConnector = anonymousConnector
+                        .WithWindowsIntegrated()
+                        .UseOAuthEndpoints();
+                    break;
+                case 3:
+                    authConnector = anonymousConnector
+                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password)
+                        .UseOAuthEndpoints();
+                    break;
+                case 4:
+                    authConnector = anonymousConnector
+                        .WithAccessToken(V1Settings.Settings.AccessToken)
+                        .UseOAuthEndpoints();
+                    break;
+
+                default:
+                    throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
+            }
+
+            if (V1Settings.Settings.Proxy.Enabled)
+            {
+                authConnector = (ICanSetProxyOrGetConnector)authConnector.WithProxy(new ProxyProvider(new Uri(V1Settings.Settings.Proxy.Url),
+                    V1Settings.Settings.Proxy.Username, V1Settings.Settings.Proxy.Password,
+                    V1Settings.Settings.Proxy.Domain));
+            }
+
+            _connector = authConnector.Build();
         }
     }
 

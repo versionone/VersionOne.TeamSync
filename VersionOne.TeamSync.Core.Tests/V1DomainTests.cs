@@ -29,7 +29,7 @@ namespace VersionOne.TeamSync.Core.Tests
                          .ReturnsAsync(epics)
                          .Verifiable("Query has been modified or incorrect");
 
-            return new V1(mockConnect.Object, _mockDateTime.Object, _span);
+            return new V1(mockConnect.Object);
         }
 
         [TestMethod]
@@ -101,7 +101,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 new[] {"Reference!=\"\"", "Scope=\"Scope:1000\""},
                 Story.FromQuery))
                 .ReturnsAsync(new List<Story>());
-            var api = new V1(mockConnector.Object, _span);
+            var api = new V1(mockConnector.Object);
 
             await api.GetStoriesWithJiraReference("Scope:1000");
 
