@@ -412,13 +412,14 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[]
                 {
                     "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking",
-                    GetProjectMeta().StoryPoints.Key, GetProjectMeta().EpicLink.Key, GetProjectMeta().Sprint.Key
+                    GetProjectMeta().StoryPoints.Key, GetProjectMeta().EpicLink.Key, GetProjectMeta().Sprint != null ? GetProjectMeta().Sprint.Key : null
                 },
                 (issueKey, fields, properties) =>
                 {
                     properties.EvalLateBinding(issueKey, GetProjectMeta().StoryPoints, value => fields.StoryPoints = value, _log);
                     properties.EvalLateBinding(issueKey, GetProjectMeta().EpicLink, value => fields.EpicLink = value, _log);
-                    properties.EvalLateBinding(issueKey, GetProjectMeta().Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
+                    if (GetProjectMeta().Sprint != null)
+                        properties.EvalLateBinding(issueKey, GetProjectMeta().Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
                 });
         }
 
