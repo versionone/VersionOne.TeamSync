@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -127,9 +125,10 @@ namespace VersionOne.TeamSync.Worker
                     _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
                 }
 
-                if (!epic.ItMatches(relatedJiraEpic))
+                if (!epic.ItMatches(relatedJiraEpic) ||
+                    (JiraSettings.GetPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority) != relatedJiraEpic.Fields.Priority.Id))
                 {
-                    jiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels), relatedJiraEpic.Key);
+                    jiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels, JiraSettings.GetPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority)), relatedJiraEpic.Key);
                     _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
                 }
 

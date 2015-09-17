@@ -28,10 +28,12 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateProjectExists();
         bool ValidateMemberPermissions();
 
+        string GetPriorityId(string name);
+
         void AddComment(string issueKey, string comment);
         void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle);
 
-        void UpdateIssue(Issue issue, string issueKey);
+        void UpdateIssue(object issue, string issueKey);
         void SetIssueToToDo(string issueKey, string[] doneWords);
         void SetIssueToResolved(string issueKey, string[] doneWords);
 
@@ -57,7 +59,6 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         private readonly ILog _log;
         private readonly IJiraConnector _connector;
-        //private readonly string _jiraProject;
         private MetaProject _projectMeta;
         private JiraVersionInfo _jiraVersionInfo;
         private string[] _doneWords;
@@ -67,20 +68,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Username
         {
             get { return _connector.Username; }
-        }
-
-        private MetaProject ProjectMeta
-        {
-            get
-            {
-                if (_projectMeta == null)
-                {
-                    var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string> { JiraProject });
-                    _projectMeta = createMeta.Projects.Single(p => p.Key == JiraProject);
-                }
-
-                return _projectMeta;
-            }
         }
 
         public string JiraProject { get; private set; }
@@ -104,15 +91,17 @@ namespace VersionOne.TeamSync.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public Jira(IJiraConnector connector, ProjectMapping projectMapping) : this(connector)
+        public Jira(IJiraConnector connector, ProjectMapping projectMapping)
+            : this(connector)
         {
             JiraProject = projectMapping.JiraProject;
             V1Project = projectMapping.V1Project;
             EpicCategory = projectMapping.EpicSyncType;
             _log = LogManager.GetLogger(typeof(Jira));
         }
-        
-        public Jira(IJiraConnector connector, MetaProject project, ILog log) : this(connector)
+
+        public Jira(IJiraConnector connector, MetaProject project, ILog log)
+            : this(connector)
         {
             _projectMeta = project;
             _log = log;
@@ -147,6 +136,14 @@ namespace VersionOne.TeamSync.Worker.Domain
                 item => item.Name.Equals("jira-administrators") || item.Name.Equals("jira-developers"));
         }
 
+        public string GetPriorityId(string name)
+        {
+            var path = string.Format("{0}/priority", Connector.JiraConnector.JiraRestApiUrl);
+            var content = _connector.Get(path);
+            var data = JArray.Parse(content);
+            return data.Where<dynamic>(i => i.name == name).Select(i => i.id).FirstOrDefault();
+        }
+
         public JiraVersionInfo VersionInfo
         {
             get { return _jiraVersionInfo ?? (_jiraVersionInfo = _connector.GetVersionInfo()); }
@@ -165,7 +162,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector.Post(path, body, HttpStatusCode.Created, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
         }
 
-        public void UpdateIssue(Issue issue, string issueKey)
+        public void UpdateIssue(object issue, string issueKey)
         {
             var path = string.Format("{0}/issue/{{issueIdOrKey}}", Connector.JiraConnector.JiraRestApiUrl);
             _connector.Put(path, issue, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
@@ -258,7 +255,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", "Epic")
             },
-                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self", "labels" }
+                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self", "labels", "priority" }
             );
         }
 
@@ -276,7 +273,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
             var path = string.Format("{0}/issue", Connector.JiraConnector.JiraRestApiUrl);
-            return _connector.Post<ItemBase>(path, epic.CreateJiraEpic(projectKey, ProjectMeta.EpicName.Key), HttpStatusCode.Created);
+            return _connector.Post<ItemBase>(path, epic.CreateJiraEpic(projectKey, GetProjectMeta().EpicName.Key, JiraSettings.GetPriorityIdFromMapping(InstanceUrl, epic.Priority)), HttpStatusCode.Created);
         }
 
         public void DeleteEpicIfExists(string issueKey) // TODO: async
@@ -304,12 +301,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                JqOperator.Equals("issuetype", "Story"),
-               JqOperator.Equals(ProjectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty)
+               JqOperator.Equals(GetProjectMeta().EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty)
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", GetProjectMeta().StoryPoints.Key },
             (issueKey, fields, properties) =>
             {
-                properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, _log);
+                properties.EvalLateBinding(issueKey, GetProjectMeta().StoryPoints, value => fields.StoryPoints = value, _log);
             });
         }
 
@@ -360,8 +357,19 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             _projectMeta = null;
         }
-        
+
         #region PRIVATE METHODS
+
+        private MetaProject GetProjectMeta()
+        {
+            if (_projectMeta == null)
+            {
+                var createMeta = _connector.GetCreateMetaInfoForProjects(new List<string> { JiraProject });
+                _projectMeta = createMeta.Projects.Single(p => p.Key == JiraProject);
+            }
+
+            return _projectMeta;
+        }
 
         private object AddComment(string body)
         {
@@ -390,13 +398,13 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[]
                 {
                     "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking",
-                    ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key, ProjectMeta.Sprint.Key
+                    GetProjectMeta().StoryPoints.Key, GetProjectMeta().EpicLink.Key, GetProjectMeta().Sprint.Key
                 },
                 (issueKey, fields, properties) =>
                 {
-                    properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, _log);
-                    properties.EvalLateBinding(issueKey, ProjectMeta.EpicLink, value => fields.EpicLink = value, _log);
-                    properties.EvalLateBinding(issueKey, ProjectMeta.Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
+                    properties.EvalLateBinding(issueKey, GetProjectMeta().StoryPoints, value => fields.StoryPoints = value, _log);
+                    properties.EvalLateBinding(issueKey, GetProjectMeta().EpicLink, value => fields.EpicLink = value, _log);
+                    properties.EvalLateBinding(issueKey, GetProjectMeta().Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
                 });
         }
 

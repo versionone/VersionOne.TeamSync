@@ -12,16 +12,27 @@ namespace VersionOne.TeamSync.Worker
     public class VersionOneToJiraWorker
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
-        private readonly List<IAsyncWorker> _asyncWorkers;
-        private readonly IList<Jira> _jiraInstances;
         private readonly IV1 _v1;
-        private static DateTime _syncTime;
-
-        public bool IsActualWorkEnabled { get; private set; }
+        private readonly IList<IJira> _jiraInstances;
+        private readonly List<IAsyncWorker> _asyncWorkers;
 
         public VersionOneToJiraWorker()
         {
             _v1 = new V1();
+
+            _jiraInstances = new List<IJira>();
+            foreach (var serverSettings in JiraSettings.Settings.Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            {
+                var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
+
+                var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
+                if (projectMappings.Any())
+                {
+                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
+                }
+                else
+                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
+            }
 
             _asyncWorkers = new List<IAsyncWorker>
             {
@@ -30,28 +41,15 @@ namespace VersionOne.TeamSync.Worker
                 new DefectWorker(_v1, Log),
                 new ActualsWorker(_v1, Log)
             };
-
-            foreach (var serverSettings in JiraSettings.Settings.Servers.Cast<JiraServer>().Where(s => s.Enabled))
-            {
-                var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
-                var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
-                if (projectMappings.Any())
-                {
-                    _jiraInstances = new List<Jira>();
-                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
-                }
-                else
-                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
-            }
         }
 
         public void DoWork()
         {
+            var syncTime = DateTime.Now;
             Log.Info("Beginning sync...");
 
             _jiraInstances.ToList().ForEach(jiraInstance =>
             {
-                _syncTime = DateTime.Now;
                 Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
                 _asyncWorkers.ForEach(worker => worker.DoWork(jiraInstance));
@@ -60,7 +58,7 @@ namespace VersionOne.TeamSync.Worker
             });
 
             Log.Info("Ending sync...");
-            Log.DebugFormat("Total sync time: {0}", DateTime.Now - _syncTime);
+            Log.DebugFormat("Total sync time: {0}", DateTime.Now - syncTime);
         }
 
         public void ValidateConnections()
@@ -177,7 +175,7 @@ namespace VersionOne.TeamSync.Worker
                 else
                 {
                     var result = _v1.CreateScheduleForProject(jiraInstance.V1Project).Result;
-                    if (!result.Root.Name.LocalName.Equals("Error"))
+                    if (result.Root != null && !result.Root.Name.LocalName.Equals("Error"))
                     {
                         var id = result.Root.Attribute("id").Value;
                         var scheduleId = id.Substring(0, id.LastIndexOf(':')); // OID without snapshot ID
@@ -185,7 +183,7 @@ namespace VersionOne.TeamSync.Worker
 
 
                         result = _v1.SetScheduleToProject(jiraInstance.V1Project, scheduleId).Result;
-                        if (!result.Root.Name.LocalName.Equals("Error"))
+                        if (result.Root != null && !result.Root.Name.LocalName.Equals("Error"))
                         {
                             Log.DebugFormat("Schedule {0} is now set to project {1}", scheduleId, jiraInstance.V1Project);
                         }
@@ -221,6 +219,22 @@ namespace VersionOne.TeamSync.Worker
                     {
                         Log.Error(messageNode.Value);
                     }
+                }
+            }
+        }
+
+        public void ValidatePriorityMappings()
+        {
+            foreach (var serverSettings in JiraSettings.Settings.Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            {
+                foreach (var priorityMapping in serverSettings.PriorityMappings.Cast<PriorityMapping>())
+                {
+                    priorityMapping.V1PortfolioItemPriorityId = _v1.GetPriorityId("EpicPriority", priorityMapping.V1Priority).Result;
+                    priorityMapping.V1WorkitemPriorityId = _v1.GetPriorityId("WorkitemPriority", priorityMapping.V1Priority).Result;
+
+                    var jira = _jiraInstances.SingleOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
+                    if (jira != null)
+                        priorityMapping.JiraIssuePriorityId = jira.GetPriorityId(priorityMapping.JiraPriority);
                 }
             }
         }

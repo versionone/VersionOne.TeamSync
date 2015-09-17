@@ -22,6 +22,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateEpicCategoryExists(string epicCategoryId);
         bool ValidateActualReferenceFieldExists();
         bool ValidateMemberPermissions();
+        Task<string> GetPriorityId(string asset, string name);
 
         void CreateLink(IV1Asset asset, string title, string url);
         Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
@@ -56,12 +57,14 @@ namespace VersionOne.TeamSync.Worker.Domain
 
     public class V1 : IV1
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
+        private const int ProjectLeadOrder = 3;
         private const int ConnectionAttempts = 3;
         private const string WhereProject = "Scope=\"{0}\"";
         private const string WhereEpicCategory = "Category=\"{0}\"";
-        private const int ProjectLeadOrder = 3;
+
+        private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
+
         private IV1Connector _connector;
 
         public V1()
@@ -84,12 +87,11 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category)
         {
             return await _connector.Query("Epic",
-                new[] { "ID.Number", "Name", "Description", "Scope.Name" },
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
                 new[]
                 {
                     "Reference=\"\"",
                     "AssetState='Active'",
-                    //"CreateDateUTC>=" + _aDayAgo,
                     string.Format(WhereProject, projectId),
                     string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -106,7 +108,6 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { 
                     "Reference!=\"\"",
                     "AssetState='Closed'", 
-                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(WhereProject, projectId),
                     string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -114,10 +115,9 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
         {
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState" },
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name" },
                 new[] { 
                     "Reference!=\"\"", 
-                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(WhereProject, projectId), 
                     string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -129,7 +129,6 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { 
                     "Reference!=\"\"", 
                     "IsDeleted='True'",
-                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(WhereProject, projectId), 
                     string.Format(WhereEpicCategory, category) 
                 }, Epic.FromQuery);
@@ -173,6 +172,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             var defect = await GetDefectWithJiraReference(projectId, jiraStoryKey);
             await _connector.Post(defect, defect.RemoveReference());
             await _connector.Operation(defect, "Delete");
+        }
+
+        public async Task<string> GetPriorityId(string asset, string name)
+        {
+            var result = await _connector.Query(asset, new[] { "" }, new[] { string.Format("Name='{0}'", name) }, element => element.Attribute("id").Value);
+            return result.FirstOrDefault();
         }
 
         public async void CreateLink(IV1Asset asset, string title, string url)
@@ -261,7 +266,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateMemberPermissions()
         {
             var defaultRoleOrder =
-                _connector.Query("Member", new[] {"DefaultRole.Order"}, new[] {"IsSelf='True'"},
+                _connector.Query("Member", new[] { "DefaultRole.Order" }, new[] { "IsSelf='True'" },
                     element => element.Descendants("Attribute").First().Value).Result.First();
 
             return Convert.ToInt32(defaultRoleOrder) <= ProjectLeadOrder;
@@ -415,10 +420,5 @@ namespace VersionOne.TeamSync.Worker.Domain
 
             _connector = authConnector.Build();
         }
-    }
-
-    public interface IDateTime
-    {
-        DateTime UtcNow { get; }
     }
 }

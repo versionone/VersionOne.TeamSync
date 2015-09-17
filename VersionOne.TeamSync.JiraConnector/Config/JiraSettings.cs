@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Linq;
 using VersionOne.TeamSync.Core.Config;
 
 namespace VersionOne.TeamSync.JiraConnector.Config
@@ -19,6 +20,18 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             {
                 this["servers"] = value;
             }
+        }
+
+        public static string GetPriorityIdFromMapping(string baseUrl, string v1Priority)
+        {
+            var jiraServer =
+                Settings.Servers.Cast<JiraServer>()
+                    .Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            var jiraPriorityId =
+                jiraServer.PriorityMappings.Cast<PriorityMapping>()
+                    .First(pm => pm.V1Priority.Equals(v1Priority))
+                    .JiraIssuePriorityId;
+            return jiraPriorityId;
         }
     }
 
@@ -83,6 +96,19 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             set
             {
                 this["projectMappings"] = value;
+            }
+        }
+
+        [ConfigurationProperty("priorityMappings")]
+        public PriorityMappingCollection PriorityMappings
+        {
+            get
+            {
+                return (PriorityMappingCollection)this["priorityMappings"];
+            }
+            set
+            {
+                this["priorityMappings"] = value;
             }
         }
     }
@@ -220,24 +246,28 @@ namespace VersionOne.TeamSync.JiraConnector.Config
 
     public class PriorityMapping : ConfigurationElement
     {
+        public string V1PortfolioItemPriorityId { get; set; }
+        public string V1WorkitemPriorityId { get; set; }
+        public string JiraIssuePriorityId { get; set; }
+
         [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
         public bool Enabled
         {
-            get { return (bool) this["enabled"]; }
+            get { return (bool)this["enabled"]; }
             set { this["enabled"] = value; }
         }
 
         [ConfigurationProperty("v1Priority", IsRequired = true)]
         public string V1Priority
         {
-            get { return (string) this["v1Priority"]; }
+            get { return (string)this["v1Priority"]; }
             set { this["v1Priority"] = value; }
         }
 
         [ConfigurationProperty("jiraPriority", IsRequired = true)]
         public string JiraPriority
         {
-            get { return (string) this["jiraPriority"]; }
+            get { return (string)this["jiraPriority"]; }
             set { this["jiraPriority"] = value; }
         }
     }
@@ -285,7 +315,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
 
         public PriorityMapping this[int idx]
         {
-            get { return (PriorityMapping) BaseGet(idx); }
+            get { return (PriorityMapping)BaseGet(idx); }
         }
     }
 }

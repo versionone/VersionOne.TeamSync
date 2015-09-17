@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using VersionOne.TeamSync.V1Connector.Interfaces;
@@ -12,18 +10,7 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class V1DomainTests
     {
-        private DateTime _timeAgo = new DateTime(2015, 1, 1, 16, 0, 0);
-        private readonly TimeSpan _span = new TimeSpan(0, 0, 0, 15);
-        private Mock<IDateTime> _mockDateTime;
-
-        [TestInitialize]
-        public void Context()
-        {
-            _mockDateTime = new Mock<IDateTime>();
-            _mockDateTime.Setup(x => x.UtcNow).Returns(new DateTime(2015, 1, 1, 16, 0, 0));
-        }
-
-        private V1 SetApiQuery(string type, Mock<IV1Connector> mockConnect, string[] properties, string[] whereClauses, List<Epic> epics)
+        private IV1 SetApiQuery(string type, Mock<IV1Connector> mockConnect, string[] properties, string[] whereClauses, List<Epic> epics)
         {
             mockConnect.Setup(x => x.Query(type, properties, whereClauses, Epic.FromQuery))
                          .ReturnsAsync(epics)
@@ -37,7 +24,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery("Epic", mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name" }, 
+            var api = SetApiQuery("Epic", mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name" },
                              new[] { "Reference=\"\"", "AssetState='Active'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
@@ -46,13 +33,12 @@ namespace VersionOne.TeamSync.Core.Tests
             mockConnector.VerifyAll();
         }
 
-
         [TestMethod]
         public async Task closed_tracked_epics_should_grab_just_the_name_assetState_and_reference()
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery("Epic", mockConnector, 
+            var api = SetApiQuery("Epic", mockConnector,
                 new[] { "Name", "AssetState", "Reference" },
                 new[] { "Reference!=\"\"", "AssetState='Closed'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
@@ -61,7 +47,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             mockConnector.VerifyAll();
         }
-        
+
         [TestMethod]
         public async Task getting_tracked_epics_is_number_name_and_ref()
         {
@@ -98,7 +84,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IV1Connector>();
             mockConnector.Setup(x => x.Query("Story",
                 new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
-                new[] {"Reference!=\"\"", "Scope=\"Scope:1000\""},
+                new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"" },
                 Story.FromQuery))
                 .ReturnsAsync(new List<Story>());
             var api = new V1(mockConnector.Object);
@@ -108,6 +94,5 @@ namespace VersionOne.TeamSync.Core.Tests
             mockConnector.VerifyAll();
 
         }
-   
     }
 }

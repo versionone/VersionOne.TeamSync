@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Xml.Linq;
 using VersionOne.TeamSync.V1Connector.Extensions;
-using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Worker.Domain
@@ -54,6 +53,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Estimate { get; set; }
         public string ToDo { get; set; }
         public string Reference { get; set; }
+        public string Priority { get; set; }
+
         public string Super { get; set; }
         public string SuperNumber { get; set; }
         public bool IsInactive { get; private set; }
