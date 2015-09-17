@@ -41,7 +41,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("Estimate", Estimate)
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
-                .AddSetRelationNode("Super", Super);
+                .AddSetRelationNode("Super", Super)
+                .AddSetRelationNode("Priority", Priority);
             return doc;
         }
 
@@ -54,7 +55,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
                 .AddNullableSetRelationNode("Super", Super)
-                .AddSetNode("Reference", Reference);
+                .AddSetNode("Reference", Reference)
+                .AddSetRelationNode("Priority", Priority);
             return doc;
         }
 
@@ -74,7 +76,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         public static Story FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
-            return new Story()
+            var priority = asset.Elements("Relation").Single(e => e.Attribute("name").Value.Equals("Priority")).Element("Asset");
+            return new Story
             {
                 ID = asset.GetAssetID(),
                 Number = attributes.GetValueOrDefault("ID.Number"),
@@ -87,6 +90,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
                 AssetState = attributes.GetValueOrDefault("AssetState"),
                 SuperNumber = attributes.GetValueOrDefault("Super.Number"),
+                Priority = priority != null ? priority.Attribute("idref").Value : string.Empty
             };
         }
     }

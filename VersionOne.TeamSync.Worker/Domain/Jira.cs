@@ -273,7 +273,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
             var path = string.Format("{0}/issue", Connector.JiraConnector.JiraRestApiUrl);
-            return _connector.Post<ItemBase>(path, epic.CreateJiraEpic(projectKey, GetProjectMeta().EpicName.Key, JiraSettings.GetPriorityIdFromMapping(InstanceUrl, epic.Priority)), HttpStatusCode.Created);
+            return _connector.Post<ItemBase>(path, epic.CreateJiraEpic(projectKey, GetProjectMeta().EpicName.Key, JiraSettings.GetJiraPriorityIdFromMapping(InstanceUrl, epic.Priority)), HttpStatusCode.Created);
         }
 
         public void DeleteEpicIfExists(string issueKey) // TODO: async

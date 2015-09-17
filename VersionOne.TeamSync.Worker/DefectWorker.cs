@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -76,10 +77,11 @@ namespace VersionOne.TeamSync.Worker
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
 
-            var update = issue.ToV1Defect(jiraInstance.V1Project);
+            var update = issue.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
             update.ID = defect.ID;
 
-            if (!issue.ItMatchesDefect(defect))
+            if (!issue.ItMatchesDefect(defect) ||
+                    (JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != defect.Priority))
             {
                 update.Super = v1EpicId;
                 _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
@@ -123,7 +125,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task CreateDefectFromJira(IJira jiraInfo, Issue jiraDefect)
         {
-            var defect = jiraDefect.ToV1Defect(jiraInfo.V1Project);
+            var defect = jiraDefect.ToV1Defect(jiraInfo.V1Project, JiraSettings.GetV1PriorityIdFromMapping(jiraInfo.InstanceUrl, jiraDefect.Fields.Priority.Name));
 
             if (!string.IsNullOrEmpty(jiraDefect.Fields.EpicLink))
             {
@@ -177,6 +179,5 @@ namespace VersionOne.TeamSync.Worker
             _log.InfoDelete(processedDefects, PluralAsset);
             _log.TraceDeleteFinished(PluralAsset);
         }
-
     }
 }

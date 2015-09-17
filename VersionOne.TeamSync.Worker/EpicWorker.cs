@@ -126,9 +126,9 @@ namespace VersionOne.TeamSync.Worker
                 }
 
                 if (!epic.ItMatches(relatedJiraEpic) ||
-                    (JiraSettings.GetPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority) != relatedJiraEpic.Fields.Priority.Id))
+                    (JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority) != relatedJiraEpic.Fields.Priority.Id))
                 {
-                    jiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels, JiraSettings.GetPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority)), relatedJiraEpic.Key);
+                    jiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels, JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority)), relatedJiraEpic.Key);
                     _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
                 }
 

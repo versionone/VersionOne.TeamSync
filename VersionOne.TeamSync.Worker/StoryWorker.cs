@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -77,10 +78,11 @@ namespace VersionOne.TeamSync.Worker
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Story(jiraInstance.V1Project);
+            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
             update.ID = story.ID;
 
-            if (!issue.ItMatchesStory(story))
+            if (!issue.ItMatchesStory(story) ||
+                    (JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != story.Priority))
             {
                 update.Super = v1EpicId;
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
@@ -92,8 +94,6 @@ namespace VersionOne.TeamSync.Worker
                 await _v1.CloseStory(story.ID);
                 _log.DebugClosedItem("story", story.Number);
             }
-
-            //var x = issue.Fields.Sprints
         }
 
         public void CreateStories(IJira jiraInstance, List<Issue> allJiraStories, List<Story> allV1Stories)
@@ -124,7 +124,7 @@ namespace VersionOne.TeamSync.Worker
         public async Task CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
             _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
-            var story = jiraStory.ToV1Story(jiraInstance.V1Project);
+            var story = jiraStory.ToV1Story(jiraInstance.V1Project, JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name));
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {

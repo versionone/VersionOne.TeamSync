@@ -229,7 +229,6 @@ namespace VersionOne.TeamSync.Worker
             {
                 foreach (var priorityMapping in serverSettings.PriorityMappings.Cast<PriorityMapping>())
                 {
-                    priorityMapping.V1PortfolioItemPriorityId = _v1.GetPriorityId("EpicPriority", priorityMapping.V1Priority).Result;
                     priorityMapping.V1WorkitemPriorityId = _v1.GetPriorityId("WorkitemPriority", priorityMapping.V1Priority).Result;
 
                     var jira = _jiraInstances.SingleOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
