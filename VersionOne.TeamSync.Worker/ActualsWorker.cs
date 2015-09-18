@@ -103,7 +103,7 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            _log.InfoCreated(processedActuals, PluralAsset);
+            if (processedActuals > 0) _log.InfoCreated(processedActuals, PluralAsset);
         }
 
         public void UpdateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
@@ -122,7 +122,7 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            _log.InfoUpdated(processedActuals, PluralAsset);
+            if (processedActuals > 0) _log.InfoUpdated(processedActuals, PluralAsset);
         }
 
         public void DeleteActualsFromWorklogs(List<Actual> actualsToDelete)
@@ -138,7 +138,7 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            _log.InfoDelete(processedActuals, PluralAsset);
+           if (processedActuals > 0) _log.InfoDelete(processedActuals, PluralAsset);
         }
 
         private void ValidateRequiredV1Fields()

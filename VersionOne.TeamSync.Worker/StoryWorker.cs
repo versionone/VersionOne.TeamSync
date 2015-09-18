@@ -70,8 +70,8 @@ namespace VersionOne.TeamSync.Worker
                 }      
             });
 
-            _log.InfoUpdated(updatedStories, PluralAsset);
-            _log.InfoClosed(closedStories, PluralAsset);
+            if (updatedStories > 0) _log.InfoUpdated(updatedStories, PluralAsset);
+            if (closedStories > 0) _log.InfoClosed(closedStories, PluralAsset);
             _log.TraceUpdateFinished(PluralAsset);
         }
 
@@ -147,7 +147,7 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-            _log.InfoCreated(processedStories, PluralAsset);
+            if (processedStories > 0) _log.InfoCreated(processedStories, PluralAsset);
             _log.TraceCreateFinished(PluralAsset);
         }
 
@@ -210,7 +210,7 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-            _log.InfoDelete(processedStories, PluralAsset);
+            if (processedStories > 0) _log.InfoDelete(processedStories, PluralAsset);
             _log.TraceDeleteFinished(PluralAsset);
         }
 

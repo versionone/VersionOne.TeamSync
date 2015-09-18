@@ -54,7 +54,7 @@ namespace VersionOne.TeamSync.Worker
                 processedEpics++;
             });
 
-            _log.InfoFormat("Deleted {0} Jira epics", processedEpics);
+            if (processedEpics > 0) _log.InfoFormat("Deleted {0} Jira epics", processedEpics);
             _log.Trace("Delete epics stopped");
         }
 
@@ -86,7 +86,7 @@ namespace VersionOne.TeamSync.Worker
                 processedEpics++;
             });
 
-            _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
+           if (processedEpics > 0)  _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
             _log.Trace("Resolve epics stopped");
         }
 
@@ -138,7 +138,7 @@ namespace VersionOne.TeamSync.Worker
             });
 
             //_log.InfoFormat("Finished checking {0} V1 Epics", processedEpics);
-            _log.InfoUpdated(updatedEpics, PluralAsset);
+            if (updatedEpics > 0) _log.InfoUpdated(updatedEpics, PluralAsset);
             _log.Trace("Updating epics stopped");
         }
 
@@ -181,7 +181,7 @@ namespace VersionOne.TeamSync.Worker
                 }
             });
 
-            _log.InfoFormat("Created {0} Jira epics", processedEpics);
+            if (processedEpics > 0) _log.InfoFormat("Created {0} Jira epics", processedEpics);
             _log.Trace("Create epics stopped");
         }
     }

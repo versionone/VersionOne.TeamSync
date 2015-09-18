@@ -69,8 +69,8 @@ namespace VersionOne.TeamSync.Worker
                 
             });
 
-            _log.InfoUpdated(updatedDefects, PluralAsset);
-            _log.InfoClosed(closedDefects, PluralAsset);
+             if (updatedDefects > 0) _log.InfoUpdated(updatedDefects, PluralAsset);
+             if (closedDefects > 0) _log.InfoClosed(closedDefects, PluralAsset);
             _log.TraceUpdateFinished(PluralAsset);
         }
 
@@ -145,7 +145,7 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            _log.InfoCreated(processedDefects, PluralAsset);
+            if (processedDefects > 0 ) _log.InfoCreated(processedDefects, PluralAsset);
             _log.TraceCreateFinished(PluralAsset);
         }
 
@@ -209,7 +209,7 @@ namespace VersionOne.TeamSync.Worker
                 processedDefects++;
             });
 
-            _log.InfoDelete(processedDefects, PluralAsset);
+            if (processedDefects > 0) _log.InfoDelete(processedDefects, PluralAsset);
             _log.TraceDeleteFinished(PluralAsset);
         }
 
