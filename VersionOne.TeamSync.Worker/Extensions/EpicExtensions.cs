@@ -25,9 +25,10 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 { "issuetype", new { name = "Epic" }},
                 { "project", new { Key = projectKey }},
                 { jiraEpicNameId, epic.Name},
-                { "priority", new { id = priorityId }},
                 { "labels", new List<string> { epic.Number }}
             };
+            if (!string.IsNullOrEmpty(priorityId))
+                ((Dictionary<string, object>)data.fields).Add("priority", new { id = priorityId });
 
             return data;
         }

@@ -125,10 +125,11 @@ namespace VersionOne.TeamSync.Worker
                     _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
                 }
 
+                var jiraPriorityIdFromMapping = JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority);
                 if (!epic.ItMatches(relatedJiraEpic) ||
-                    (JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority) != relatedJiraEpic.Fields.Priority.Id))
+                    (jiraPriorityIdFromMapping != relatedJiraEpic.Fields.Priority.Id))
                 {
-                    jiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels, JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority)), relatedJiraEpic.Key);
+                    jiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels, jiraPriorityIdFromMapping), relatedJiraEpic.Key);
                     _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
                 }
 

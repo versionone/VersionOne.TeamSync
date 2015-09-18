@@ -24,13 +24,17 @@ namespace VersionOne.TeamSync.JiraConnector.Config
 
         public static string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority)
         {
-            var jiraServer =
-                Settings.Servers.Cast<JiraServer>()
-                    .Single(serverSettings => serverSettings.Url.Equals(baseUrl));
-            return
-                jiraServer.PriorityMappings.Cast<PriorityMapping>()
-                    .First(pm => pm.V1Priority.Equals(v1Priority))
-                    .JiraIssuePriorityId;
+            var jiraServer = Settings.Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            string jiraPriorityIdFromMapping = jiraServer.PriorityMappings.DefaultJiraPriorityId;
+            if (!string.IsNullOrEmpty(v1Priority))
+            {
+                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>()
+                    .FirstOrDefault(pm => pm.V1Priority.Equals(v1Priority));
+                if (mapping != null)
+                    jiraPriorityIdFromMapping = mapping.JiraIssuePriorityId;
+            }
+
+            return jiraPriorityIdFromMapping;
         }
 
         public static string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority)
@@ -325,6 +329,15 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         public PriorityMapping this[int idx]
         {
             get { return (PriorityMapping)BaseGet(idx); }
+        }
+
+        public string DefaultJiraPriorityId { get; set; }
+
+        [ConfigurationProperty("defaultJiraPriority", IsRequired = true)]
+        public string DefaultJiraPriority
+        {
+            get { return (string)this["defaultJiraPriority"]; }
+            set { this["defaultJiraPriority"] = value; }
         }
     }
 }

@@ -227,13 +227,35 @@ namespace VersionOne.TeamSync.Worker
         {
             foreach (var serverSettings in JiraSettings.Settings.Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
-                foreach (var priorityMapping in serverSettings.PriorityMappings.Cast<PriorityMapping>())
+                var jira = _jiraInstances.SingleOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
+                if (jira != null)
                 {
-                    priorityMapping.V1WorkitemPriorityId = _v1.GetPriorityId("WorkitemPriority", priorityMapping.V1Priority).Result;
+                    var jiraDefaultPriorityId = jira.GetPriorityId(serverSettings.PriorityMappings.DefaultJiraPriority);
+                    if (jiraDefaultPriorityId == null)
+                    {
+                        Log.DebugFormat(
+                            "Jira default priority '{0}' not found on Jira Server '{1}'. Server won't be synced",
+                            serverSettings.PriorityMappings.DefaultJiraPriority, serverSettings.Url);
+                        _jiraInstances.Where(j => j.InstanceUrl.Equals(serverSettings.Url))
+                            .ToList()
+                            .ForEach(j => _jiraInstances.Remove(j));
+                    }
+                    else
+                    {
+                        serverSettings.PriorityMappings.DefaultJiraPriorityId = jiraDefaultPriorityId;
+                        foreach (var priorityMapping in serverSettings.PriorityMappings.Cast<PriorityMapping>())
+                        {
+                            var v1WorkitemPriorityId = _v1.GetPriorityId("WorkitemPriority", priorityMapping.V1Priority).Result;
+                            priorityMapping.V1WorkitemPriorityId = v1WorkitemPriorityId;
+                            if (v1WorkitemPriorityId == null)
+                                Log.DebugFormat("Version One workintem priority '{0}' not found. Default priority will be set to Epics", priorityMapping.V1Priority);
 
-                    var jira = _jiraInstances.SingleOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
-                    if (jira != null)
-                        priorityMapping.JiraIssuePriorityId = jira.GetPriorityId(priorityMapping.JiraPriority);
+                            var jiraIssuePriorityId = jira.GetPriorityId(priorityMapping.JiraPriority);
+                            priorityMapping.JiraIssuePriorityId = jiraIssuePriorityId;
+                            if (jiraIssuePriorityId == null)
+                                Log.DebugFormat("Jira priority '{0}' not found. Default priority will be set to Epics", priorityMapping.JiraPriority);
+                        }
+                    }
                 }
             }
         }
