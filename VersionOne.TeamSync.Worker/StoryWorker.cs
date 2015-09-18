@@ -203,7 +203,7 @@ namespace VersionOne.TeamSync.Worker
             }
             catch (Exception e)
             {
-                Log.WarnFormat("Can not get or create Version One Member for Jira User '{0}'", jiraUser.name);
+                Log.WarnFormat("Can not get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
                 Log.Error(e);
             }
 
