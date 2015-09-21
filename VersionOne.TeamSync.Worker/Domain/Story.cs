@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using VersionOne.TeamSync.V1Connector.Extensions;
@@ -8,6 +9,11 @@ namespace VersionOne.TeamSync.Worker.Domain
 {
     public class Story : IPrimaryWorkItem
     {
+        public Story()
+        {
+            OwnersIds = new List<string>();
+        }
+
         public string AssetType
         {
             get { return "Story"; }
@@ -29,6 +35,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Super { get; set; }
         public string SuperNumber { get; set; }
         public bool IsInactive { get; private set; }
+        public IList<string> OwnersIds { get; set; }
 
         public XDocument CreatePayload()
         {
@@ -39,7 +46,9 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("Estimate", Estimate)
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
-                .AddSetRelationNode("Super", Super);
+                .AddSetRelationNode("Super", Super)
+                .AddMultiRelationNode("Owners", OwnersIds.ToDictionary(memberId => memberId, memberId => "add"));
+
             return doc;
         }
 
@@ -51,8 +60,18 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableCDataSetNode("Description", Description)
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
-				.AddNullableSetRelationNode("Super", Super)
+                .AddNullableSetRelationNode("Super", Super)
                 .AddSetNode("Reference", Reference);
+            return doc;
+        }
+
+        public XDocument CreateOwnersPayload(string newOwnerOid = null)
+        {
+            var doc = XDocument.Parse("<Asset></Asset>");
+            var dictionary = OwnersIds.ToDictionary(memberId => memberId, memberId => "remove");
+            if (newOwnerOid != null)
+                dictionary.Add(newOwnerOid, "add");
+            doc.AddMultiRelationNode("Owners", dictionary);
             return doc;
         }
 
@@ -72,7 +91,12 @@ namespace VersionOne.TeamSync.Worker.Domain
         public static Story FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
-            return new Story()
+            var ownersIds =
+                asset.Elements("Relation")
+                    .Where(e => e.Attribute("name").Value == "Owners")
+                    .Elements("Asset")
+                    .Select(i => i.Attribute("idref").Value);
+            return new Story
             {
                 ID = asset.GetAssetID(),
                 Number = attributes.GetValueOrDefault("ID.Number"),
@@ -85,6 +109,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
                 AssetState = attributes.GetValueOrDefault("AssetState"),
                 SuperNumber = attributes.GetValueOrDefault("Super.Number"),
+                OwnersIds = ownersIds.ToList()
             };
         }
     }

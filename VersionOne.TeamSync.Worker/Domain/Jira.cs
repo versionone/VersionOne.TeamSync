@@ -300,7 +300,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             return ((JArray)data.worklogs).Select<dynamic, Worklog>(i => new Worklog
             {
                 self = i.self,
-                author = new Author
+                author = new User
                 {
                     self = i.author.self,
                     name = i.author.name,
@@ -310,7 +310,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                     active = i.author.active,
                     timeZone = i.author.timeZone
                 },
-                updateAuthor = new Author
+                updateAuthor = new User
                 {
                     self = i.updateAuthor.self,
                     name = i.updateAuthor.name,

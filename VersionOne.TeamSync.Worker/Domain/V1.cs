@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using log4net;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -47,8 +48,13 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
         Task<Actual> CreateActual(Actual actual);
+
         Task<XDocument> CreateScheduleForProject(string projectId);
         Task<XDocument> SetScheduleToProject(string projectId, string scheduleId);
+
+        Task<Member> GetMember(string jiraUsername);
+        Task<Member> CreateMember(Member member);
+        Task<Member> SyncMemberFromJiraUser(User jiraUser);
     }
 
     public class V1 : IV1
@@ -264,7 +270,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public bool ValidateMemberPermissions()
         {
             var defaultRoleOrder =
-                _connector.Query("Member", new[] {"DefaultRole.Order"}, new[] {"IsSelf='True'"},
+                _connector.Query("Member", new[] { "DefaultRole.Order" }, new[] { "IsSelf='True'" },
                     element => element.Descendants("Attribute").First().Value).Result.First();
 
             return Convert.ToInt32(defaultRoleOrder) <= ProjectLeadOrder;
@@ -273,14 +279,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Owners" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Story.FromQuery);
         }
 
         public async Task<List<Defect>> GetDefectsWithJiraReference(string projectId)
         {
             return await _connector.Query("Defect",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Owners" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Defect.FromQuery);
         }
 
@@ -331,7 +337,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId)
         {
             return await _connector.Query("Actual",
-                new[] { "Date", "Value", "Reference", "Scope.Name", "Workitem.Name", "Workitem.Number" },
+                new[] { "Date", "Value", "Reference", "Scope.Name", "Workitem.Name", "Workitem.Number", "Member" },
                 new[]
                 {
                     "Reference!=\"\"",
@@ -371,6 +377,36 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetRelationNode("Schedule", scheduleId);
 
             return await _connector.Post(projectId.Replace(':', '/'), payload.ToString());
+        }
+
+        public async Task<Member> GetMember(string jiraUsername)
+        {
+            var members =
+                await
+                    _connector.Query("Member", new[] { "Name", "Nickname", "Email", "Username" },
+                        new[] { string.Format("Nickname='{0}'|Username='{0}'", jiraUsername) }, Member.FromQuery);
+
+            return members.FirstOrDefault();
+        }
+
+        public async Task<Member> CreateMember(Member member)
+        {
+            var xDoc = await _connector.Post(member, member.CreatePayload());
+            member.FromCreate(xDoc.Root);
+            return member;
+        }
+
+        public async Task<Member> SyncMemberFromJiraUser(User jiraUser)
+        {
+            var member = await GetMember(jiraUser.name);
+            if (member != null && !jiraUser.ItMatchesMember(member))
+            {
+                member.Name = jiraUser.displayName;
+                member.Nickname = jiraUser.name;
+                member.Email = jiraUser.emailAddress;
+                await _connector.Post(member, member.CreateUpdatePayload());
+            }
+            return member ?? await CreateMember(jiraUser.ToV1Member());
         }
     }
 

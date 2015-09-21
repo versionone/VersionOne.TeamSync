@@ -118,6 +118,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public Status Status { get; set; }
         public Priority Priority { get; set; }
         public Project Project { get; set; }
+        public User Assignee { get; set; }
 
         public TimeTracking TimeTracking { get; set; }
 
@@ -153,8 +154,8 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
     public class Worklog
     {
         public string self;
-        public Author author;
-        public Author updateAuthor;
+        public User author;
+        public User updateAuthor;
         public string comment;
         public DateTime created;
         public DateTime updated;
@@ -164,7 +165,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public int id;
     }
 
-    public class Author
+    public class User
     {
         public string self;
         public string name;

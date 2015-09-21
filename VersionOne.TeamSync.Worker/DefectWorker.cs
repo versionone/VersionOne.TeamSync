@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using log4net;
@@ -72,12 +73,22 @@ namespace VersionOne.TeamSync.Worker
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
-
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-
             var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
             update.ID = defect.ID;
+            update.OwnersIds = defect.OwnersIds;
+
+            if (issue.HasAssignee()) // Assign Owner
+            {
+                var member = await TrySyncMemberFromJiraUser(issue.Fields.Assignee);
+                if (member != null && !update.OwnersIds.Any(i => i.Equals(member.Oid())))
+                    await _v1.UpdateAsset(update, update.CreateOwnersPayload(member.Oid()));
+            }
+            else if (update.OwnersIds.Any()) // Unassign Owner
+            {
+                await _v1.UpdateAsset(update, update.CreateOwnersPayload());
+            }
 
             if (!issue.ItMatchesDefect(defect))
             {
@@ -124,6 +135,13 @@ namespace VersionOne.TeamSync.Worker
         public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraDefect)
         {
             var defect = jiraDefect.ToV1Defect(jiraInfo.V1ProjectId);
+
+            if (jiraDefect.HasAssignee())
+            {
+                var member = await TrySyncMemberFromJiraUser(jiraDefect.Fields.Assignee);
+                if (member != null)
+                    defect.OwnersIds.Add(member.Oid());
+            }
 
             if (!string.IsNullOrEmpty(jiraDefect.Fields.EpicLink))
             {
@@ -178,5 +196,20 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceDeleteFinished(PluralAsset);
         }
 
+        private async Task<Member> TrySyncMemberFromJiraUser(User jiraUser)
+        {
+            Member member = null;
+            try
+            {
+                member = await _v1.SyncMemberFromJiraUser(jiraUser);
+            }
+            catch (Exception e)
+            {
+                _log.WarnFormat("Can not get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
+                _log.Error(e);
+            }
+
+            return member;
+        }
     }
 }

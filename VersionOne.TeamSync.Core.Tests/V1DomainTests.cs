@@ -37,7 +37,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery("Epic", mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name" }, 
+            var api = SetApiQuery("Epic", mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name" },
                              new[] { "Reference=\"\"", "AssetState='Active'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
@@ -52,7 +52,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery("Epic", mockConnector, 
+            var api = SetApiQuery("Epic", mockConnector,
                 new[] { "Name", "AssetState", "Reference" },
                 new[] { "Reference!=\"\"", "AssetState='Closed'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
@@ -61,7 +61,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             mockConnector.VerifyAll();
         }
-        
+
         [TestMethod]
         public async Task getting_tracked_epics_is_number_name_and_ref()
         {
@@ -97,8 +97,8 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
             mockConnector.Setup(x => x.Query("Story",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number" },
-                new[] {"Reference!=\"\"", "Scope=\"Scope:1000\""},
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Owners" },
+                new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"" },
                 Story.FromQuery))
                 .ReturnsAsync(new List<Story>());
             var api = new V1(mockConnector.Object, _span);
@@ -106,8 +106,6 @@ namespace VersionOne.TeamSync.Core.Tests
             await api.GetStoriesWithJiraReference("Scope:1000");
 
             mockConnector.VerifyAll();
-
         }
-   
     }
 }

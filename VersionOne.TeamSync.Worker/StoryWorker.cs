@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using log4net;
@@ -79,6 +80,18 @@ namespace VersionOne.TeamSync.Worker
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
             var update = issue.ToV1Story(jiraInfo.V1ProjectId);
             update.ID = story.ID;
+            update.OwnersIds = story.OwnersIds;
+
+            if (issue.HasAssignee()) // Assign Owner
+            {
+                var member = await TrySyncMemberFromJiraUser(issue.Fields.Assignee);
+                if (member != null && !update.OwnersIds.Any(i => i.Equals(member.Oid())))
+                    await _v1.UpdateAsset(update, update.CreateOwnersPayload(member.Oid()));
+            }
+            else if (update.OwnersIds.Any()) // Unassign Owner
+            {
+                await _v1.UpdateAsset(update, update.CreateOwnersPayload());
+            }
 
             if (!issue.ItMatchesStory(story))
             {
@@ -125,6 +138,13 @@ namespace VersionOne.TeamSync.Worker
         {
             _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
             var story = jiraStory.ToV1Story(jiraInfo.V1ProjectId);
+
+            if (jiraStory.HasAssignee())
+            {
+                var member = await TrySyncMemberFromJiraUser(jiraStory.Fields.Assignee);
+                if (member != null)
+                    story.OwnersIds.Add(member.Oid());
+            }
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
@@ -175,6 +195,22 @@ namespace VersionOne.TeamSync.Worker
 
             _log.InfoDelete(processedStories, PluralAsset);
             _log.TraceDeleteFinished(PluralAsset);
+        }
+
+        private async Task<Member> TrySyncMemberFromJiraUser(User jiraUser)
+        {
+            Member member = null;
+            try
+            {
+                member = await _v1.SyncMemberFromJiraUser(jiraUser);
+            }
+            catch (Exception e)
+            {
+                _log.WarnFormat("Can not get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
+                _log.Error(e);
+            }
+
+            return member;
         }
     }
 }
