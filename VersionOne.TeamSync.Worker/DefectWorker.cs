@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using log4net;
@@ -148,7 +149,7 @@ namespace VersionOne.TeamSync.Worker
                         string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
             _log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newDefect.Number, jiraDefect.Key);
 
-            var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraDefect.Key;
+            var link = new Uri(new Uri(jiraInfo.JiraInstance.InstanceUrl), string.Format("browse/{0}", jiraDefect.Key)).ToString();
             _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraDefect.Key), link);
             _log.TraceFormat("Added link in V1 defect {0}", newDefect.Number);
         }
