@@ -19,6 +19,7 @@ namespace VersionOne.TeamSync.V1Connector
     {
         private const string DATA_API_OAUTH_ENDPOINT = "rest-1.oauth.v1/Data";
         private const string DATA_API_ENDPOINT = "rest-1.v1/Data";
+        private const string QUERY_STRING_OPERATION = "{0}/{1}?op={2}";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(V1Connector));
         private readonly Uri _baseAddress;
@@ -46,14 +47,27 @@ namespace VersionOne.TeamSync.V1Connector
 
         public string MemberId { get; private set; }
 
-        private const string _operation = "{0}/{1}?op={2}";
         public async Task<XDocument> Operation(IV1Asset asset, string operation) //this is higher level so should this live here?
         {
             using (var client = HttpInstance)
             {
-                var endPoint = string.Format(_operation, GetResourceUrl(asset.AssetType), asset.ID, operation);
+                var endPoint = string.Format(QUERY_STRING_OPERATION, GetResourceUrl(asset.AssetType), asset.ID, operation);
 
                 var response = await client.PostAsync(endPoint, new StringContent(""));
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                LogResponse(response);
+
+                return XDocument.Parse(responseContent);
+            }
+        }
+
+        public async Task<XDocument> Operation(string assetType, string assetId, string operation)
+        {
+            using (var client = HttpInstance)
+            {
+                var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?op=" + operation;
+                var response = await client.PostAsync(endpoint, new StringContent(""));
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 LogResponse(response);
@@ -66,11 +80,11 @@ namespace VersionOne.TeamSync.V1Connector
         {
             using (var client = HttpInstance)
             {
-                var endPoint = GetResourceUrl(asset.AssetType);
+                var endpoint = GetResourceUrl(asset.AssetType);
                 if (!string.IsNullOrWhiteSpace(asset.ID))
-                    endPoint += "/" + asset.ID;
+                    endpoint += "/" + asset.ID;
 
-                var response = await client.PostAsync(endPoint, new StringContent(postPayload.ToString()));
+                var response = await client.PostAsync(endpoint, new StringContent(postPayload.ToString()));
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 LogResponse(response, postPayload.ToString());
@@ -79,34 +93,17 @@ namespace VersionOne.TeamSync.V1Connector
             }
         }
 
-        private HttpClientHandler ClientHandler
+        public async Task<XDocument> Post(string resource, string postPayload)
         {
-            get
+            using (var client = HttpInstance)
             {
-                return new HttpClientHandler()
-                {
-                    PreAuthenticate = true,
-                    AllowAutoRedirect = true,
-                    Credentials = _networkCreds,
-                    Proxy = _proxy
-                };
-            }
-        }
+                var endpoint = GetResourceUrl(resource);
+                var response = await client.PostAsync(endpoint, new StringContent(postPayload));
+                var responseContent = await response.Content.ReadAsStringAsync();
 
-        private HttpClient HttpInstance
-        {
-            get
-            {
-                var httpInstance = new HttpClient(ClientHandler)
-                {
-                    BaseAddress = _baseAddress
-                };
-                foreach (var requestHeader in _requestHeaders)
-                {
-                    httpInstance.DefaultRequestHeaders.Add(requestHeader.Key, requestHeader.Value);
-                }
+                LogResponse(response, postPayload);
 
-                return httpInstance;
+                return XDocument.Parse(responseContent);
             }
         }
 
@@ -169,20 +166,6 @@ namespace VersionOne.TeamSync.V1Connector
             }
         }
 
-        public async Task<XDocument> Operation(string assetType, string assetId, string operation)
-        {
-            using (var client = HttpInstance)
-            {
-                var endpoint = GetResourceUrl(assetType + "/" + assetId) + "?op=" + operation;
-                var response = await client.PostAsync(endpoint, new StringContent(""));
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                LogResponse(response);
-
-                return XDocument.Parse(responseContent);
-            }
-        }
-
         public bool IsConnectionValid()
         {
             using (var client = HttpInstance)
@@ -208,26 +191,6 @@ namespace VersionOne.TeamSync.V1Connector
             }
         }
 
-        public bool ProjectExists(string projectIdOrKey)
-        {
-            var result = Query("Scope", new[] { "Name" }, new[] { string.Format("ID='{0}'", projectIdOrKey) },
-                element =>
-                {
-                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null).Select(e => e.Value);
-                }).Result;
-            return result.Any();
-        }
-
-        public bool EpicCategoryExists(string epicCategoryId)
-        {
-            var result = Query("EpicCategory", new[] { "Name" }, new[] { string.Format("ID='{0}'", epicCategoryId) },
-                element =>
-                {
-                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null).Select(e => e.Value);
-                }).Result;
-            return result.Any();
-        }
-
         public bool AssetFieldExists(string asset, string field)
         {
             using (var client = HttpInstance)
@@ -245,6 +208,37 @@ namespace VersionOne.TeamSync.V1Connector
         public static ICanSetUserAgentHeader WithInstanceUrl(string versionOneInstanceUrl)
         {
             return new Builder(versionOneInstanceUrl);
+        }
+
+        private HttpClientHandler ClientHandler
+        {
+            get
+            {
+                return new HttpClientHandler
+                {
+                    PreAuthenticate = true,
+                    AllowAutoRedirect = true,
+                    Credentials = _networkCreds,
+                    Proxy = _proxy
+                };
+            }
+        }
+
+        private HttpClient HttpInstance
+        {
+            get
+            {
+                var httpInstance = new HttpClient(ClientHandler)
+                {
+                    BaseAddress = _baseAddress
+                };
+                foreach (var requestHeader in _requestHeaders)
+                {
+                    httpInstance.DefaultRequestHeaders.Add(requestHeader.Key, requestHeader.Value);
+                }
+
+                return httpInstance;
+            }
         }
 
         private string FormatAssemblyUserAgent(Assembly a, string upstream = null)

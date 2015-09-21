@@ -20,6 +20,15 @@ namespace VersionOne.TeamSync.Core.Tests
 
         protected string WorkItemId = "Defect:1077";
 
+        protected Member Member = new Member
+        {
+            ID = "Member:20",
+            Name = "Administrator",
+            Nickname = "",
+            Username = "admin",
+            Email = "admin@versionone.com"
+        };
+
         protected override void BuildContext()
         {
             base.BuildContext();
@@ -49,6 +58,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
 
             _mockV1.Setup(x => x.CreateActual(It.IsAny<Actual>())).ReturnsAsync(Actual);
+            _mockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
 
             var worker = new ActualsWorker(_mockV1.Object, _mockLogger.Object);
             worker.CreateActualsFromWorklogs(JiraInfo, new List<Worklog> { Worklog }, WorkItemId, V1Number, IssueKey);
@@ -97,6 +107,7 @@ namespace VersionOne.TeamSync.Core.Tests
     </Relation>
 </Asset>");
             _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>())).ReturnsAsync(_updatedActual);
+            _mockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
 
             var worker = new ActualsWorker(_mockV1.Object, _mockLogger.Object);
             worker.UpdateActualsFromWorklogs(JiraInfo, new List<Worklog> { Worklog }, WorkItemId, new List<Actual> { Actual });

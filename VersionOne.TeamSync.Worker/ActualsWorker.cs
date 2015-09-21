@@ -13,11 +13,12 @@ namespace VersionOne.TeamSync.Worker
 {
     public class ActualsWorker : IAsyncWorker
     {
-        private readonly IV1 _v1;
-        private string _pluralAsset = "actuals";
-        private readonly ILog _log;
+        private const string PluralAsset = "actuals";
         private const string CreatedAsVersionOneActualComment = "Created as VersionOne {0} in Workitem {1}";
+
         private bool _isActualWorkEnabled;
+        private readonly IV1 _v1;
+        private readonly ILog _log;
 
         public ActualsWorker(IV1 v1, ILog log)
         {
@@ -60,7 +61,7 @@ namespace VersionOne.TeamSync.Worker
                 var newWorklogs = worklogs.Where(w => !actuals.Any(a => a.Reference.Equals(w.id.ToString()))).ToList();
                 if (newWorklogs.Any())
                     CreateActualsFromWorklogs(jiraInfo, newWorklogs, workItem.Oid(), workItem.Number, issueKey);
-                _log.TraceCreateFinished(_pluralAsset);
+                _log.TraceCreateFinished(PluralAsset);
 
                 _log.Trace("Updating actual started");
                 var updateWorklogs = worklogs.Where(w => actuals.Any(a => a.Reference.Equals(w.id.ToString()) &&
@@ -74,14 +75,14 @@ namespace VersionOne.TeamSync.Worker
                     )).ToList();
                 if (updateWorklogs.Any())
                     UpdateActualsFromWorklogs(jiraInfo, updateWorklogs, workItem.Oid(), actuals);
-                _log.TraceUpdateFinished(_pluralAsset);
+                _log.TraceUpdateFinished(PluralAsset);
 
                 _log.Trace("Deleting actuals started");
                 var actualsToDelete = actuals.Where(a => !worklogs.Any(w => w.id.ToString().Equals(a.Reference)) &&
                                                          !a.Value.Equals("0")).ToList();
                 if (actualsToDelete.Any())
                     DeleteActualsFromWorklogs(actualsToDelete);
-                _log.TraceDeleteFinished(_pluralAsset);
+                _log.TraceDeleteFinished(PluralAsset);
             }
         }
 
@@ -102,7 +103,7 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            _log.InfoCreated(processedActuals, _pluralAsset);
+            _log.InfoCreated(processedActuals, PluralAsset);
         }
 
         public void UpdateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
@@ -121,7 +122,7 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            _log.InfoUpdated(processedActuals, _pluralAsset);
+            _log.InfoUpdated(processedActuals, PluralAsset);
         }
 
         public void DeleteActualsFromWorklogs(List<Actual> actualsToDelete)
@@ -137,7 +138,7 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            _log.InfoDelete(processedActuals, _pluralAsset);
+            _log.InfoDelete(processedActuals, PluralAsset);
         }
 
         private void ValidateRequiredV1Fields()

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.V1Connector;
@@ -185,6 +186,67 @@ namespace VersionOne.TeamSync.Worker
                 {
                     Log.Error("JIRA user is not valid, must belong to 'jira-developers' or 'jira-administrators' group.");
                     throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
+                }
+            }
+        }
+
+        public void ValidateVersionOneSchedules()
+        {
+            foreach (var jiraInstance in _jiraInstances.ToList())
+            {
+                Log.InfoFormat("Validating iteration schedule for {0}.", jiraInstance.V1ProjectId);
+
+                if (_v1.ValidateScheduleExists(jiraInstance.V1ProjectId))
+                {
+                    Log.DebugFormat("Schedule found!");
+                }
+                else
+                {
+                    var result = _v1.CreateScheduleForProject(jiraInstance.V1ProjectId).Result;
+                    if (!result.Root.Name.LocalName.Equals("Error"))
+                    {
+                        var id = result.Root.Attribute("id").Value;
+                        var scheduleId = id.Substring(0, id.LastIndexOf(':')); // OID without snapshot ID
+                        Log.DebugFormat("Created schedule {0} for project {1}.", scheduleId, jiraInstance.V1ProjectId);
+
+
+                        result = _v1.SetScheduleToProject(jiraInstance.V1ProjectId, scheduleId).Result;
+                        if (!result.Root.Name.LocalName.Equals("Error"))
+                        {
+                            Log.DebugFormat("Schedule {0} is now set to project {1}", scheduleId, jiraInstance.V1ProjectId);
+                        }
+                        else
+                        {
+                            LogVersionOneErrorMessage(result);
+                            Log.WarnFormat("Unable to set schedule {0} to project {1}.", scheduleId, jiraInstance.V1ProjectId);
+                            ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                        }
+                    }
+                    else
+                    {
+                        LogVersionOneErrorMessage(result);
+                        Log.WarnFormat("Unable to create schedule for {0}, project will not be synchronized.", jiraInstance.V1ProjectId);
+                        ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                    }
+                }
+            }
+
+            if (!_jiraInstances.Any())
+                throw new Exception("No valid projects to synchronize. You need at least one VersionOne project with a valid schedule for the service to run.");
+        }
+
+        private void LogVersionOneErrorMessage(XDocument error)
+        {
+            if (error.Root != null)
+            {
+                var exceptionNode = error.Root.Element("Exception");
+                if (exceptionNode != null)
+                {
+                    var messageNode = exceptionNode.Element("Message");
+                    if (messageNode != null)
+                    {
+                        Log.Error(messageNode.Value);
+                    }
                 }
             }
         }
