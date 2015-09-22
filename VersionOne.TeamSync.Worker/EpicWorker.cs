@@ -9,6 +9,7 @@ namespace VersionOne.TeamSync.Worker
 {
     public class EpicWorker : IAsyncWorker
     {
+        private const string PluralAsset = "epics";
         private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}";
         private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
         private const string V1AssetDetailWebLinkTitle = "VersionOne Portfolio Item ({0})";
@@ -53,7 +54,7 @@ namespace VersionOne.TeamSync.Worker
                 processedEpics++;
             });
 
-            _log.InfoFormat("Deleted {0} Jira epics", processedEpics);
+            if (processedEpics > 0) _log.InfoFormat("Deleted {0} Jira epics", processedEpics);
             _log.Trace("Delete epics stopped");
         }
 
@@ -85,14 +86,16 @@ namespace VersionOne.TeamSync.Worker
                 processedEpics++;
             });
 
-            _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
+           if (processedEpics > 0)  _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
             _log.Trace("Resolve epics stopped");
         }
 
         public async Task UpdateEpics(V1JiraInfo jiraInfo)
         {
+            //bool updatedEpics = false;
             _log.Trace("Updating epics started");
-            var processedEpics = 0;
+            var updatedEpics = 0;
+           // var processedEpics = 0;
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
 
@@ -128,12 +131,14 @@ namespace VersionOne.TeamSync.Worker
                 {
                     jiraInfo.JiraInstance.UpdateIssue(epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels), relatedJiraEpic.Key);
                     _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, epic.Number);
+                    updatedEpics++;
                 }
 
-                processedEpics++;
+               // processedEpics++;
             });
 
-            _log.InfoFormat("Finished checking {0} V1 Epics", processedEpics);
+            //_log.InfoFormat("Finished checking {0} V1 Epics", processedEpics);
+            if (updatedEpics > 0) _log.InfoUpdated(updatedEpics, PluralAsset);
             _log.Trace("Updating epics stopped");
         }
 
@@ -176,7 +181,7 @@ namespace VersionOne.TeamSync.Worker
                 }
             });
 
-            _log.InfoFormat("Created {0} Jira epics", processedEpics);
+            if (processedEpics > 0) _log.InfoFormat("Created {0} Jira epics", processedEpics);
             _log.Trace("Create epics stopped");
         }
     }

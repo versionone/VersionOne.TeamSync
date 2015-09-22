@@ -35,6 +35,7 @@ namespace VersionOne.TeamSync.Core
 		private static string _infoDeleteMessage = "Deleted {0} V1 {1}";
 		private static string _traceDeleteFinished = "Finished deleting V1 {0}";
 		private static string _debugClosedMessage = "Closed V1 {0} {1}";
+        private static string _infoClosedMessage = "Closed {0} V1 {1}";
 
 	    public static void InfoCreated(this ILog log, int count, string pluralAsset)
 	    {
@@ -70,5 +71,10 @@ namespace VersionOne.TeamSync.Core
 	    {
 		    log.Debug(string.Format(_debugClosedMessage, singularAsset, assetNumber));
 	    }
+
+        public static void InfoClosed(this ILog log, int count, string pluralAsset)
+        {
+            log.Info(string.Format(_infoClosedMessage, count, pluralAsset));
+        }
     }
 }

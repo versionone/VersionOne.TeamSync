@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
@@ -33,7 +34,7 @@ namespace VersionOne.TeamSync.Worker
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInfo.V1ProjectId);
 
             UpdateStories(jiraInfo, allJiraStories, allV1Stories);
-            CreateStories(jiraInfo, allJiraStories, allV1Stories);
+            await CreateStories(jiraInfo, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInfo, allJiraStories, allV1Stories);
 
             _log.Trace("Story sync stopped...");
@@ -42,7 +43,8 @@ namespace VersionOne.TeamSync.Worker
         public async void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             _log.Trace("Updating stories started");
-            var processedStories = 0;
+            var updatedStories = 0;
+            var closedStories = 0;
             var existingStories =
                 allJiraStories.Where(jStory => { return allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)); })
                     .ToList();
@@ -55,22 +57,33 @@ namespace VersionOne.TeamSync.Worker
             {
                 var story = allV1Stories.Single(x => existingJStory.Fields.Labels.Contains(x.Number));
 
-                UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics).Wait();
-                processedStories++;
+                var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics);
+                //checking if was an update or close
+                switch (returnValue)
+                {
+                    case 1:
+                        updatedStories++;
+                        break;
+                    case 2:
+                        closedStories++;
+                        break;
+                }      
             });
 
-            _log.InfoUpdated(processedStories, PluralAsset);
+            if (updatedStories > 0) _log.InfoUpdated(updatedStories, PluralAsset);
+            if (closedStories > 0) _log.InfoClosed(closedStories, PluralAsset);
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
+        public int  UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
         {
+            int storytUpdatedClosed = 0;
             _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
 
             //need to reopen a story first before we can update it
             if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && story.AssetState == "128")
             {
-                await _v1.ReOpenStory(story.ID);
+                _v1.ReOpenStory(story.ID);
                 _log.DebugFormat("Reopened story V1 {0}", story.Number);
             }
 
@@ -96,20 +109,24 @@ namespace VersionOne.TeamSync.Worker
             if (!issue.ItMatchesStory(story))
             {
                 update.Super = v1EpicId;
-                await _v1.UpdateAsset(update, update.CreateUpdatePayload());
+                _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated story V1 {0}", story.Number);
+                storytUpdatedClosed = 1;
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && story.AssetState != "128")
             {
-                await _v1.CloseStory(story.ID);
+                _v1.CloseStory(story.ID);
                 _log.DebugClosedItem("story", story.Number);
+                storytUpdatedClosed = 2;
             }
+
+            return storytUpdatedClosed;
 
             //var x = issue.Fields.Sprints
         }
 
-        public void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
+        public async Task CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             _log.Trace("Creating stories started");
             var processedStories = 0;
@@ -124,13 +141,13 @@ namespace VersionOne.TeamSync.Worker
 
             _log.DebugFormat("Found {0} stories to check for create", newStories.Count);
 
-            newStories.ForEach(async newJStory =>
+            newStories.ForEach(newJStory =>
             {
-                await CreateStoryFromJira(jiraInfo, newJStory);
+                CreateStoryFromJira(jiraInfo, newJStory).Wait();
                 processedStories++;
             });
 
-            _log.InfoCreated(processedStories, PluralAsset);
+            if (processedStories > 0) _log.InfoCreated(processedStories, PluralAsset);
             _log.TraceCreateFinished(PluralAsset);
         }
 
@@ -193,7 +210,7 @@ namespace VersionOne.TeamSync.Worker
                 processedStories++;
             });
 
-            _log.InfoDelete(processedStories, PluralAsset);
+            if (processedStories > 0) _log.InfoDelete(processedStories, PluralAsset);
             _log.TraceDeleteFinished(PluralAsset);
         }
 
