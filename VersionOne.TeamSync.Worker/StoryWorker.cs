@@ -59,7 +59,7 @@ namespace VersionOne.TeamSync.Worker
 
                 var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics);
                 //checking if was an update or close
-                switch (returnValue)
+                switch (returnValue.Result)
                 {
                     case 1:
                         updatedStories++;
@@ -68,7 +68,6 @@ namespace VersionOne.TeamSync.Worker
                         closedStories++;
                         break;
                 }      
-                
             });
 
             if (updatedStories > 0) _log.InfoUpdated(updatedStories, PluralAsset);
@@ -76,7 +75,7 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public int  UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
+        public async Task<int>  UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
         {
             int storytUpdatedClosed = 0;
             _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
@@ -123,7 +122,6 @@ namespace VersionOne.TeamSync.Worker
             }
 
             return storytUpdatedClosed;
-
         }
 
         public async Task CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
@@ -204,9 +202,9 @@ namespace VersionOne.TeamSync.Worker
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {
-                _log.TraceFormat("Attempting to delete V1 story referencing Jira story {0}", key);
+                _log.TraceFormat("Attempting to delete V1 story referencing jira story {0}", key);
                 _v1.DeleteStoryWithJiraReference(jiraInfo.V1ProjectId, key);
-                _log.DebugFormat("Deleted V1 story referencing Jira story {0}", key);
+                _log.DebugFormat("Deleted V1 story referencing jira story {0}", key);
                 processedStories++;
             });
 

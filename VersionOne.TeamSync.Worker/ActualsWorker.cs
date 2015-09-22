@@ -90,7 +90,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
         {
-            _log.DebugFormat("Found {0} Jira work logs to check for create", newWorklogs.Count());
+            if (newWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for create", newWorklogs.Count());
             var processedActuals = 0;
             foreach (var worklog in newWorklogs)
             {
@@ -112,7 +112,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void UpdateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
         {
-            _log.DebugFormat("Found {0} Jira work logs to check for update", updateWorklogs.Count());
+            if (updateWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for update", updateWorklogs.Count());
             var processedActuals = 0;
             foreach (var worklog in updateWorklogs)
             {
@@ -131,7 +131,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void DeleteActualsFromWorklogs(List<Actual> actualsToDelete)
         {
-            _log.DebugFormat("Found {0} actuals to check for delete", actualsToDelete.Count);
+            if (actualsToDelete.Count > 0) _log.DebugFormat("Found {0} actuals to check for delete", actualsToDelete.Count);
             var processedActuals = 0;
             foreach (var actual in actualsToDelete)
             {

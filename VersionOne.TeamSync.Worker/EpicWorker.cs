@@ -46,7 +46,7 @@ namespace VersionOne.TeamSync.Worker
                 _log.TraceFormat("Attempting to delete Jira epic {0}", epic.Reference);
 
                 jiraInfo.JiraInstance.DeleteEpicIfExists(epic.Reference);
-                _log.DebugFormat("Deleted epic Jira epic {0}", epic.Reference);
+                _log.DebugFormat("Deleted Jira epic {0}", epic.Reference);
 
                 _v1.RemoveReferenceOnDeletedEpic(epic);
                 _log.TraceFormat("Removed reference on V1 epic {0}", epic.Number);
