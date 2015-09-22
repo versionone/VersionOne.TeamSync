@@ -39,7 +39,7 @@ namespace VersionOne.TeamSync.Worker
             var processedEpics = 0;
             var deletedEpics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
-            _log.DebugFormat("Found {0} epics to check for delete", deletedEpics.Count);
+            if (deletedEpics.Count > 0) _log.DebugFormat("Found {0} epics to check for delete", deletedEpics.Count);
 
             deletedEpics.ForEach(epic =>
             {
@@ -105,12 +105,12 @@ namespace VersionOne.TeamSync.Worker
                 return;
             }
             var jiraEpics = searchResult.issues;
-
-            _log.DebugFormat("Found {0} epics to check for update", assignedEpics.Count);
-
             if (assignedEpics.Count > 0)
-                _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
-
+            {
+              _log.DebugFormat("Found {0} epics to check for update", assignedEpics.Count);
+              _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
+            }
+            
             assignedEpics.ForEach(epic =>
             {
                 _log.TraceFormat("Attempting to update Jira epic {0}", epic.Reference);
@@ -148,7 +148,7 @@ namespace VersionOne.TeamSync.Worker
             var processedEpics = 0;
             var unassignedEpics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
-            _log.DebugFormat("Found {0} epics to check for create", unassignedEpics.Count);
+            if (unassignedEpics.Count >0) _log.DebugFormat("Found {0} epics to check for create", unassignedEpics.Count);
 
             unassignedEpics.ForEach(epic =>
             {

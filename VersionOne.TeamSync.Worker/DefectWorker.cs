@@ -49,7 +49,7 @@ namespace VersionOne.TeamSync.Worker
                 allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
                     .ToList();
 
-            _log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
+            if (existingDefects.Count > 0) _log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             existingDefects.ForEach(existingJDefect =>
@@ -137,7 +137,7 @@ namespace VersionOne.TeamSync.Worker
                                                               vDefect.Reference.Contains(jDefect.Key)) == null;
             }).ToList();
 
-            _log.DebugFormat("Found {0} defects to check for create", newStories.Count);
+            if (newStories.Count > 0) _log.DebugFormat("Found {0} defects to check for create", newStories.Count);
 
             newStories.ForEach(newJDefect =>
             {
@@ -199,7 +199,7 @@ namespace VersionOne.TeamSync.Worker
             var jiraDeletedStoriesKeys =
                 jiraReferencedStoriesKeys.Where(jiraDefectKey => !allJiraStories.Any(js => js.Key.Equals(jiraDefectKey))).ToList();
 
-            _log.DebugFormat("Found {0} defects to delete", jiraDeletedStoriesKeys.Count);
+            if (jiraDeletedStoriesKeys.Count > 0) _log.DebugFormat("Found {0} defects to delete", jiraDeletedStoriesKeys.Count);
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {

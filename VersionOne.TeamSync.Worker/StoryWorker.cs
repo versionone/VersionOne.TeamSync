@@ -49,7 +49,7 @@ namespace VersionOne.TeamSync.Worker
                 allJiraStories.Where(jStory => { return allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)); })
                     .ToList();
 
-            _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
+            if (existingStories.Count > 0) _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
@@ -124,7 +124,6 @@ namespace VersionOne.TeamSync.Worker
 
             return storytUpdatedClosed;
 
-            //var x = issue.Fields.Sprints
         }
 
         public async Task CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
@@ -140,7 +139,7 @@ namespace VersionOne.TeamSync.Worker
                                                               vStory.Reference.Contains(jStory.Key)) == null;
             }).ToList();
 
-            _log.DebugFormat("Found {0} stories to check for create", newStories.Count);
+            if (newStories.Count > 0) _log.DebugFormat("Found {0} stories to check for create", newStories.Count);
 
             newStories.ForEach(newJStory =>
             {
@@ -201,13 +200,13 @@ namespace VersionOne.TeamSync.Worker
             var jiraDeletedStoriesKeys =
                 jiraReferencedStoriesKeys.Where(jiraStoryKey => !allJiraStories.Any(js => js.Key.Equals(jiraStoryKey))).ToList();
 
-            _log.DebugFormat("Found {0} stories to check for delete", jiraDeletedStoriesKeys.Count);
+            if (jiraDeletedStoriesKeys.Count > 0) _log.DebugFormat("Found {0} stories to check for delete", jiraDeletedStoriesKeys.Count);
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {
-                _log.TraceFormat("Attempting to delete V1 story referencing jira story {0}", key);
+                _log.TraceFormat("Attempting to delete V1 story referencing Jira story {0}", key);
                 _v1.DeleteStoryWithJiraReference(jiraInfo.V1ProjectId, key);
-                _log.DebugFormat("Deleted V1 story referencing jira story {0}", key);
+                _log.DebugFormat("Deleted V1 story referencing Jira story {0}", key);
                 processedStories++;
             });
 
