@@ -26,8 +26,8 @@ namespace VersionOne.TeamSync.Worker
         public async Task DoWork(V1JiraInfo jiraInfo)
         {
             _log.Trace("Epic sync started...");
-            await CreateEpics(jiraInfo);
             await UpdateEpics(jiraInfo);
+            await CreateEpics(jiraInfo);
             await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
             await DeleteEpics(jiraInfo);
             _log.Trace("Epic sync stopped...");
@@ -86,7 +86,7 @@ namespace VersionOne.TeamSync.Worker
                 processedEpics++;
             });
 
-           if (processedEpics > 0)  _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
+           if (processedEpics > 0)  _log.DebugFormat("Resolved {0} Jira epics", processedEpics);
             _log.Trace("Resolve epics stopped");
         }
 
@@ -95,7 +95,8 @@ namespace VersionOne.TeamSync.Worker
             //bool updatedEpics = false;
             _log.Trace("Updating epics started");
             var updatedEpics = 0;
-           // var processedEpics = 0;
+            var reopenedEpics = 0;
+           
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
 
@@ -125,6 +126,7 @@ namespace VersionOne.TeamSync.Worker
                 {
                     jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key, jiraInfo.DoneWords);
                     _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
+                    reopenedEpics++;
                 }
 
                 if (!epic.ItMatches(relatedJiraEpic))
@@ -134,11 +136,13 @@ namespace VersionOne.TeamSync.Worker
                     updatedEpics++;
                 }
 
-               // processedEpics++;
+               
             });
 
             //_log.InfoFormat("Finished checking {0} V1 Epics", processedEpics);
             if (updatedEpics > 0) _log.InfoUpdated(updatedEpics, PluralAsset);
+           
+            if (reopenedEpics > 0) _log.InfoReopen(reopenedEpics, PluralAsset);
             _log.Trace("Updating epics stopped");
         }
 

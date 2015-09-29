@@ -42,46 +42,43 @@ namespace VersionOne.TeamSync.Worker
         public async void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraDefects, List<Defect> allV1Defects)
         {
             _log.Trace("Updating defects started");
-            var updatedDefects = 0;
-            var closedDefects = 0;
+            var data = new Dictionary<string, int>();
+            data["reopened"] = 0;
+            data["updated"] = 0;
+            data["closed"] = 0;
 
-            var existingDefects =
-                allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); })
-                    .ToList();
+            var existingDefects = allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); }).ToList();
 
             if (existingDefects.Count > 0) _log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
+           
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             existingDefects.ForEach(existingJDefect =>
             {
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
-                var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics);
-                switch (returnedValue.Result)
-                {
-                    case 1:
-                        updatedDefects++;
-                        break;
-                    case 2:
-                        closedDefects++;
-                        break;
-                } 
-                
+                var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics, data);
             });
 
-             if (updatedDefects > 0) _log.InfoUpdated(updatedDefects, PluralAsset);
-             if (closedDefects > 0) _log.InfoClosed(closedDefects, PluralAsset);
+            if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
+
+            if (data["closed"] > 0) _log.InfoClosed(data["closed"], PluralAsset);
+
+            if (data["reopened"] > 0) _log.InfoUpdated(data["reopened"], PluralAsset);
+            
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task<int> UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
+        public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            int defectUpdatedClosed = 0;
+
             //need to reopen a Defect first before we can update it
             if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState == "128")
             {
+                //reopen action needs to be checked??
                 _v1.ReOpenDefect(defect.ID);
                 _log.TraceFormat("Reopened V1 defect {0}", defect.Number);
+                data["reopened"] += 1;
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
@@ -110,42 +107,44 @@ namespace VersionOne.TeamSync.Worker
                 _v1.UpdateAsset(update, update.CreateUpdatePayload()).ContinueWith(task =>
                 {
                     _log.DebugFormat("Updated V1 defect {0}", defect.Number);
-                   
                 });
-                defectUpdatedClosed = 1;
+                data["closed"] +=1;
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
             {
+                //close action
                 _v1.CloseDefect(defect.ID);
                 _log.DebugClosedItem("defect", defect.Number);
-                defectUpdatedClosed = 2;
+                data["updated"] += 1;
             }
-            return defectUpdatedClosed;
+            return data;
         }
 
         public async Task CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Defect> allV1Stories)
         {
             _log.Trace("Creating defects started");
             var processedDefects = 0;
-            var newStories = allJiraStories.Where(jDefect =>
-            {
-                if (allV1Stories.Any(x => jDefect.Fields.Labels.Contains(x.Number)))
-                    return false;
 
-                return allV1Stories.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
-                                                              vDefect.Reference.Contains(jDefect.Key)) == null;
-            }).ToList();
+            var newStories = allJiraStories.Where(jDefect =>
+                            {
+                              if (allV1Stories.Any(x => jDefect.Fields.Labels.Contains(x.Number))) return false;
+
+                              return allV1Stories.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) && 
+                                                                             vDefect.Reference.Contains(jDefect.Key)) == null;
+                            }
+                    ).ToList();
 
             if (newStories.Count > 0) _log.DebugFormat("Found {0} defects to check for create", newStories.Count);
 
             newStories.ForEach(newJDefect =>
-            {
-                CreateDefectFromJira(jiraInfo, newJDefect).Wait();
-                processedDefects++;
-            });
+                {
+                    CreateDefectFromJira(jiraInfo, newJDefect).Wait();
+                    processedDefects++;
+                });
 
             if (processedDefects > 0 ) _log.InfoCreated(processedDefects, PluralAsset);
+
             _log.TraceCreateFinished(PluralAsset);
         }
 
@@ -199,7 +198,7 @@ namespace VersionOne.TeamSync.Worker
             var jiraDeletedStoriesKeys =
                 jiraReferencedStoriesKeys.Where(jiraDefectKey => !allJiraStories.Any(js => js.Key.Equals(jiraDefectKey))).ToList();
 
-            if (jiraDeletedStoriesKeys.Count > 0) _log.DebugFormat("Found {0} defects to delete", jiraDeletedStoriesKeys.Count);
+            if (jiraDeletedStoriesKeys.Count > 0) _log.DebugFormat("Found {0} defects to check for delete", jiraDeletedStoriesKeys.Count);
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {

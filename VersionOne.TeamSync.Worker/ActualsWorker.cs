@@ -138,7 +138,7 @@ namespace VersionOne.TeamSync.Worker
                 _log.TraceFormat("Attempting to update actual id {0} with value 0", actual.ID);
                 actual.Value = "0";
                 _v1.UpdateAsset(actual, actual.CreatePayload());
-                _log.DebugFormat("Updated V1 actual id {0}", actual.ID);
+                _log.DebugFormat("Deleted V1 actual id {0}", actual.ID);
 
                 processedActuals++;
             }
