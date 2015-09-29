@@ -49,7 +49,7 @@ namespace VersionOne.TeamSync.Worker
 
             var existingDefects = allJiraDefects.Where(jDefect => { return allV1Defects.Any(x => jDefect.Fields.Labels.Contains(x.Number)); }).ToList();
 
-            if (existingDefects.Count > 0) _log.DebugFormat("Found {0} defects to check for update", existingDefects.Count);
+            if (existingDefects.Count > 0) _log.DebugFormat("Found {0} defects to check for changes", existingDefects.Count);
            
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 

@@ -52,7 +52,7 @@ namespace VersionOne.TeamSync.Worker
                 allJiraStories.Where(jStory => { return allV1Stories.Any(x => jStory.Fields.Labels.Contains(x.Number)); })
                     .ToList();
 
-            if (existingStories.Count > 0) _log.DebugFormat("Found {0} stories to check ", existingStories.Count);
+            if (existingStories.Count > 0) _log.DebugFormat("Found {0} stories to check for changes", existingStories.Count);
 
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
