@@ -5,9 +5,24 @@ using VersionOne.TeamSync.Core.Config;
 
 namespace VersionOne.TeamSync.JiraConnector.Config
 {
-    public class JiraSettings : ConfigurationSection
+    public interface IJiraSettings
     {
-        public static readonly JiraSettings Settings = ConfigurationManager.GetSection("jiraSettings") as JiraSettings;
+        JiraServerCollection Servers { get; set; }
+        string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority);
+        string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority);
+    }
+
+    public class JiraSettings : ConfigurationSection, IJiraSettings
+    {
+        private static IJiraSettings _instance;
+
+        public static IJiraSettings GetInstance()
+        {
+            if (_instance == null)
+                _instance = ConfigurationManager.GetSection("jiraSettings") as JiraSettings;
+
+            return _instance;
+        }
 
         [ConfigurationProperty("servers", IsDefaultCollection = true)]
         public JiraServerCollection Servers
@@ -22,9 +37,9 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             }
         }
 
-        public static string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority)
+        public string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority)
         {
-            var jiraServer = Settings.Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
             string jiraPriorityIdFromMapping = jiraServer.PriorityMappings.DefaultJiraPriorityId;
             if (!string.IsNullOrEmpty(v1Priority))
             {
@@ -37,15 +52,11 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             return jiraPriorityIdFromMapping;
         }
 
-        public static string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority)
+        public string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority)
         {
-            var jiraServer =
-                Settings.Servers.Cast<JiraServer>()
-                    .Single(serverSettings => serverSettings.Url.Equals(baseUrl));
-            return
-                jiraServer.PriorityMappings.Cast<PriorityMapping>()
-                    .First(pm => pm.JiraPriority.Equals(jiraPriority))
-                    .V1WorkitemPriorityId;
+            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+
+            return jiraServer.PriorityMappings.Cast<PriorityMapping>().First(pm => pm.JiraPriority.Equals(jiraPriority)).V1WorkitemPriorityId;
         }
     }
 

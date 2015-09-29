@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Configuration;
+using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
@@ -125,7 +126,7 @@ namespace VersionOne.TeamSync.Worker
                     _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
                 }
 
-                var jiraPriorityIdFromMapping = JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority);
+                var jiraPriorityIdFromMapping = jiraInstance.JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, epic.Priority);
                 if (!epic.ItMatches(relatedJiraEpic) ||
                     (jiraPriorityIdFromMapping != relatedJiraEpic.Fields.Priority.Id))
                 {

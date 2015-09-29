@@ -21,7 +21,7 @@ namespace VersionOne.TeamSync.Worker
             _v1 = new V1();
 
             _jiraInstances = new List<IJira>();
-            foreach (var serverSettings in JiraSettings.Settings.Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
                 var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
 
@@ -225,7 +225,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void ValidatePriorityMappings()
         {
-            foreach (var serverSettings in JiraSettings.Settings.Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
                 var jira = _jiraInstances.SingleOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
                 if (jira != null)

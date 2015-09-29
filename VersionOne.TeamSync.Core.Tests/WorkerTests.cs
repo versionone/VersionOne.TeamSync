@@ -4,6 +4,7 @@ using log4net.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
@@ -13,6 +14,7 @@ namespace VersionOne.TeamSync.Core.Tests
     public abstract class worker_bits
     {
         protected Mock<IV1> _mockV1;
+        protected Mock<IJiraSettings> _mockJiraSettings; 
         protected Mock<IJira> _mockJira;
         protected Mock<ILog> _mockLogger;
         protected string _projectId = "Scope:1000";
@@ -22,7 +24,11 @@ namespace VersionOne.TeamSync.Core.Tests
         protected virtual void BuildContext()
         {
             _mockV1 = new Mock<IV1>();
+            _mockJiraSettings = new Mock<IJiraSettings>();
+            _mockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("3");
             _mockJira = new Mock<IJira>();
+            _mockJira.Setup(x => x.JiraSettings).Returns(_mockJiraSettings.Object);
             _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
             _mockJira.Setup(x => x.V1Project).Returns(_projectId);
             _mockJira.Setup(x => x.JiraProject).Returns(_jiraKey);
@@ -210,24 +216,25 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
-                new Epic {Name = "Name", Description = "Description", Reference = "key"},
-                new Epic {Name = "Name1", Description = "Description", Reference = "key1"},
-                new Epic {Name = "Name2", Description = "Description", Reference = "key2", AssetState = "64"},
-                new Epic {Name = "Name3", Description = "Description", Reference = "key3"},
-                new Epic {Name = "Name4", Description = "Description", Reference = "key4"},
+                new Epic {Name = "Name", Description = "Description", Reference = "key", Priority = "Medium"},
+                new Epic {Name = "Name1", Description = "Description", Reference = "key1", Priority = "Medium"},
+                new Epic {Name = "Name2", Description = "Description", Reference = "key2", AssetState = "64", Priority = "Medium"},
+                new Epic {Name = "Name3", Description = "Description", Reference = "key3", Priority = "Medium"},
+                new Epic {Name = "Name4", Description = "Description", Reference = "key4", Priority = "Medium"},
             });
 
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult
             {
                 issues = new List<Issue>
                 {
-                    new Issue {Key = "key", Fields = new Fields {Summary = "Name", Description = "Description", Status = new Status {Name = "Not done!"}}},
-                    new Issue {Key = "key1", Fields = new Fields {Summary = "Name1", Description = "Description1", Status = new Status {Name = "Not done!"}}},
-                    new Issue {Key = "key2", Fields = new Fields {Summary = "Name2", Description = "Description" , Status = new Status {Name = "Done"}}},
-                    new Issue {Key = "key3", Fields = new Fields {Summary = "Name3", Description = "Description3", Status = new Status {Name = "Not done!"}}},
-                    new Issue {Key = "key4", Fields = new Fields {Summary = "Name4", Description = "Description" , Status = new Status {Name = "Not done!"}}},
+                    new Issue {Key = "key", Fields = new Fields {Summary = "Name", Description = "Description", Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key1", Fields = new Fields {Summary = "Name1", Description = "Description1", Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key2", Fields = new Fields {Summary = "Name2", Description = "Description" , Status = new Status {Name = "Done"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key3", Fields = new Fields {Summary = "Name3", Description = "Description3", Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key4", Fields = new Fields {Summary = "Name4", Description = "Description" , Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
                 }
             });
+            _mockJira.SetupGet(x => x.InstanceUrl).Returns("http://jira-6.cloudapp.net:8080");
 
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
@@ -249,7 +256,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void calls_UpdateEpic_twice()
         {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), It.IsAny<string>()), Times.Exactly(2));
+            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
         }
 
         [TestMethod]

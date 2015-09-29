@@ -78,11 +78,11 @@ namespace VersionOne.TeamSync.Worker
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
+            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
             update.ID = story.ID;
 
             if (!issue.ItMatchesStory(story) ||
-                    (JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != story.Priority))
+                    (JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != story.Priority))
             {
                 update.Super = v1EpicId;
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
@@ -124,7 +124,7 @@ namespace VersionOne.TeamSync.Worker
         public async Task CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
             _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
-            var story = jiraStory.ToV1Story(jiraInstance.V1Project, JiraSettings.GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name));
+            var story = jiraStory.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name));
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {

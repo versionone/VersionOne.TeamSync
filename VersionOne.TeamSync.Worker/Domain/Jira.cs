@@ -9,7 +9,6 @@ using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
-using YamlDotNet.Dynamic;
 using Connector = VersionOne.TeamSync.JiraConnector.Connector;
 
 namespace VersionOne.TeamSync.Worker.Domain
@@ -52,6 +51,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
 
         void CleanUpAfterRun(ILog log);
+        IJiraSettings JiraSettings { get; }
     }
 
     public class Jira : IJira
@@ -63,6 +63,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private MetaProject _projectMeta;
         private JiraVersionInfo _jiraVersionInfo;
         private string[] _doneWords;
+        private IJiraSettings _jiraSettings;
 
         public string InstanceUrl { get; private set; }
 
@@ -84,6 +85,17 @@ namespace VersionOne.TeamSync.Worker.Domain
                 return _doneWords ??
                        (_doneWords = JiraVersionItems.VersionDoneWords[VersionInfo.VersionNumbers[0]]);
             }
+        }
+
+        public IJiraSettings JiraSettings
+        {
+            get { return _jiraSettings; }
+            private set { _jiraSettings = value; }
+        }
+
+        public Jira(IJiraSettings jiraSettings)
+        {
+            _jiraSettings = jiraSettings;
         }
 
         public Jira(IJiraConnector connector)
@@ -274,7 +286,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
             var path = string.Format("{0}/issue", Connector.JiraConnector.JiraRestApiUrl);
-            var priorityId = !string.IsNullOrEmpty(epic.Priority) ? JiraSettings.GetJiraPriorityIdFromMapping(InstanceUrl, epic.Priority) : string.Empty;
+            var priorityId = !string.IsNullOrEmpty(epic.Priority) ? _jiraSettings.GetJiraPriorityIdFromMapping(InstanceUrl, epic.Priority) : string.Empty;
             return _connector.Post<ItemBase>(path, epic.CreateJiraEpic(projectKey, GetProjectMeta().EpicName.Key, priorityId), HttpStatusCode.Created);
         }
 
