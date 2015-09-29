@@ -280,7 +280,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                JqOperator.Equals("issuetype", "Story"),
                JqOperator.Equals(ProjectMeta.EpicLink.Property.InQuotes(), JiraAdvancedSearch.Empty)
             },
-            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", ProjectMeta.StoryPoints.Key },
+            new[] { "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee", ProjectMeta.StoryPoints.Key },
             (issueKey, fields, properties) =>
             {
                 properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, _log);
@@ -363,7 +363,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             },
                 new[]
                 {
-                    "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking",
+                    "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee",
                     ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key, ProjectMeta.Sprint.Key
                 },
                 (issueKey, fields, properties) =>
