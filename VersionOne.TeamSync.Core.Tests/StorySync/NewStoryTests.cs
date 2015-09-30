@@ -79,6 +79,11 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     _updateStory = (Story) story;
                 })
                 .ReturnsAsync(new XDocument());
+            
+            var data = new Dictionary<string, int>();
+            data["reopened"] = 0;
+            data["updated"] = 0;
+            data["closed"] = 0;
 
             _story.ID = _storyId;
             _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
@@ -94,7 +99,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     Status = _status,
                     Summary = "summary",
                 }
-            }, _story, new List<Epic>());
+            }, _story, new List<Epic>(), data);
         }
 
         [TestMethod]
