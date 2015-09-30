@@ -57,7 +57,7 @@ namespace VersionOne.TeamSync.Worker
                 var defect = allV1Defects.Single(x => existingJDefect.Fields.Labels.Contains(x.Number));
 
                 var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics);
-                switch (returnedValue)
+                switch (returnedValue.Result)
                 {
                     case 1:
                         updatedDefects++;
@@ -74,7 +74,7 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public int UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
+        public async Task<int> UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
         {
             int defectUpdatedClosed = 0;
             //need to reopen a Defect first before we can update it

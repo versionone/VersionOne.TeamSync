@@ -59,7 +59,7 @@ namespace VersionOne.TeamSync.Worker
 
                 var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics);
                 //checking if was an update or close
-                switch (returnValue)
+                switch (returnValue.Result)
                 {
                     case 1:
                         updatedStories++;
@@ -75,7 +75,7 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public int  UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
+        public async Task<int>  UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
         {
             int storytUpdatedClosed = 0;
             _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
@@ -122,7 +122,6 @@ namespace VersionOne.TeamSync.Worker
             }
 
             return storytUpdatedClosed;
-
             //var x = issue.Fields.Sprints
         }
 
@@ -139,7 +138,7 @@ namespace VersionOne.TeamSync.Worker
                                                               vStory.Reference.Contains(jStory.Key)) == null;
             }).ToList();
 
-            _log.DebugFormat("Found {0} stories to check for create", newStories.Count);
+            if (newStories.Count > 0) _log.DebugFormat("Found {0} stories to check for create", newStories.Count);
 
             newStories.ForEach(newJStory =>
             {
@@ -200,7 +199,7 @@ namespace VersionOne.TeamSync.Worker
             var jiraDeletedStoriesKeys =
                 jiraReferencedStoriesKeys.Where(jiraStoryKey => !allJiraStories.Any(js => js.Key.Equals(jiraStoryKey))).ToList();
 
-            _log.DebugFormat("Found {0} stories to check for delete", jiraDeletedStoriesKeys.Count);
+            if (jiraDeletedStoriesKeys.Count > 0) _log.DebugFormat("Found {0} stories to check for delete", jiraDeletedStoriesKeys.Count);
 
             jiraDeletedStoriesKeys.ForEach(key =>
             {

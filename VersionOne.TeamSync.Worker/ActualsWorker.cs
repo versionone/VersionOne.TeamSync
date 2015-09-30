@@ -88,7 +88,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
         {
-            _log.DebugFormat("Found {0} worklogs to check for create", newWorklogs.Count());
+            if (newWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for create", newWorklogs.Count());
             var processedActuals = 0;
             foreach (var worklog in newWorklogs)
             {
@@ -100,6 +100,9 @@ namespace VersionOne.TeamSync.Worker
 
                 jiraInfo.JiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, newActual.Oid(), v1Number));
                 _log.TraceFormat("Added comment on Jira worklog id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
+                var actualOid = string.Format("{0}:{1}", newActual.AssetType, newActual.ID);
+                jiraInfo.JiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, actualOid, v1Number));
+                _log.TraceFormat("Added comment on Jira work log id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
 
                 processedActuals++;
             }
@@ -108,7 +111,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void UpdateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
         {
-            _log.DebugFormat("Found {0} worklogs to check for update", updateWorklogs.Count());
+            if (updateWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for update", updateWorklogs.Count());
             var processedActuals = 0;
             foreach (var worklog in updateWorklogs)
             {
@@ -127,7 +130,7 @@ namespace VersionOne.TeamSync.Worker
 
         public void DeleteActualsFromWorklogs(List<Actual> actualsToDelete)
         {
-            _log.DebugFormat("Found {0} actuals to check for delete", actualsToDelete.Count);
+            if (actualsToDelete.Count > 0) _log.DebugFormat("Found {0} actuals to check for delete", actualsToDelete.Count);
             var processedActuals = 0;
             foreach (var actual in actualsToDelete)
             {
