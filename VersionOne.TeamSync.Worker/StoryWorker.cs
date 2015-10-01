@@ -184,7 +184,7 @@ namespace VersionOne.TeamSync.Worker
                         string.Format(V1AssetDetailWebLinkTitle, newStory.Number));
             _log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
 
-            var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraStory.Key;
+            var link = new Uri(new Uri(jiraInfo.JiraInstance.InstanceUrl), string.Format("browse/{0}", jiraStory.Key)).ToString();
             _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);
             _log.TraceFormat("Added link in V1 story {0}", newStory.Number);
         }

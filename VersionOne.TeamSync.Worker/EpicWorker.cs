@@ -174,7 +174,7 @@ namespace VersionOne.TeamSync.Worker
                     epic.Reference = jiraData.Key;
                     _v1.UpdateEpicReference(epic);
                     _log.TraceFormat("Added reference in V1 epic {0}", epic.Number);
-                    var link = jiraInfo.JiraInstance.InstanceUrl + "/browse/" + jiraData.Key;
+                    var link = new Uri(new Uri(jiraInfo.JiraInstance.InstanceUrl), string.Format("browse/{0}", jiraData.Key)).ToString();
                     _v1.CreateLink(epic, string.Format("Jira {0}", jiraData.Key), link);
                     _log.TraceFormat("Added link in V1 epic {0}", epic.Number);
                     processedEpics++;
