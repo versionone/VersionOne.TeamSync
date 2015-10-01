@@ -89,7 +89,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public IJiraSettings JiraSettings
         {
-            get { return _jiraSettings; }
+            get { return _jiraSettings ?? JiraConnector.Config.JiraSettings.GetInstance(); }
             private set { _jiraSettings = value; }
         }
 
