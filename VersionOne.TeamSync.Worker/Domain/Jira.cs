@@ -38,7 +38,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetStoriesInProject(string jiraProject);
         SearchResult GetStoriesWithNoEpicInProject(string projectKey);
 
-        SearchResult GetDefectsInProject(string jiraProject);
+        SearchResult GetBugsInProject(string jiraProject);
 
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
 
@@ -287,7 +287,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             });
         }
 
-        public SearchResult GetDefectsInProject(string jiraProject)
+        public SearchResult GetBugsInProject(string jiraProject)
         {
             return GetIssuesInProject(jiraProject, "Bug");
         }
