@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
@@ -86,7 +87,7 @@ namespace VersionOne.TeamSync.Worker
                 processedEpics++;
             });
 
-           if (processedEpics > 0)  _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
+            if (processedEpics > 0) _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
             _log.Trace("Resolve epics stopped");
         }
 
@@ -95,7 +96,7 @@ namespace VersionOne.TeamSync.Worker
             //bool updatedEpics = false;
             _log.Trace("Updating epics started");
             var updatedEpics = 0;
-           // var processedEpics = 0;
+            // var processedEpics = 0;
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
 
@@ -134,7 +135,7 @@ namespace VersionOne.TeamSync.Worker
                     updatedEpics++;
                 }
 
-               // processedEpics++;
+                // processedEpics++;
             });
 
             //_log.InfoFormat("Finished checking {0} V1 Epics", processedEpics);
