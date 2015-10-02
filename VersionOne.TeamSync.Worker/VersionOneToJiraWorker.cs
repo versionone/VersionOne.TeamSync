@@ -207,22 +207,6 @@ namespace VersionOne.TeamSync.Worker
                 throw new Exception("No valid projects to synchronize. You need at least one VersionOne project with a valid schedule for the service to run.");
         }
 
-        private void LogVersionOneErrorMessage(XDocument error)
-        {
-            if (error.Root != null)
-            {
-                var exceptionNode = error.Root.Element("Exception");
-                if (exceptionNode != null)
-                {
-                    var messageNode = exceptionNode.Element("Message");
-                    if (messageNode != null)
-                    {
-                        Log.Error(messageNode.Value);
-                    }
-                }
-            }
-        }
-
         public void ValidatePriorityMappings()
         {
             foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
@@ -248,13 +232,29 @@ namespace VersionOne.TeamSync.Worker
                             var v1WorkitemPriorityId = _v1.GetPriorityId("WorkitemPriority", priorityMapping.V1Priority).Result;
                             priorityMapping.V1WorkitemPriorityId = v1WorkitemPriorityId;
                             if (v1WorkitemPriorityId == null)
-                                Log.DebugFormat("Version One workintem priority '{0}' not found. Default priority will be set to Epics", priorityMapping.V1Priority);
+                                Log.DebugFormat("Version One workintem priority '{0}' not found. Default priority will be set", priorityMapping.V1Priority);
 
                             var jiraIssuePriorityId = jira.GetPriorityId(priorityMapping.JiraPriority);
                             priorityMapping.JiraIssuePriorityId = jiraIssuePriorityId;
                             if (jiraIssuePriorityId == null)
-                                Log.DebugFormat("Jira priority '{0}' not found. Default priority will be set to Epics", priorityMapping.JiraPriority);
+                                Log.DebugFormat("Jira priority '{0}' not found. N opriority will be set", priorityMapping.JiraPriority);
                         }
+                    }
+                }
+            }
+        }
+
+        private void LogVersionOneErrorMessage(XDocument error)
+        {
+            if (error.Root != null)
+            {
+                var exceptionNode = error.Root.Element("Exception");
+                if (exceptionNode != null)
+                {
+                    var messageNode = exceptionNode.Element("Message");
+                    if (messageNode != null)
+                    {
+                        Log.Error(messageNode.Value);
                     }
                 }
             }

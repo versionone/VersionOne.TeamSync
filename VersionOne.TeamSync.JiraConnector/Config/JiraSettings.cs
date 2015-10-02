@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using VersionOne.TeamSync.Core.Config;
@@ -40,11 +41,10 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         public string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority)
         {
             var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
-            string jiraPriorityIdFromMapping = jiraServer.PriorityMappings.DefaultJiraPriorityId;
+            var jiraPriorityIdFromMapping = jiraServer.PriorityMappings.DefaultJiraPriorityId;
             if (!string.IsNullOrEmpty(v1Priority))
             {
-                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>()
-                    .FirstOrDefault(pm => pm.V1Priority.Equals(v1Priority));
+                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>().FirstOrDefault(pm => pm.V1Priority.Equals(v1Priority));
                 if (mapping != null)
                     jiraPriorityIdFromMapping = mapping.JiraIssuePriorityId;
             }
@@ -55,8 +55,15 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         public string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority)
         {
             var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            var v1PriorityIdFromMapping = string.Empty;
+            if (!string.IsNullOrEmpty(jiraPriority))
+            {
+                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>().FirstOrDefault(pm => pm.JiraPriority.Equals(jiraPriority));
+                if (mapping != null)
+                    v1PriorityIdFromMapping = mapping.V1WorkitemPriorityId;
+            }
 
-            return jiraServer.PriorityMappings.Cast<PriorityMapping>().First(pm => pm.JiraPriority.Equals(jiraPriority)).V1WorkitemPriorityId;
+            return v1PriorityIdFromMapping;
         }
     }
 
