@@ -34,7 +34,7 @@ namespace VersionOne.TeamSync.Worker
             if (!_isActualWorkEnabled)
                 return;
 
-            var allJiraDefects = jiraInfo.JiraInstance.GetDefectsInProject(jiraInfo.JiraKey).issues;
+            var allJiraDefects = jiraInfo.JiraInstance.GetBugsInProject(jiraInfo.JiraKey).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
             DoActualWork(jiraInfo, allJiraDefects, allV1Defects);
 
@@ -88,7 +88,8 @@ namespace VersionOne.TeamSync.Worker
 
         public void CreateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
         {
-            if (newWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for create", newWorklogs.Count());
+            _log.DebugFormat("Found {0} Jira work logs to check for create", newWorklogs.Count());
+
             var processedActuals = 0;
             foreach (var worklog in newWorklogs)
             {
@@ -106,12 +107,15 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            if (processedActuals > 0) _log.InfoCreated(processedActuals, PluralAsset);
+
+            if (processedActuals > 0)
+                _log.InfoCreated(processedActuals, PluralAsset);
         }
 
         public void UpdateActualsFromWorklogs(V1JiraInfo jiraInfo, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
         {
-            if (updateWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for update", updateWorklogs.Count());
+            _log.DebugFormat("Found {0} Jira work logs to check for update", updateWorklogs.Count());
+
             var processedActuals = 0;
             foreach (var worklog in updateWorklogs)
             {
@@ -125,12 +129,15 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-            if (processedActuals > 0) _log.InfoUpdated(processedActuals, PluralAsset);
+
+            if (processedActuals > 0)
+                _log.InfoUpdated(processedActuals, PluralAsset);
         }
 
         public void DeleteActualsFromWorklogs(List<Actual> actualsToDelete)
         {
-            if (actualsToDelete.Count > 0) _log.DebugFormat("Found {0} actuals to check for delete", actualsToDelete.Count);
+            _log.DebugFormat("Found {0} actuals to check for delete", actualsToDelete.Count);
+
             var processedActuals = 0;
             foreach (var actual in actualsToDelete)
             {
@@ -141,7 +148,9 @@ namespace VersionOne.TeamSync.Worker
 
                 processedActuals++;
             }
-           if (processedActuals > 0) _log.InfoDelete(processedActuals, PluralAsset);
+
+            if (processedActuals > 0)
+                _log.InfoDelete(processedActuals, PluralAsset);
         }
 
         private void ValidateRequiredV1Fields()
