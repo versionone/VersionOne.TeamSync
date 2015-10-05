@@ -237,7 +237,7 @@ namespace VersionOne.TeamSync.Worker
                             var jiraIssuePriorityId = jira.GetPriorityId(priorityMapping.JiraPriority);
                             priorityMapping.JiraIssuePriorityId = jiraIssuePriorityId;
                             if (jiraIssuePriorityId == null)
-                                Log.DebugFormat("Jira priority '{0}' not found. N opriority will be set", priorityMapping.JiraPriority);
+                                Log.DebugFormat("Jira priority '{0}' not found. No priority will be set", priorityMapping.JiraPriority);
                         }
                     }
                 }
