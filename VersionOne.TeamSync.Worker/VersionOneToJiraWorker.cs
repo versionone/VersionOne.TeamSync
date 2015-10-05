@@ -211,7 +211,7 @@ namespace VersionOne.TeamSync.Worker
         {
             foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
-                var jira = _jiraInstances.SingleOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
+                var jira = _jiraInstances.FirstOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
                 if (jira != null)
                 {
                     var jiraDefaultPriorityId = jira.GetPriorityId(serverSettings.PriorityMappings.DefaultJiraPriority);
