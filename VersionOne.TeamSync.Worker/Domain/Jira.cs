@@ -364,36 +364,38 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[]
                 {
                     "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee",
-                    ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key, ProjectMeta.Sprint != null ? ProjectMeta.Sprint.Key : null
+                    ProjectMeta.StoryPoints.Key, ProjectMeta.EpicLink.Key//, ProjectMeta.Sprint != null ? ProjectMeta.Sprint.Key : null D-09877
                 },
                 (issueKey, fields, properties) =>
                 {
                     properties.EvalLateBinding(issueKey, ProjectMeta.StoryPoints, value => fields.StoryPoints = value, _log);
                     properties.EvalLateBinding(issueKey, ProjectMeta.EpicLink, value => fields.EpicLink = value, _log);
-                    if (ProjectMeta.Sprint != null)
-                        properties.EvalLateBinding(issueKey, ProjectMeta.Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
+                    // D-09877
+                    //if (ProjectMeta.Sprint != null)
+                    //    properties.EvalLateBinding(issueKey, ProjectMeta.Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
                 });
         }
 
-        private IEnumerable<Sprint> GetSprintsFromSearchResult(string encodedSprints)
-        {
-            foreach (var encodedSprint in JArray.Parse(encodedSprints).Values<string>())
-            {
-                var propsStartIndex = encodedSprint.IndexOf('[') + 1;
-                var sprint = encodedSprint.Substring(propsStartIndex, (encodedSprint.Length - 1) - propsStartIndex);
-                var props = sprint.Split(',').Select(item => item.Split('=')).ToDictionary(pair => pair[0], pair => pair[1]);
-                yield return new Sprint
-                {
-                    id = Convert.ToInt32(props["id"]),
-                    rapidViewId = Convert.ToInt32(props["rapidViewId"]),
-                    state = props["state"],
-                    name = props["name"],
-                    startDate = props["startDate"] != "<null>" ? DateTime.Parse(props["startDate"]) : default(DateTime?),
-                    completeDate = props["completeDate"] != "<null>" ? DateTime.Parse(props["completeDate"]) : default(DateTime?),
-                    sequence = Convert.ToInt32(props["sequence"])
-                };
-            }
-        }
+        // D-09877
+        //private IEnumerable<Sprint> GetSprintsFromSearchResult(string encodedSprints)
+        //{
+        //    foreach (var encodedSprint in JArray.Parse(encodedSprints).Values<string>())
+        //    {
+        //        var propsStartIndex = encodedSprint.IndexOf('[') + 1;
+        //        var sprint = encodedSprint.Substring(propsStartIndex, (encodedSprint.Length - 1) - propsStartIndex);
+        //        var props = sprint.Split(',').Select(item => item.Split('=')).ToDictionary(pair => pair[0], pair => pair[1]);
+        //        yield return new Sprint
+        //        {
+        //            id = Convert.ToInt32(props["id"]),
+        //            rapidViewId = Convert.ToInt32(props["rapidViewId"]),
+        //            state = props["state"],
+        //            name = props["name"],
+        //            startDate = props["startDate"] != "<null>" ? DateTime.Parse(props["startDate"]) : default(DateTime?),
+        //            completeDate = props["completeDate"] != "<null>" ? DateTime.Parse(props["completeDate"]) : default(DateTime?),
+        //            sequence = Convert.ToInt32(props["sequence"])
+        //        };
+        //    }
+        //}
 
         #endregion
     }

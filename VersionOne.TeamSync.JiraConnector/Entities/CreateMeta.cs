@@ -57,10 +57,11 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
             get { return AgileCustomFields.FirstOrDefault(x => x.Property == "Epic Link"); }
         }
 
-        public MetaProperty Sprint
-        {
-            get { return AgileCustomFields.FirstOrDefault(x => x.Property == "Sprint"); }
-        }
+        // BD-09877
+        //public MetaProperty Sprint
+        //{
+        //    get { return AgileCustomFields.FirstOrDefault(x => x.Property == "Sprint"); }
+        //}
 
         private MetaProperty _storyPoint;
         public MetaProperty StoryPoints

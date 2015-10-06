@@ -35,7 +35,7 @@ namespace VersionOne.TeamSync.Service
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
                 _worker.ValidateMemberAccountPermissions();
-                _worker.ValidateVersionOneSchedules();
+                //_worker.ValidateVersionOneSchedules(); D-09877
 
                 _timer = new Timer(OnTimedEvent, null, 0, (int)_serviceDuration.TotalMilliseconds);
             }
