@@ -16,7 +16,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         string MemberId { get; }
         bool ValidateConnection();
         bool ValidateProjectExists(string projectId);
-        bool ValidateScheduleExists(string projectId);
+        //bool ValidateScheduleExists(string projectId); D-09877
         bool ValidateEpicCategoryExists(string epicCategoryId);
         bool ValidateActualReferenceFieldExists();
         bool ValidateMemberPermissions();
@@ -49,8 +49,9 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
         Task<Actual> CreateActual(Actual actual);
 
-        Task<XDocument> CreateScheduleForProject(string projectId);
-        Task<XDocument> SetScheduleToProject(string projectId, string scheduleId);
+        // D-09877
+        //Task<XDocument> CreateScheduleForProject(string projectId);
+        //Task<XDocument> SetScheduleToProject(string projectId, string scheduleId);
 
         Task<Member> GetMember(string jiraUsername);
         Task<Member> CreateMember(Member member);
@@ -240,16 +241,16 @@ namespace VersionOne.TeamSync.Worker.Domain
             return result.Any() && !string.IsNullOrEmpty(result.SingleOrDefault());
         }
 
-        public bool ValidateScheduleExists(string projectId)
-        {
-            var result = _connector.Query("Scope", new[] { "Schedule" }, new[] { string.Format("ID='{0}'", projectId) },
-                element =>
-                {
-                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Schedule.Name")).Select(e => e.Value).SingleOrDefault();
-                }).Result;
+        //public bool ValidateScheduleExists(string projectId)
+        //{
+        //    var result = _connector.Query("Scope", new[] { "Schedule" }, new[] { string.Format("ID='{0}'", projectId) },
+        //        element =>
+        //        {
+        //            return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Schedule.Name")).Select(e => e.Value).SingleOrDefault();
+        //        }).Result;
 
-            return result.Any() && !string.IsNullOrEmpty(result.SingleOrDefault());
-        }
+        //    return result.Any() && !string.IsNullOrEmpty(result.SingleOrDefault());
+        //}
 
         public bool ValidateEpicCategoryExists(string epicCategoryId)
         {
@@ -354,30 +355,30 @@ namespace VersionOne.TeamSync.Worker.Domain
             return actual;
         }
 
-        public async Task<XDocument> CreateScheduleForProject(string projectId)
-        {
-            var projectName = _connector.Query("Scope", new[] { "Name" }, new[] { string.Format("ID='{0}'", projectId) },
-                element =>
-                {
-                    return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Name")).Select(e => e.Value).SingleOrDefault();
-                }).Result.First();
+        //public async Task<XDocument> CreateScheduleForProject(string projectId)
+        //{
+        //    var projectName = _connector.Query("Scope", new[] { "Name" }, new[] { string.Format("ID='{0}'", projectId) },
+        //        element =>
+        //        {
+        //            return element.Elements("Attribute").Where(e => e.Attribute("name") != null && e.Attribute("name").Value.Equals("Name")).Select(e => e.Value).SingleOrDefault();
+        //        }).Result.First();
 
-            var payload = XDocument.Parse("<Asset></Asset>")
-                .AddSetNode("Name", string.Format("{0} Schedule", projectName))
-                .AddSetNode("TimeboxGap", "0")
-                .AddSetNode("TimeboxLength", "2 Weeks")
-                .AddSetNode("Description", "Created by TeamSync.");
+        //    var payload = XDocument.Parse("<Asset></Asset>")
+        //        .AddSetNode("Name", string.Format("{0} Schedule", projectName))
+        //        .AddSetNode("TimeboxGap", "0")
+        //        .AddSetNode("TimeboxLength", "2 Weeks")
+        //        .AddSetNode("Description", "Created by TeamSync.");
 
-            return await _connector.Post("Schedule", payload.ToString());
-        }
+        //    return await _connector.Post("Schedule", payload.ToString());
+        //}
 
-        public async Task<XDocument> SetScheduleToProject(string projectId, string scheduleId)
-        {
-            var payload = XDocument.Parse("<Asset></Asset>")
-                .AddSetRelationNode("Schedule", scheduleId);
+        //public async Task<XDocument> SetScheduleToProject(string projectId, string scheduleId)
+        //{
+        //    var payload = XDocument.Parse("<Asset></Asset>")
+        //        .AddSetRelationNode("Schedule", scheduleId);
 
-            return await _connector.Post(projectId.Replace(':', '/'), payload.ToString());
-        }
+        //    return await _connector.Post(projectId.Replace(':', '/'), payload.ToString());
+        //}
 
         public async Task<Member> GetMember(string jiraUsername)
         {
