@@ -73,7 +73,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void makes_a_call_add_created_as_VersionOne_actual_comment()
         {
-            _mockJira.Verify(x => x.AddComment(IssueKey, It.IsAny<string>()), Times.Once());
+            _mockJira.Verify(x => x.AddComment(IssueKey, It.IsAny<string>()), Times.AtLeast(2));
         }
     }
 
