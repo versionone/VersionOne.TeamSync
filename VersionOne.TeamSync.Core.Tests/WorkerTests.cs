@@ -18,12 +18,14 @@ namespace VersionOne.TeamSync.Core.Tests
         protected string _projectId = "Scope:1000";
         protected string _jiraKey = "OPC";
         protected string _epicCategory = "EpicCategory:1000";
+        protected string _instanceUrl = "http://localhost:8080";
 
         protected virtual void BuildContext()
         {
             _mockV1 = new Mock<IV1>();
             _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
+            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo { VersionNumbers = new[] { "6" } });
+            _mockJira.SetupGet(x => x.InstanceUrl).Returns(_instanceUrl);
             _mockLogger = new Mock<ILog>();
             _mockLogger.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
         }
