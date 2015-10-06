@@ -76,7 +76,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         public static Story FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
-            var priority = asset.Elements("Relation").Single(e => e.Attribute("name").Value.Equals("Priority")).Element("Asset");
+            var priorityRelationNode = asset.Elements("Relation").SingleOrDefault(e => e.Attribute("name").Value.Equals("Priority"));
+            var priority = priorityRelationNode != null ? priorityRelationNode.Element("Asset") : null;
             return new Story
             {
                 ID = asset.GetAssetID(),
