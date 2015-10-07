@@ -102,9 +102,7 @@ namespace VersionOne.TeamSync.Worker
                 _log.DebugFormat("Created V1 actual id {0} from Jira work log id {1}", newActual.ID, worklog.id);
 
                 jiraInfo.JiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, newActual.Oid(), v1Number));
-                var actualOid = string.Format("{0}:{1}", newActual.AssetType, newActual.ID);
-                jiraInfo.JiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, actualOid, v1Number));
-                _log.TraceFormat("Added comment on Jira work log id {0} with new V1 actual id {1}", worklog.id, newActual.ID);
+               
                 var actualOid = string.Format("{0}:{1}", newActual.AssetType, newActual.ID);
                 jiraInfo.JiraInstance.AddComment(issueKey, string.Format(CreatedAsVersionOneActualComment, actualOid, v1Number));
                 _log.TraceFormat("Added comment on Jira work log id {0} with new V1 actual id {1}", worklog.id, newActual.ID);

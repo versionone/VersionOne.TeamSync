@@ -62,8 +62,10 @@ namespace VersionOne.TeamSync.Worker
             {
                 var defectToUpdate = allV1Defects.Single(defect => existingJDefect.Fields.Labels.Contains(defect.Number));
 
-                var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics, data);
-                switch (returnValue.Result)
+
+
+                var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defectToUpdate, assignedEpics, data);
+               
             });
 
             if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
@@ -130,7 +132,8 @@ namespace VersionOne.TeamSync.Worker
             var processedDefects = 0;
             var newDefects = allJiraBugs.Where(bug =>
                             {
-                if (allV1Defects.Any(x => bug.Fields.Labels.Contains(x.Number)))
+                if (allV1Defects.Any(x => bug.Fields.Labels.Contains(x.Number))) return false;
+                    
 
                 return allV1Defects.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
                                                               vDefect.Reference.Contains(bug.Key)) == null;

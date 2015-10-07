@@ -83,6 +83,7 @@ namespace VersionOne.TeamSync.Worker
         {
             _log.Trace("Updating epics started");
             var processedEpics = 0;
+            var reopenedEpics = 0;
             var assignedV1Epics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
            
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
@@ -95,8 +96,8 @@ namespace VersionOne.TeamSync.Worker
             var jiraEpics = searchResult.issues;
             if (assignedV1Epics.Any())
             {
-              _log.DebugFormat("Found {0} epics to check for update", assignedEpics.Count);
-              _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
+                _log.DebugFormat("Found {0} epics to check for update", assignedV1Epics.Count);
+                _log.Trace("Recently updated epics : " + string.Join(", ", assignedV1Epics.Select(epic => epic.Number)));
             }
             
             assignedV1Epics.ForEach(v1Epic =>

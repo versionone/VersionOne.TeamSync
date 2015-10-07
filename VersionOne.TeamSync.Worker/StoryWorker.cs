@@ -62,27 +62,15 @@ namespace VersionOne.TeamSync.Worker
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
 
-                var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics, data);
-                //checking if was an update or close
-                switch (returnValue.Result)
-                {
-                    case 1:
-                        updatedStories++;
-                        break;
-                    case 2:
-                        closedStories++;
-                        break;
-                }
+                var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, storyToUpdate, assignedEpics, data);
+             
             });
             if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
 
             if (data["closed"] > 0) _log.InfoClosed(data["closed"], PluralAsset);
 
             if (data["reopened"] > 0) _log.InfoUpdated(data["reopened"], PluralAsset);
-
-            if (closedStories > 0)
-                _log.InfoClosed(closedStories, PluralAsset);
-            _log.TraceUpdateFinished(PluralAsset);
+           
         }
 
         public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
