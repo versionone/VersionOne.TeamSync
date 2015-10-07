@@ -236,6 +236,19 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             get { return (string)this["epicSyncType"]; }
             set { this["epicSyncType"] = value; }
         }
+
+        [ConfigurationProperty("statusMappings")]
+        public StatusMappingCollection StatusMappings
+        {
+            get
+            {
+                return (StatusMappingCollection)this["statusMappings"];
+            }
+            set
+            {
+                this["statusMappings"] = value;
+            }
+        }
     }
 
     [ConfigurationCollection(typeof(ProjectMapping), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]
@@ -368,6 +381,81 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         {
             get { return (string)this["defaultJiraPriority"]; }
             set { this["defaultJiraPriority"] = value; }
+        }
+    }
+
+    public class StatusMapping : ConfigurationElement
+    {
+        [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
+        public bool Enabled
+        {
+            get { return (bool)this["enabled"]; }
+            set { this["enabled"] = value; }
+        }
+
+        [ConfigurationProperty("v1Status", IsRequired = true)]
+        public string V1Status
+        {
+            get { return (string)this["v1Status"]; }
+            set { this["v1Status"] = value; }
+        }
+
+        [ConfigurationProperty("jiraStatus", IsRequired = true)]
+        public string JiraStatus
+        {
+            get { return (string)this["jiraStatus"]; }
+            set { this["jiraStatus"] = value; }
+        }
+    }
+
+
+    [ConfigurationCollection(typeof(StatusMapping), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]
+    public class StatusMappingCollection : ConfigurationElementCollection
+    {
+        internal const string PropertyName = "status";
+
+        protected override string ElementName
+        {
+            get
+            {
+                return PropertyName;
+            }
+        }
+
+        protected override bool IsElementName(string elementName)
+        {
+            return elementName.Equals(PropertyName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new StatusMapping();
+        }
+
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return ((StatusMapping)(element)).V1Status + "/" + ((StatusMapping)(element)).JiraStatus;
+        }
+
+        public override ConfigurationElementCollectionType CollectionType
+        {
+            get
+            {
+                return ConfigurationElementCollectionType.BasicMapAlternate;
+            }
+        }
+
+        public override bool IsReadOnly()
+        {
+            return false;
+        }
+
+        public StatusMapping this[int idx]
+        {
+            get
+            {
+                return (StatusMapping)BaseGet(idx);
+            }
         }
     }
 }
