@@ -27,8 +27,8 @@ namespace VersionOne.TeamSync.Worker
         public async Task DoWork(V1JiraInfo jiraInfo)
         {
             _log.Trace("Epic sync started...");
-            await CreateEpics(jiraInfo);
             await UpdateEpics(jiraInfo);
+            await CreateEpics(jiraInfo);
             await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
             await DeleteEpics(jiraInfo);
             _log.Trace("Epic sync stopped...");
@@ -74,7 +74,7 @@ namespace VersionOne.TeamSync.Worker
                 }
             });
 
-            if (processedEpics > 0)
+           if (processedEpics > 0)  _log.DebugFormat("Resolved {0} Jira epics", processedEpics);
                 _log.InfoFormat("Created {0} Jira epics", processedEpics);
             _log.Trace("Create epics stopped");
         }
@@ -84,6 +84,7 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Updating epics started");
             var processedEpics = 0;
             var assignedV1Epics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+           
             var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
 
             if (searchResult.HasErrors)
@@ -91,12 +92,13 @@ namespace VersionOne.TeamSync.Worker
                 searchResult.ErrorMessages.ForEach(_log.Error);
                 return;
             }
-
             var jiraEpics = searchResult.issues;
-
             if (assignedV1Epics.Any())
-                _log.DebugFormat("Found {0} epics to check for update", assignedV1Epics.Count);
-
+            {
+              _log.DebugFormat("Found {0} epics to check for update", assignedEpics.Count);
+              _log.Trace("Recently updated epics : " + string.Join(", ", assignedEpics.Select(epic => epic.Number)));
+            }
+            
             assignedV1Epics.ForEach(v1Epic =>
             {
                 _log.TraceFormat("Attempting to update Jira epic {0}", v1Epic.Reference);
@@ -111,6 +113,7 @@ namespace VersionOne.TeamSync.Worker
                 {
                     jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key, jiraInfo.DoneWords);
                     _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
+                    reopenedEpics++;
                 }
 
                 if (!v1Epic.ItMatches(relatedJiraEpic))
@@ -119,6 +122,7 @@ namespace VersionOne.TeamSync.Worker
                     _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, v1Epic.Number);
                     processedEpics++;
                 }
+               
             });
 
             if (processedEpics > 0)

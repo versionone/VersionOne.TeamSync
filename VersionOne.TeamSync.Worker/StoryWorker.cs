@@ -42,8 +42,10 @@ namespace VersionOne.TeamSync.Worker
         public async void UpdateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             _log.Trace("Updating stories started");
-            var updatedStories = 0;
-            var closedStories = 0;
+            var data = new Dictionary<string, int>();
+            data["reopened"] = 0;
+            data["updated"] = 0;
+            data["closed"] = 0;
 
             var existingStories =
                 allJiraStories.Where(jiraStory =>
@@ -60,7 +62,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
 
-                var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, storyToUpdate, assignedEpics);
+                var returnValue = UpdateStoryFromJiraToV1(jiraInfo, existingJStory, story, assignedEpics, data);
                 //checking if was an update or close
                 switch (returnValue.Result)
                 {
@@ -72,23 +74,27 @@ namespace VersionOne.TeamSync.Worker
                         break;
                 }
             });
+            if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
 
-            if (updatedStories > 0)
-                _log.InfoUpdated(updatedStories, PluralAsset);
+            if (data["closed"] > 0) _log.InfoClosed(data["closed"], PluralAsset);
+
+            if (data["reopened"] > 0) _log.InfoUpdated(data["reopened"], PluralAsset);
+
             if (closedStories > 0)
                 _log.InfoClosed(closedStories, PluralAsset);
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task<int> UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics)
+        public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            var storytUpdatedClosed = 0;
+            
 
             //need to reopen a story first before we can update it
             if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && story.AssetState == "128")
             {
                 await _v1.ReOpenStory(story.ID);
                 _log.DebugFormat("Reopened story V1 {0}", story.Number);
+                data["reopened"]+=1;
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
@@ -116,17 +122,17 @@ namespace VersionOne.TeamSync.Worker
                 _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated story V1 {0}", story.Number);
-                storytUpdatedClosed = 1;
+                data["updated"] += 1;
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && story.AssetState != "128")
             {
                 await _v1.CloseStory(story.ID);
                 _log.DebugClosedItem("story", story.Number);
-                storytUpdatedClosed = 2;
+                data["closed"] += 1;
             }
 
-            return storytUpdatedClosed;
+            return data;
         }
 
         public void CreateStories(V1JiraInfo jiraInfo, List<Issue> allJiraStories, List<Story> allV1Stories)

@@ -42,8 +42,10 @@ namespace VersionOne.TeamSync.Worker
         public async void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraBugs, List<Defect> allV1Defects)
         {
             _log.Trace("Updating defects started");
-            var updatedDefects = 0;
-            var closedDefects = 0;
+            var data = new Dictionary<string, int>();
+            data["reopened"] = 0;
+            data["updated"] = 0;
+            data["closed"] = 0;
 
             var existingBugs =
                 allJiraBugs.Where(bug =>
@@ -53,42 +55,36 @@ namespace VersionOne.TeamSync.Worker
 
             if (existingBugs.Any())
                 _log.DebugFormat("Found {0} defects to check for update", existingBugs.Count);
-
+           
             var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
 
             existingBugs.ForEach(existingJDefect =>
             {
                 var defectToUpdate = allV1Defects.Single(defect => existingJDefect.Fields.Labels.Contains(defect.Number));
 
-                var returnValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defectToUpdate, assignedEpics);
-                //checking if was an update or close
+                var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defect, assignedEpics, data);
                 switch (returnValue.Result)
-                {
-                    case 1:
-                        updatedDefects++;
-                        break;
-                    case 2:
-                        closedDefects++;
-                        break;
-                }
             });
 
-            if (updatedDefects > 0)
-                _log.InfoUpdated(updatedDefects, PluralAsset);
-            if (closedDefects > 0)
-                _log.InfoClosed(closedDefects, PluralAsset);
+            if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
+
+            if (data["closed"] > 0) _log.InfoClosed(data["closed"], PluralAsset);
+
+            if (data["reopened"] > 0) _log.InfoUpdated(data["reopened"], PluralAsset);
+            
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task<int> UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics)
+        public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            var defectUpdatedClosed = 0;
+
 
             //need to reopen a defect first before we can update it
             if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState == "128")
             {
                 await _v1.ReOpenDefect(defect.ID);
                 _log.DebugFormat("Reopened V1 defect {0}", defect.Number);
+                data["reopened"] += 1;
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
@@ -116,17 +112,16 @@ namespace VersionOne.TeamSync.Worker
                 _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated V1 defect {0}", defect.Number);
-                defectUpdatedClosed = 1;
+                data["closed"] +=1;
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
             {
                 await _v1.CloseDefect(defect.ID);
                 _log.DebugClosedItem("defect", defect.Number);
-                defectUpdatedClosed = 2;
+                data["updated"] += 1;
             }
-
-            return defectUpdatedClosed;
+            return data;
         }
 
         public void CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraBugs, List<Defect> allV1Defects)
@@ -134,22 +129,22 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Creating defects started");
             var processedDefects = 0;
             var newDefects = allJiraBugs.Where(bug =>
-            {
+                            {
                 if (allV1Defects.Any(x => bug.Fields.Labels.Contains(x.Number)))
-                    return false;
 
                 return allV1Defects.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
                                                               vDefect.Reference.Contains(bug.Key)) == null;
-            }).ToList();
+                            }
+                    ).ToList();
 
             if (newDefects.Any())
                 _log.DebugFormat("Found {0} defects to check for create", newDefects.Count);
 
             newDefects.ForEach(bug =>
-            {
+                {
                 CreateDefectFromJira(jiraInfo, bug).Wait();
-                processedDefects++;
-            });
+                    processedDefects++;
+                });
 
             if (processedDefects > 0)
                 _log.InfoCreated(processedDefects, PluralAsset);
