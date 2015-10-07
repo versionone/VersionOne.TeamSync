@@ -188,4 +188,41 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             MockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Once);
         }
     }
+
+    [TestClass]
+    public class and_the_status_is_normal_but_the_parent_epic_is_closed : update_jira_story_to_v1
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            _epic.AssetState = "128";
+            _epic.ID = "1000";
+            _epic.Number = "E-1000";
+            _story.AssetState = "64";
+            _story.Super = "Epic:2000";
+
+            _status = new Status() { Name = "In Progress" };
+            Context();
+        }
+
+        [TestMethod]
+        public void should_not_call_either_operations_to_close_or_reopen()
+        {
+            _mockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+            _mockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_update_the_parent()
+        {
+            _updateStory.Super.ShouldEqual("Epic:2000");
+        }
+
+        [TestMethod]
+        public void should_log_a_message_about_the_closed_epic()
+        {
+            _mockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but please reassign to an open Epic"));
+        }
+    }
+
 }
