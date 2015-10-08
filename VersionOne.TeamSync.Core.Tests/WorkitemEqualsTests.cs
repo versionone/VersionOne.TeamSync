@@ -15,16 +15,16 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestInitialize]
         public void Context()
         {
-            _v1Epic = new Epic()
+            _v1Epic = new Epic
             {
                 Name = "Name",
                 Description = "Description",
                 Reference = "Reference"
             };
-            _secondEpic = new Issue()
+            _secondEpic = new Issue
             {
                 Key = "Reference",
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Summary = "Name",
                     Description = "Description"
@@ -65,41 +65,40 @@ namespace VersionOne.TeamSync.Core.Tests
             _v1Epic.ScopeName = "a scope";
             _v1Epic.ItMatches(_secondEpic).ShouldBeTrue();
         }
-
     }
 
     [TestClass]
     public class EqualityTests_Story
     {
+        private const string Reference = "JK-10";
         private Story _story;
         private Issue _jiraStory;
-        private string _reference = "JK-10";
 
         [TestInitialize]
         public void Context()
         {
-            _story = new Story()
+            _story = new Story
             {
                 Name = "Name",
                 Description = "Description",
-                Reference = _reference,
+                Reference = Reference,
                 Estimate = "5",
                 ToDo = "10",
                 SuperNumber = "E-1000"
             };
 
-            _jiraStory = new Issue()
+            _jiraStory = new Issue
             {
-                Key = _reference,
-                RenderedFields = new RenderedFields()
+                Key = Reference,
+                RenderedFields = new RenderedFields
                 {
                     Description = "Description"
                 },
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Summary = "Name",
                     EpicLink = "E-1000",
-                    TimeTracking = new TimeTracking()
+                    TimeTracking = new TimeTracking
                     {
                         RemainingEstimateSeconds = 36000,
                     },
@@ -168,35 +167,35 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class EqualityTests_Defect
     {
+        private const string Reference = "JK-10";
         private Defect _defect;
         private Issue _jiraDefect;
-        private string _reference = "JK-10";
 
         [TestInitialize]
         public void Context()
         {
-            _defect = new Defect()
+            _defect = new Defect
             {
                 Name = "Name",
                 Description = "Description",
-                Reference = _reference,
+                Reference = Reference,
                 Estimate = "5",
                 ToDo = "10",
                 SuperNumber = "E-1000"
             };
 
-            _jiraDefect = new Issue()
+            _jiraDefect = new Issue
             {
-                Key = _reference,
-                RenderedFields = new RenderedFields()
+                Key = Reference,
+                RenderedFields = new RenderedFields
                 {
                     Description = "Description"
                 },
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Summary = "Name",
                     EpicLink = "E-1000",
-                    TimeTracking = new TimeTracking()
+                    TimeTracking = new TimeTracking
                     {
                         RemainingEstimateSeconds = 36000,
                     },
@@ -261,7 +260,5 @@ namespace VersionOne.TeamSync.Core.Tests
             _defect.ScopeName = "a scope";
             _jiraDefect.ItMatchesDefect(_defect).ShouldBeTrue();
         }
-
     }
-
 }

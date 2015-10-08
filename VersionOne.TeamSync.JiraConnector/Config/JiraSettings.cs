@@ -17,6 +17,11 @@ namespace VersionOne.TeamSync.JiraConnector.Config
     {
         private static IJiraSettings _instance;
 
+        public static IJiraSettings Instance
+        {
+            set { _instance = value; }
+        }
+
         public static IJiraSettings GetInstance()
         {
             if (_instance == null)

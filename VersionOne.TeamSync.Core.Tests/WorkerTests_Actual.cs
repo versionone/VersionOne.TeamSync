@@ -53,23 +53,23 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             BuildContext();
 
-            _mockV1.Setup(x => x.CreateActual(It.IsAny<Actual>())).ReturnsAsync(Actual);
-            _mockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
+            MockV1.Setup(x => x.CreateActual(It.IsAny<Actual>())).ReturnsAsync(Actual);
+            MockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
 
-            var worker = new ActualsWorker(_mockV1.Object, _mockLogger.Object);
-            worker.CreateActualsFromWorklogs(_mockJira.Object, new List<Worklog> { Worklog }, WorkItemId, V1Number, IssueKey);
+            var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
+            worker.CreateActualsFromWorklogs(MockJira.Object, new List<Worklog> { Worklog }, WorkItemId, V1Number, IssueKey);
         }
 
         [TestMethod]
         public void should_call_create_actual_just_one_time()
         {
-            _mockV1.Verify(x => x.CreateActual(It.IsAny<Actual>()), Times.Once);
+            MockV1.Verify(x => x.CreateActual(It.IsAny<Actual>()), Times.Once);
         }
 
         [TestMethod]
         public void makes_a_call_add_created_as_VersionOne_actual_comment()
         {
-            _mockJira.Verify(x => x.AddComment(IssueKey, It.IsAny<string>()), Times.AtLeast(2));
+            MockJira.Verify(x => x.AddComment(IssueKey, It.IsAny<string>()), Times.Once);
         }
     }
 
@@ -102,17 +102,17 @@ namespace VersionOne.TeamSync.Core.Tests
         <Asset href=""/VersionOne/rest-1.v1/Data/Defect/1077"" idref=""Defect:1077""/>
     </Relation>
 </Asset>");
-            _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>())).ReturnsAsync(_updatedActual);
-            _mockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
+            MockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>())).ReturnsAsync(_updatedActual);
+            MockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
 
-            var worker = new ActualsWorker(_mockV1.Object, _mockLogger.Object);
-            worker.UpdateActualsFromWorklogs(_mockJira.Object, new List<Worklog> { Worklog }, WorkItemId, new List<Actual> { Actual });
+            var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
+            worker.UpdateActualsFromWorklogs(MockJira.Object, new List<Worklog> { Worklog }, WorkItemId, new List<Actual> { Actual });
         }
 
         [TestMethod]
         public void should_call_update_asset_just_one_time()
         {
-            _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>()), Times.Once);
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>()), Times.Once);
         }
 
         [TestMethod]
@@ -142,16 +142,16 @@ namespace VersionOne.TeamSync.Core.Tests
     <Attribute name=""Reference"">10127</Attribute>
 </Asset>");
 
-            _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>()));
+            MockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>()));
 
-            var worker = new ActualsWorker(_mockV1.Object, _mockLogger.Object);
+            var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
             worker.DeleteActualsFromWorklogs(new List<Actual> { Actual });
         }
 
         [TestMethod]
         public void should_call_update_asset_just_one_time()
         {
-            _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>()), Times.Once);
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>()), Times.Once);
         }
 
         [TestMethod]
