@@ -24,39 +24,40 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             BuildContext();
 
-            _updatedDefect = new Defect() { Reference = "J-100", Name = "Johnny", Number = "S-9000", Estimate = "", ToDo = "", SuperNumber = "", Description = "" };
+            _updatedDefect = new Defect { Reference = "J-100", Name = "Johnny", Number = "S-9000", Estimate = "", ToDo = "", SuperNumber = "", Description = "" };
             _johnnyIsAlive = "Johnny 5 is alive";
-            var updatedIssue = new Issue()
+            var updatedIssue = new Issue
             {
                 Key = "J-100",
-                RenderedFields = new RenderedFields()
+                RenderedFields = new RenderedFields
                 {
                     Description = "a new description"
                 },
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Summary = _johnnyIsAlive,
-                    Labels = new List<string> { "S-9000" }
+                    Labels = new List<string> { "S-9000" },
+                    Priority = new Priority { Name = "Medium" }
                 }
             };
 
-            _mockV1.Setup(x => x.GetEpicsWithReference(It.IsAny<string>(), It.IsAny<string>()))
+            MockV1.Setup(x => x.GetEpicsWithReference(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<Epic>());
 
-            _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>())).Callback(
+            MockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>())).Callback(
                 (IV1Asset asset, XDocument xDocument) =>
                 {
                     _defectSentToUpdate = (Defect)asset;
                 }).ReturnsAsync(new XDocument());
-            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
+            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
 
-            _worker.UpdateDefects(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Defect> { _existingDefect, _updatedDefect });
+            Worker.UpdateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue, updatedIssue }, new List<Defect> { ExistingDefect, _updatedDefect });
         }
 
         [TestMethod]
         public void should_call_update_asset_just_one_time()
         {
-            _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
         }
 
         [TestMethod]
@@ -123,7 +124,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                     }
                 };
 
-            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
+            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
 
         }
 
@@ -131,8 +132,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public void should_never_call_delete_asset()
         {
             // All jira stories referenced in V1 exist in Jira - No stories should be deleted
-            _worker.DeleteV1Defects(_mockJira.Object, _allJiraStories, _allV1Defects);
-            _mockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+            Worker.DeleteV1Defects(MockJira.Object, _allJiraStories, _allV1Defects);
+            MockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
         }
 
         [TestMethod]
@@ -140,8 +141,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-2")));
             // OPC-2 removed - Story 3 should be deleted
-            _worker.DeleteV1Defects(_mockJira.Object, _allJiraStories, _allV1Defects);
-            _mockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), "OPC-2"), Times.Once);
+            Worker.DeleteV1Defects(MockJira.Object, _allJiraStories, _allV1Defects);
+            MockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), "OPC-2"), Times.Once);
         }
 
         [TestMethod]
@@ -150,49 +151,51 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-1")));
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-3")));
             // OPC-1 and OPC-3 removed - Story 2 and Story 4 should be deleted
-            _worker.DeleteV1Defects(_mockJira.Object, _allJiraStories, _allV1Defects);
-            _mockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsIn("OPC-1", "OPC-3")), Times.Exactly(2));
+            Worker.DeleteV1Defects(MockJira.Object, _allJiraStories, _allV1Defects);
+            MockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsIn("OPC-1", "OPC-3")), Times.Exactly(2));
         }
     }
 
     public abstract class defect_bits : worker_bits
     {
-        protected Defect _existingDefect;
-        protected Defect _fakeCreatedStory;
-        protected Issue _newIssue;
-        protected Issue _existingIssue;
-        protected SearchResult _searchResult;
-        protected string _defectNumber = "S-0001";
-        protected string _newIssueKey = "OPC-15";
-        protected string _existingIssueKey;
-        protected DefectWorker _worker;
-
+        protected Defect ExistingDefect;
+        protected Defect FakeCreatedStory;
+        protected Issue NewIssue;
+        protected Issue ExistingIssue;
+        protected SearchResult SearchResult;
+        protected string DefectNumber = "S-0001";
+        protected string NewIssueKey = "OPC-15";
+        protected string ExistingIssueKey;
+        protected DefectWorker Worker;
 
         protected override void BuildContext()
         {
             base.BuildContext();
-            _existingIssueKey = "OPC-10";
-            _existingDefect = new Defect { Reference = _existingIssueKey, Name = "Johnny", Number = _defectNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
-            _existingIssue = new Issue
+            ExistingIssueKey = "OPC-10";
+            ExistingDefect = new Defect { Reference = ExistingIssueKey, Name = "Johnny", Number = DefectNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
+            ExistingIssue = new Issue
             {
-                Key = _existingIssueKey,
+                Key = ExistingIssueKey,
                 RenderedFields = new RenderedFields { Description = "descript" },
                 Fields = new Fields
                 {
-                    Labels = new List<string> { _defectNumber },
+                    Labels = new List<string> { DefectNumber },
                     Summary = "Johnny"
                 }
             };
 
-            _newIssue = new Issue
+            NewIssue = new Issue
             {
-                Key = _newIssueKey,
-                Fields = new Fields(),
+                Key = NewIssueKey,
+                Fields = new Fields
+                {
+                    Priority = new Priority { Name = "Medium" }
+                },
                 RenderedFields = new RenderedFields()
             };
-            _fakeCreatedStory = new Defect { Number = "S-8900" };
-            _mockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(_fakeCreatedStory);
-            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
+            FakeCreatedStory = new Defect { Number = "S-8900" };
+            MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(FakeCreatedStory);
+            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
         }
     }
 
@@ -204,98 +207,98 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public void Context()
         {
             BuildContext();
-            _newIssue.Fields.EpicLink = null;
+            NewIssue.Fields.EpicLink = null;
 
-            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
+            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
 
-            _worker.CreateDefects(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue }, new List<Defect> { _existingDefect });
+            Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
         }
 
         [TestMethod]
         public void should_call_create_asset_just_one_time()
         {
-            _mockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Once);
+            MockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Once);
         }
 
         [TestMethod]
         public void should_not_try_to_get_an_epic_id()
         {
-            _mockV1.Verify(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void should_refresh_the_defect_once()
         {
-            _mockV1.Verify(x => x.RefreshBasicInfo(_fakeCreatedStory), Times.Once);
+            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedStory), Times.Once);
         }
 
         [TestMethod]
         public void makes_a_call_to_update_the_issue_in_jira_with_defect_number()
         {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _newIssueKey), Times.Once());
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), NewIssueKey), Times.Once());
         }
 
         [TestMethod]
         public void makes_a_call_add_a_comment_back_to_jira()
         {
-            _mockJira.Verify(x => x.AddComment(_newIssueKey, It.IsAny<string>()), Times.Once());
+            MockJira.Verify(x => x.AddComment(NewIssueKey, It.IsAny<string>()), Times.Once());
         }
 
         [TestMethod]
         public void makes_a_call_add_a_link_back_to_jira()
         {
-            _mockJira.Verify(x => x.AddWebLink(_newIssueKey, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+            MockJira.Verify(x => x.AddWebLink(NewIssueKey, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         }
     }
 
     [TestClass]
     public class child_defect : defect_bits
     {
-        private string _epicLink = "OPC-8";
+        private const string EpicLink = "OPC-8";
 
         [TestInitialize]
         public void Context()
         {
             BuildContext();
-            _newIssue.Fields.EpicLink = _epicLink;
+            NewIssue.Fields.EpicLink = EpicLink;
 
-            _worker.CreateDefects(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue }, new List<Defect> { _existingDefect });
+            Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
         }
 
         [TestMethod]
         public void should_call_create_asset_just_one_time()
         {
-            _mockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Once);
+            MockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Once);
         }
 
         [TestMethod]
         public void should_try_to_get_an_epic_id()
         {
-            _mockV1.Verify(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            MockV1.Verify(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
         public void should_refresh_the_defect_once()
         {
-            _mockV1.Verify(x => x.RefreshBasicInfo(_fakeCreatedStory), Times.Once);
+            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedStory), Times.Once);
         }
 
         [TestMethod]
         public void makes_a_call_to_update_the_issue_in_jira_with_defect_number()
         {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _newIssueKey), Times.Once());
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), NewIssueKey), Times.Once());
         }
 
         [TestMethod]
         public void makes_a_call_add_a_comment_back_to_jira()
         {
-            _mockJira.Verify(x => x.AddComment(_newIssueKey, It.IsAny<string>()), Times.Once());
+            MockJira.Verify(x => x.AddComment(NewIssueKey, It.IsAny<string>()), Times.Once());
         }
 
         [TestMethod]
         public void makes_a_call_add_a_link_back_to_jira()
         {
-            _mockJira.Verify(x => x.AddWebLink(_newIssueKey, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+            MockJira.Verify(x => x.AddWebLink(NewIssueKey, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         }
     }
 }

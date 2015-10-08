@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -71,17 +67,17 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestInitialize]
         public void Context()
         {
-            _epic = new Epic()
+            _epic = new Epic
             {
                 Description = "Why is the ogre all angry?",
                 Name = "Odysseus",
                 Reference = "Prince Telemachus"
             };
 
-            _issue = new Issue()
+            _issue = new Issue
             {
                 Key = "Prince Telemachus",
-                Fields = new Fields()
+                Fields = new Fields
                 {
                     Description = "Why is the ogre all angry?",
                     Summary = "Odysseus"

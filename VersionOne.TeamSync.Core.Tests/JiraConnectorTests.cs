@@ -8,7 +8,6 @@ using Moq;
 using RestSharp;
 using Should;
 using VersionOne.TeamSync.JiraConnector;
-using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
@@ -123,9 +122,9 @@ namespace VersionOne.TeamSync.Core.Tests
             mockLogger.Setup(x => x.Info(It.IsAny<string>()));
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>(), It.IsAny<Dictionary<string, string>>()))
-                .Returns(new TransitionResponse()
+                .Returns(new TransitionResponse
                 {
-                    Transitions = new List<Transition>()
+                    Transitions = new List<Transition>
                 {
                     new Transition() {Id = "1",Name = "Done"},
                     new Transition() {Id = "1",Name = "In Progress"}
@@ -214,9 +213,9 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockLogger = new Mock<ILog>();
             mockLogger.Setup(x => x.Error(It.IsAny<string>()));
             var mockConnector = new Mock<IJiraConnector>();
-            mockConnector.Setup(x => x.Get<TransitionResponse>("api/latest/issue/{issueIdOrKey}/transitions", new KeyValuePair<string, string>("issueIdOrKey", IssueKey), It.IsAny<Dictionary<string, string>>())).Returns(new TransitionResponse()
+            mockConnector.Setup(x => x.Get<TransitionResponse>("api/latest/issue/{issueIdOrKey}/transitions", new KeyValuePair<string, string>("issueIdOrKey", IssueKey), It.IsAny<Dictionary<string, string>>())).Returns(new TransitionResponse
             {
-                Transitions = new List<Transition>() { new Transition() { Id = "5", Name = "Done" } }
+                Transitions = new List<Transition> { new Transition { Id = "5", Name = "Done" } }
             }).Verifiable();
             mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey))).Verifiable();
 
@@ -379,7 +378,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public void getting_jira_stories()
         {
             _mockLogger = new Mock<ILog>();
-            var dictionary = new Dictionary<string, string>()
+            var dictionary = new Dictionary<string, string>
             {
                 {"Story Points", "value value"},
                 {"Epic Stuff", "something else"}
@@ -424,24 +423,29 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockLogger = new Mock<ILog>();
             _mockLogger.Setup(x => x.Warn(It.IsAny<string>()));
 
-            var jira = new Jira(mockConnector.Object, new MetaProject()
+            var jira = new Jira(mockConnector.Object, new MetaProject
             {
                 IssueTypes = new List<MetaIssueType>
                 {
-                    new MetaIssueType()
+                    new MetaIssueType
                     {
-                        Name = "Story", Fields = new MetaField(){ Properties = new List<MetaProperty>
+                        Name = "Story", Fields = new MetaField
                         {
-                            new MetaProperty(){Key = "customfield_10002", Property = "Story Points", Schema = "anything"}
-                        } }
+                            Properties = new List<MetaProperty>
+                            {
+                                new MetaProperty { Key = "customfield_10002", Property = "Story Points", Schema = "anything" }
+                            }
+                        }
                     },
-                    new MetaIssueType()
+                    new MetaIssueType
                     {
-                        Name = "Epic", Fields = new MetaField(){ Properties = new List<MetaProperty>
-                        {
-                            new MetaProperty(){Key = "customfield_10005", Property = "Epic Link", Schema = "com.pyxis.greenhopper.jira:gh"},
-                            new MetaProperty(){Key = "customfield_10006", Property = "Epic Name", Schema = "com.pyxis.greenhopper.jira:gh"}
-                        } }
+                        Name = "Epic", Fields = new MetaField { 
+                            Properties = new List<MetaProperty>
+                            {
+                                new MetaProperty { Key = "customfield_10005", Property = "Epic Link", Schema = "com.pyxis.greenhopper.jira:gh" },
+                                new MetaProperty { Key = "customfield_10006", Property = "Epic Name", Schema = "com.pyxis.greenhopper.jira:gh" }
+                            }
+                        }
                     }
                 }
             }, _mockLogger.Object);

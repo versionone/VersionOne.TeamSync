@@ -14,29 +14,29 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public async void Context()
         {
             BuildContext();
-            _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
+            MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
 
-            _epicWorker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
+            _epicWorker = new EpicWorker(MockV1.Object, MockLogger.Object);
 
-            await _epicWorker.CreateEpics(_mockJira.Object);
+            await _epicWorker.CreateEpics(MockJira.Object);
         }
 
         [TestMethod]
         public void calls_the_GetEpicsWithoutReference_once()
         {
-            _mockV1.Verify(x => x.GetEpicsWithoutReference(_projectId, _epicCategory), Times.Once);
+            MockV1.Verify(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory), Times.Once);
         }
 
         [TestMethod]
         public void do_not_call_the_jira_api()
         {
-            _mockJira.Verify(x => x.CreateEpic(It.IsAny<Epic>(), It.IsAny<string>()), Times.Never);
+            MockJira.Verify(x => x.CreateEpic(It.IsAny<Epic>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void does_not_try_to_create_a_link_on_v1_epic()
         {
-            _mockV1.Verify(x => x.CreateLink(It.IsAny<Epic>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.CreateLink(It.IsAny<Epic>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
     }
