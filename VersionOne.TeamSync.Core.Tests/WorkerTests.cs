@@ -4,6 +4,7 @@ using log4net.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
@@ -13,6 +14,7 @@ namespace VersionOne.TeamSync.Core.Tests
     public abstract class worker_bits
     {
         protected Mock<IV1> _mockV1;
+        protected Mock<IJiraSettings> _mockJiraSettings; 
         protected Mock<IJira> _mockJira;
         protected Mock<ILog> _mockLogger;
         protected string _projectId = "Scope:1000";
@@ -23,16 +25,19 @@ namespace VersionOne.TeamSync.Core.Tests
         protected virtual void BuildContext()
         {
             _mockV1 = new Mock<IV1>();
+            _mockJiraSettings = new Mock<IJiraSettings>();
+            _mockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("3");
             _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo { VersionNumbers = new[] { "6" } });
             _mockJira.SetupGet(x => x.InstanceUrl).Returns(_instanceUrl);
+            _mockJira.Setup(x => x.JiraSettings).Returns(_mockJiraSettings.Object);
+            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
+            _mockJira.Setup(x => x.V1Project).Returns(_projectId);
+            _mockJira.Setup(x => x.JiraProject).Returns(_jiraKey);
+            _mockJira.Setup(x => x.EpicCategory).Returns(_epicCategory);
+            _mockJira.Setup(x => x.DoneWords).Returns(new[] {"Done"});
             _mockLogger = new Mock<ILog>();
             _mockLogger.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
-        }
-
-        protected V1JiraInfo MakeInfo()
-        {
-            return new V1JiraInfo(_projectId, _jiraKey, _epicCategory, _mockJira.Object);
         }
     }
 
@@ -46,10 +51,9 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             BuildContext();
             _mockV1.Setup(x => x.GetEpicsWithoutReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
-            var jiraInfo = MakeInfo();
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
-            await _worker.CreateEpics(jiraInfo);
+            await _worker.CreateEpics(_mockJira.Object);
         }
 
         [TestMethod]
@@ -92,9 +96,8 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Setup(x => x.CreateEpic(_epic, _jiraKey)).Returns(() => _itemBase);
 
             _epic.Reference.ShouldBeNull();
-            var jiraInfo = MakeInfo();
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
-            await _worker.CreateEpics(jiraInfo);
+            await _worker.CreateEpics(_mockJira.Object);
         }
     }
 
@@ -176,17 +179,13 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _mockV1 = new Mock<IV1>();
             _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>());
 
-            _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
 
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
-            var jiraInfo = MakeInfo();
 
-            await _worker.UpdateEpics(jiraInfo);
+            await _worker.UpdateEpics(_mockJira.Object);
         }
 
         [TestMethod]
@@ -217,34 +216,31 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            _mockV1 = new Mock<IV1>();
             _mockV1.Setup(x => x.GetEpicsWithReference(_projectId, _epicCategory)).ReturnsAsync(new List<Epic>
             {
-                new Epic {Name = "Name", Description = "Description", Reference = "key"},
-                new Epic {Name = "Name1", Description = "Description", Reference = "key1"},
-                new Epic {Name = "Name2", Description = "Description", Reference = "key2", AssetState = "64"},
-                new Epic {Name = "Name3", Description = "Description", Reference = "key3"},
-                new Epic {Name = "Name4", Description = "Description", Reference = "key4"},
+                new Epic {Name = "Name", Description = "Description", Reference = "key", Priority = "Medium"},
+                new Epic {Name = "Name1", Description = "Description", Reference = "key1", Priority = "Medium"},
+                new Epic {Name = "Name2", Description = "Description", Reference = "key2", AssetState = "64", Priority = "Medium"},
+                new Epic {Name = "Name3", Description = "Description", Reference = "key3", Priority = "Medium"},
+                new Epic {Name = "Name4", Description = "Description", Reference = "key4", Priority = "Medium"},
             });
 
-            _mockJira = new Mock<IJira>();
-            _mockJira.Setup(x => x.VersionInfo).Returns(new JiraVersionInfo() { VersionNumbers = new[] { "6" } });
             _mockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult
             {
                 issues = new List<Issue>
                 {
-                    new Issue {Key = "key", Fields = new Fields {Summary = "Name", Description = "Description", Status = new Status {Name = "Not done!"}}},
-                    new Issue {Key = "key1", Fields = new Fields {Summary = "Name1", Description = "Description1", Status = new Status {Name = "Not done!"}}},
-                    new Issue {Key = "key2", Fields = new Fields {Summary = "Name2", Description = "Description" , Status = new Status {Name = "Done"}}},
-                    new Issue {Key = "key3", Fields = new Fields {Summary = "Name3", Description = "Description3", Status = new Status {Name = "Not done!"}}},
-                    new Issue {Key = "key4", Fields = new Fields {Summary = "Name4", Description = "Description" , Status = new Status {Name = "Not done!"}}},
+                    new Issue {Key = "key", Fields = new Fields {Summary = "Name", Description = "Description", Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key1", Fields = new Fields {Summary = "Name1", Description = "Description1", Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key2", Fields = new Fields {Summary = "Name2", Description = "Description" , Status = new Status {Name = "Done"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key3", Fields = new Fields {Summary = "Name3", Description = "Description3", Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
+                    new Issue {Key = "key4", Fields = new Fields {Summary = "Name4", Description = "Description" , Status = new Status {Name = "Not done!"}, Priority = new Priority{Id = "3"}}},
                 }
             });
+            _mockJira.SetupGet(x => x.InstanceUrl).Returns("http://jira-6.cloudapp.net:8080");
 
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
-            var jiraInfo = MakeInfo();
 
-            await _worker.UpdateEpics(jiraInfo);
+            await _worker.UpdateEpics(_mockJira.Object);
         }
 
         [TestMethod]
@@ -262,7 +258,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void calls_UpdateEpic_twice()
         {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), It.IsAny<string>()), Times.Exactly(2));
+            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
         }
 
         [TestMethod]
@@ -297,10 +293,9 @@ namespace VersionOne.TeamSync.Core.Tests
             _epic.Reference.ShouldNotBeNull("need a reference");
             _epic.IsClosed().ShouldBeFalse();
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
-            var jiraInfo = MakeInfo();
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
-            await _worker.UpdateEpics(jiraInfo);
+            await _worker.UpdateEpics(_mockJira.Object);
         }
 
         [TestMethod]
@@ -347,10 +342,9 @@ namespace VersionOne.TeamSync.Core.Tests
             _epic.Reference.ShouldNotBeNull("need a reference");
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
 
-            var jiraInfo = MakeInfo();
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
-            await _worker.UpdateEpics(jiraInfo);
+            await _worker.UpdateEpics(_mockJira.Object);
         }
 
         [TestMethod]
@@ -396,10 +390,9 @@ namespace VersionOne.TeamSync.Core.Tests
 
             _mockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
-            var jiraInfo = MakeInfo();
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
 
-            await _worker.ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+            await _worker.ClosedV1EpicsSetJiraEpicsToResolved(_mockJira.Object);
         }
 
         [TestMethod]
@@ -445,9 +438,8 @@ namespace VersionOne.TeamSync.Core.Tests
 
             _mockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
-            var jiraInfo = MakeInfo();
             _epicWorker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
-            await _epicWorker.ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
+            await _epicWorker.ClosedV1EpicsSetJiraEpicsToResolved(_mockJira.Object);
         }
 
         [TestMethod]
@@ -491,9 +483,8 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockJira.Setup(x => x.DeleteEpicIfExists(_epic.Reference));
 
             _worker = new EpicWorker(_mockV1.Object, _mockLogger.Object);
-            var jiraInfo = MakeInfo();
 
-            await _worker.DeleteEpics(jiraInfo);
+            await _worker.DeleteEpics(_mockJira.Object);
         }
 
         [TestMethod]

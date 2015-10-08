@@ -71,7 +71,6 @@
     <Compile Include="Workers\EpicWorkerTests.cs" />
     <Compile Include="IssueExtensionTests.cs" />
     <Compile Include="JiraConnectorTests.cs" />
-    <Compile Include="JiraInfoTests.cs" />
     <Compile Include="JsonConverter\MetaDataConverterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StorySync\NewStoryTests.cs" />

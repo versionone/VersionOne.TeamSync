@@ -27,7 +27,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 Number = "E-1000",
             };
 
-            _result = epic.CreateJiraEpic("jiraKey", "fake_customfield_10000");
+            _result = epic.CreateJiraEpic("jiraKey", "fake_customfield_10000", "20000");
         }
 
         [TestMethod]

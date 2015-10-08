@@ -14,32 +14,35 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 string.Equals(epic.Reference, other.Key);
         }
 
-        public static dynamic CreateJiraEpic(this Epic epic, string projectKey, string jiraEpicNameId)
+        public static object CreateJiraEpic(this Epic epic, string projectKey, string jiraEpicNameId, string priorityId)
         {
-            dynamic expando = new ExpandoObject(); //not sure if this is entirely necessary ... ?
+            dynamic data = new ExpandoObject();
 
-            expando.fields = new Dictionary<string, object>
+            data.fields = new Dictionary<string, object>
             {
                 { "description", epic.Description ?? "-"},
                 { "summary", epic.Name},
-                { "issuetype", new {name = "Epic"} },
-                { "project", new {Key = projectKey}},
-                { jiraEpicNameId,   epic.Name},
-                {"labels", new List<string> {epic.Number}}
+                { "issuetype", new { name = "Epic" }},
+                { "project", new { Key = projectKey }},
+                { jiraEpicNameId, epic.Name},
+                { "labels", new List<string> { epic.Number }}
             };
+            if (!string.IsNullOrEmpty(priorityId))
+                ((Dictionary<string, object>)data.fields).Add("priority", new { id = priorityId });
 
-            return expando;
+            return data;
         }
 
-        public static Issue UpdateJiraEpic(this Epic epic, List<string> labels)
+        public static object UpdateJiraEpic(this Epic epic, List<string> labels, string priorityId)
         {
-            return new Issue
+            return new
             {
-                Fields = new Fields
+                fields = new
                 {
-                    Description = epic.Description ?? "-",
-                    Summary = epic.Name,
-                    Labels = labels
+                    description = epic.Description ?? "-",
+                    summary = epic.Name,
+                    priority = new { id = priorityId },
+                    labels
                 }
             };
         }

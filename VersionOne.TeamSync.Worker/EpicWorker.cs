@@ -24,21 +24,21 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
-        public async Task DoWork(V1JiraInfo jiraInfo)
+        public async Task DoWork(IJira jiraInstance)
         {
             _log.Trace("Epic sync started...");
-            await UpdateEpics(jiraInfo);
-            await CreateEpics(jiraInfo);
-            await ClosedV1EpicsSetJiraEpicsToResolved(jiraInfo);
-            await DeleteEpics(jiraInfo);
+            await CreateEpics(jiraInstance);
+            await UpdateEpics(jiraInstance);
+            await ClosedV1EpicsSetJiraEpicsToResolved(jiraInstance);
+            await DeleteEpics(jiraInstance);
             _log.Trace("Epic sync stopped...");
         }
 
-        public async Task CreateEpics(V1JiraInfo jiraInfo)
+        public async Task CreateEpics(IJira jiraInstance)
         {
             _log.Trace("Creating epics started");
             var processedEpics = 0;
-            var unassignedV1Epics = await _v1.GetEpicsWithoutReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+            var unassignedV1Epics = await _v1.GetEpicsWithoutReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
 
             if (unassignedV1Epics.Any())
                 _log.DebugFormat("Found {0} epics to check for create", unassignedV1Epics.Count);
@@ -46,7 +46,7 @@ namespace VersionOne.TeamSync.Worker
             unassignedV1Epics.ForEach(v1Epic =>
             {
                 _log.TraceFormat("Attempting to create Jira epic from {0}", v1Epic.Number);
-                var jiraData = jiraInfo.JiraInstance.CreateEpic(v1Epic, jiraInfo.JiraKey);
+                var jiraData = jiraInstance.CreateEpic(v1Epic, jiraInstance.JiraProject);
 
                 _log.DebugFormat("Created Jira epic {0} from V1 epic {1}", jiraData.Key, v1Epic.Number);
 
@@ -54,52 +54,52 @@ namespace VersionOne.TeamSync.Worker
                 {
                     _log.ErrorFormat(
                         "Saving epic failed. Possible reasons : Jira project ({0}) doesn't have epic type or expected custom field",
-                        jiraInfo.JiraKey);
+                        jiraInstance.JiraProject);
                 }
                 else
                 {
-                    jiraInfo.JiraInstance.AddComment(jiraData.Key, string.Format(CreatedFromV1Comment, v1Epic.Number, v1Epic.ScopeName));
+                    jiraInstance.AddComment(jiraData.Key, string.Format(CreatedFromV1Comment, v1Epic.Number, v1Epic.ScopeName));
                     _log.TraceFormat("Added comment to Jira epic {0}", jiraData.Key);
-                    jiraInfo.JiraInstance.AddWebLink(jiraData.Key,
+                    jiraInstance.AddWebLink(jiraData.Key,
                         string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, v1Epic.Number),
                         string.Format(V1AssetDetailWebLinkTitle, v1Epic.Number));
                     _log.TraceFormat("Added web link to Jira epic {0}", jiraData.Key);
                     v1Epic.Reference = jiraData.Key;
                     _v1.UpdateEpicReference(v1Epic);
                     _log.TraceFormat("Added reference in V1 epic {0}", v1Epic.Number);
-                    var link = new Uri(new Uri(jiraInfo.JiraInstance.InstanceUrl), string.Format("browse/{0}", jiraData.Key)).ToString();
+                    var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraData.Key)).ToString();
                     _v1.CreateLink(v1Epic, string.Format("Jira {0}", jiraData.Key), link);
                     _log.TraceFormat("Added link in V1 epic {0}", v1Epic.Number);
                     processedEpics++;
                 }
             });
 
-           if (processedEpics > 0)  _log.DebugFormat("Resolved {0} Jira epics", processedEpics);
-                _log.InfoFormat("Created {0} Jira epics", processedEpics);
+            if (processedEpics > 0) _log.DebugFormat("Resolved {0} Jira epics", processedEpics);
+            _log.InfoFormat("Created {0} Jira epics", processedEpics);
             _log.Trace("Create epics stopped");
         }
 
-        public async Task UpdateEpics(V1JiraInfo jiraInfo)
+        public async Task UpdateEpics(IJira jiraInstance)
         {
             _log.Trace("Updating epics started");
             var processedEpics = 0;
             var reopenedEpics = 0;
-            var assignedV1Epics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
-           
-            var searchResult = jiraInfo.JiraInstance.GetEpicsInProject(jiraInfo.JiraKey);
 
+            var searchResult = jiraInstance.GetEpicsInProject(jiraInstance.JiraProject);
             if (searchResult.HasErrors)
             {
                 searchResult.ErrorMessages.ForEach(_log.Error);
                 return;
             }
-            var jiraEpics = searchResult.issues;
+
+            var assignedV1Epics = await _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
             if (assignedV1Epics.Any())
             {
                 _log.DebugFormat("Found {0} epics to check for update", assignedV1Epics.Count);
                 _log.Trace("Recently updated epics : " + string.Join(", ", assignedV1Epics.Select(epic => epic.Number)));
             }
-            
+
+            var jiraEpics = searchResult.issues;
             assignedV1Epics.ForEach(v1Epic =>
             {
                 _log.TraceFormat("Attempting to update Jira epic {0}", v1Epic.Reference);
@@ -110,20 +110,21 @@ namespace VersionOne.TeamSync.Worker
                     return;
                 }
 
-                if (jiraInfo.DoneWords.Contains(relatedJiraEpic.Fields.Status.Name) && !v1Epic.IsClosed())
+                if (jiraInstance.DoneWords.Contains(relatedJiraEpic.Fields.Status.Name) && !v1Epic.IsClosed())
                 {
-                    jiraInfo.JiraInstance.SetIssueToToDo(relatedJiraEpic.Key, jiraInfo.DoneWords);
+                    jiraInstance.SetIssueToToDo(relatedJiraEpic.Key, jiraInstance.DoneWords);
                     _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
                     reopenedEpics++;
                 }
 
-                if (!v1Epic.ItMatches(relatedJiraEpic))
+                var jiraPriorityIdFromMapping = jiraInstance.JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, v1Epic.Priority);
+                if (!v1Epic.ItMatches(relatedJiraEpic) ||
+                    (jiraPriorityIdFromMapping != relatedJiraEpic.Fields.Priority.Id))
                 {
-                    jiraInfo.JiraInstance.UpdateIssue(v1Epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels), relatedJiraEpic.Key);
+                    jiraInstance.UpdateIssue(v1Epic.UpdateJiraEpic(relatedJiraEpic.Fields.Labels, jiraPriorityIdFromMapping), relatedJiraEpic.Key);
                     _log.DebugFormat("Updated Jira epic {0} with data from V1 epic {1}", relatedJiraEpic.Key, v1Epic.Number);
                     processedEpics++;
                 }
-               
             });
 
             if (processedEpics > 0)
@@ -134,11 +135,12 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Updating epics stopped");
         }
 
-        public async Task DeleteEpics(V1JiraInfo jiraInfo)
+        public async Task DeleteEpics(IJira jiraInstance)
         {
             _log.Trace("Deleting epics started");
             var processedEpics = 0;
-            var deletedV1Epics = await _v1.GetDeletedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+
+            var deletedV1Epics = await _v1.GetDeletedEpics(jiraInstance.V1Project, jiraInstance.EpicCategory);
 
             if (deletedV1Epics.Any())
                 _log.DebugFormat("Found {0} epics to check for delete", deletedV1Epics.Count);
@@ -147,7 +149,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 _log.TraceFormat("Attempting to delete Jira epic {0}", v1Epic.Reference);
 
-                jiraInfo.JiraInstance.DeleteEpicIfExists(v1Epic.Reference);
+                jiraInstance.DeleteEpicIfExists(v1Epic.Reference);
                 _log.DebugFormat("Deleted Jira epic {0}", v1Epic.Reference);
 
                 _v1.RemoveReferenceOnDeletedEpic(v1Epic);
@@ -161,18 +163,19 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Delete epics stopped");
         }
 
-        public async Task ClosedV1EpicsSetJiraEpicsToResolved(V1JiraInfo jiraInfo)
+        public async Task ClosedV1EpicsSetJiraEpicsToResolved(IJira jiraInstance)
         {
             _log.Trace("Resolving epics started");
             var processedEpics = 0;
-            var closedV1Epics = await _v1.GetClosedTrackedEpics(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+
+            var closedV1Epics = await _v1.GetClosedTrackedEpics(jiraInstance.V1Project, jiraInstance.EpicCategory);
 
             if (closedV1Epics.Any())
                 _log.DebugFormat("Found {0} epics to check for resolve", closedV1Epics.Count);
 
             closedV1Epics.ForEach(v1Epic =>
             {
-                var jiraEpic = jiraInfo.JiraInstance.GetEpicByKey(v1Epic.Reference);
+                var jiraEpic = jiraInstance.GetEpicByKey(v1Epic.Reference);
 
                 if (jiraEpic.HasErrors)
                 {
@@ -180,12 +183,12 @@ namespace VersionOne.TeamSync.Worker
                     return;
                 }
 
-                if (jiraInfo.DoneWords.Contains(jiraEpic.issues.Single().Fields.Status.Name))
+                if (jiraInstance.DoneWords.Contains(jiraEpic.issues.Single().Fields.Status.Name))
                     return;
 
                 _log.TraceFormat("Attempting to resolve Jira epic {0}", v1Epic.Reference);
 
-                jiraInfo.JiraInstance.SetIssueToResolved(v1Epic.Reference, jiraInfo.DoneWords);
+                jiraInstance.SetIssueToResolved(v1Epic.Reference, jiraInstance.DoneWords);
                 _log.DebugFormat("Resolved Jira epic {0}", v1Epic.Reference);
                 processedEpics++;
             });

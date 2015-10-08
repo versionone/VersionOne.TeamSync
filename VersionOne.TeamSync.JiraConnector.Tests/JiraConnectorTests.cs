@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VersionOne.TeamSync.JiraConnector.Connector;
-using VersionOne.TeamSync.JiraConnector.Entities;
 
 namespace VersionOne.TeamSync.JiraConnector.Tests
 {

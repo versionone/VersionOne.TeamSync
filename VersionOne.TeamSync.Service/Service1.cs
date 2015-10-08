@@ -28,14 +28,15 @@ namespace VersionOne.TeamSync.Service
         {
             try
             {
-                _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.syncIntervalInSeconds);
+                _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.SyncIntervalInSeconds);
 
                 StartMessage();
-                _worker = new VersionOneToJiraWorker(_serviceDuration);
+                _worker = new VersionOneToJiraWorker();
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
                 _worker.ValidateMemberAccountPermissions();
                 //_worker.ValidateVersionOneSchedules(); D-09877
+                _worker.ValidatePriorityMappings();
 
                 _timer = new Timer(OnTimedEvent, null, 0, (int)_serviceDuration.TotalMilliseconds);
             }

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using VersionOne.TeamSync.V1Connector.Interfaces;
@@ -12,24 +10,13 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class V1DomainTests
     {
-        private DateTime _timeAgo = new DateTime(2015, 1, 1, 16, 0, 0);
-        private readonly TimeSpan _span = new TimeSpan(0, 0, 0, 15);
-        private Mock<IDateTime> _mockDateTime;
-
-        [TestInitialize]
-        public void Context()
-        {
-            _mockDateTime = new Mock<IDateTime>();
-            _mockDateTime.Setup(x => x.UtcNow).Returns(new DateTime(2015, 1, 1, 16, 0, 0));
-        }
-
-        private V1 SetApiQuery(string type, Mock<IV1Connector> mockConnect, string[] properties, string[] whereClauses, List<Epic> epics)
+        private IV1 SetApiQuery(string type, Mock<IV1Connector> mockConnect, string[] properties, string[] whereClauses, List<Epic> epics)
         {
             mockConnect.Setup(x => x.Query(type, properties, whereClauses, Epic.FromQuery))
                          .ReturnsAsync(epics)
                          .Verifiable("Query has been modified or incorrect");
 
-            return new V1(mockConnect.Object, _mockDateTime.Object, _span);
+            return new V1(mockConnect.Object);
         }
 
         [TestMethod]
@@ -45,7 +32,6 @@ namespace VersionOne.TeamSync.Core.Tests
 
             mockConnector.VerifyAll();
         }
-
 
         [TestMethod]
         public async Task closed_tracked_epics_should_grab_just_the_name_assetState_and_reference()
@@ -101,7 +87,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"" },
                 Story.FromQuery))
                 .ReturnsAsync(new List<Story>());
-            var api = new V1(mockConnector.Object, _span);
+            var api = new V1(mockConnector.Object);
 
             await api.GetStoriesWithJiraReference("Scope:1000");
 

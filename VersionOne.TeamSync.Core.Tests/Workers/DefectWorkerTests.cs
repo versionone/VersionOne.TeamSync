@@ -23,7 +23,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public void Context()
         {
             BuildContext();
-            var jiraInfo = MakeInfo();
 
             _updatedDefect = new Defect() { Reference = "J-100", Name = "Johnny", Number = "S-9000", Estimate = "", ToDo = "", SuperNumber = "", Description = "" };
             _johnnyIsAlive = "Johnny 5 is alive";
@@ -51,7 +50,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 }).ReturnsAsync(new XDocument());
             _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
 
-            _worker.UpdateDefects(jiraInfo, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Defect> { _existingDefect, _updatedDefect });
+            _worker.UpdateDefects(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue, updatedIssue }, new List<Defect> { _existingDefect, _updatedDefect });
         }
 
         [TestMethod]
@@ -132,9 +131,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public void should_never_call_delete_asset()
         {
             // All jira stories referenced in V1 exist in Jira - No stories should be deleted
-            var jiraInfo = MakeInfo();
-
-            _worker.DeleteV1Defects(jiraInfo, _allJiraStories, _allV1Defects);
+            _worker.DeleteV1Defects(_mockJira.Object, _allJiraStories, _allV1Defects);
             _mockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
         }
 
@@ -143,8 +140,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-2")));
             // OPC-2 removed - Story 3 should be deleted
-            var jiraInfo = MakeInfo();
-            _worker.DeleteV1Defects(jiraInfo, _allJiraStories, _allV1Defects);
+            _worker.DeleteV1Defects(_mockJira.Object, _allJiraStories, _allV1Defects);
             _mockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), "OPC-2"), Times.Once);
         }
 
@@ -154,8 +150,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-1")));
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-3")));
             // OPC-1 and OPC-3 removed - Story 2 and Story 4 should be deleted
-            var jiraInfo = MakeInfo();
-            _worker.DeleteV1Defects(jiraInfo, _allJiraStories, _allV1Defects);
+            _worker.DeleteV1Defects(_mockJira.Object, _allJiraStories, _allV1Defects);
             _mockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsIn("OPC-1", "OPC-3")), Times.Exactly(2));
         }
     }
@@ -211,10 +206,9 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             BuildContext();
             _newIssue.Fields.EpicLink = null;
 
-            var jiraInfo = MakeInfo();
             _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
 
-            _worker.CreateDefects(jiraInfo, new List<Issue> { _existingIssue, _newIssue }, new List<Defect> { _existingDefect });
+            _worker.CreateDefects(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue }, new List<Defect> { _existingDefect });
         }
 
         [TestMethod]
@@ -265,8 +259,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             BuildContext();
             _newIssue.Fields.EpicLink = _epicLink;
 
-            var jiraInfo = MakeInfo();
-            _worker.CreateDefects(jiraInfo, new List<Issue> { _existingIssue, _newIssue }, new List<Defect> { _existingDefect });
+            _worker.CreateDefects(_mockJira.Object, new List<Issue> { _existingIssue, _newIssue }, new List<Defect> { _existingDefect });
         }
 
         [TestMethod]

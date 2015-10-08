@@ -8,6 +8,7 @@ using Moq;
 using RestSharp;
 using Should;
 using VersionOne.TeamSync.JiraConnector;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
@@ -118,6 +119,8 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_request_an_update_correctly()
         {
+            var mockLogger = new Mock<ILog>();
+            mockLogger.Setup(x => x.Info(It.IsAny<string>()));
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>(), It.IsAny<Dictionary<string, string>>()))
                 .Returns(new TransitionResponse()
@@ -131,7 +134,7 @@ namespace VersionOne.TeamSync.Core.Tests
             mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey)))
                 .Verifiable();
 
-            var jira = new Jira(mockConnector.Object, string.Empty);
+            var jira = new Jira(mockConnector.Object, null, mockLogger.Object);
 
             jira.SetIssueToToDo(IssueKey, new[] { "Done" });
 
@@ -161,7 +164,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Jira(mockConnector.Object, string.Empty);
+            var jira = new Jira(mockConnector.Object);
 
             jira.GetEpicByKey(IssueKey);
         }
@@ -208,6 +211,8 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_request_an_update_correctly()
         {
+            var mockLogger = new Mock<ILog>();
+            mockLogger.Setup(x => x.Error(It.IsAny<string>()));
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Get<TransitionResponse>("api/latest/issue/{issueIdOrKey}/transitions", new KeyValuePair<string, string>("issueIdOrKey", IssueKey), It.IsAny<Dictionary<string, string>>())).Returns(new TransitionResponse()
             {
@@ -215,7 +220,7 @@ namespace VersionOne.TeamSync.Core.Tests
             }).Verifiable();
             mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey))).Verifiable();
 
-            var jira = new Jira(mockConnector.Object, string.Empty);
+            var jira = new Jira(mockConnector.Object, null, mockLogger.Object);
 
             jira.SetIssueToResolved(IssueKey, new[] { "Done" });
 
@@ -503,13 +508,15 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void Should_not_try_to_delete_it_again()
         {
+            var mockLogger = new Mock<ILog>();
+            mockLogger.Setup(x => x.Error(It.IsAny<string>()));
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.GetSearchResults(It.IsAny<List<JqOperator>>(), It.IsAny<IEnumerable<string>>())
                 ).Returns(new SearchResult
                 {
                     ErrorMessages = new List<string> { "An issue with key 'AS-25' does not exist for field 'key'." }
                 });
-            var jira = new Jira(mockConnector.Object, string.Empty);
+            var jira = new Jira(mockConnector.Object, null, mockLogger.Object);
 
             jira.DeleteEpicIfExists(IssueKey);
 

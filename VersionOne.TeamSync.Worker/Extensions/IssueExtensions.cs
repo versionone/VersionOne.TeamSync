@@ -10,7 +10,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
     {
         public static Epic ToV1Epic(this Issue issue)
         {
-            return new Epic()
+            return new Epic
             {
                 Name = issue.Fields.Summary,
                 Description = issue.Fields.Description,
@@ -18,7 +18,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
             };
         }
 
-        public static Story ToV1Story(this Issue issue, string v1ScopeId)
+        public static Story ToV1Story(this Issue issue, string v1ScopeId, string priorityId)
         {
             return new Story
             {
@@ -27,11 +27,12 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 Estimate = issue.Fields.StoryPoints,
                 ToDo = issue.Fields.TimeTracking == null ? "" : Math.Abs(issue.Fields.TimeTracking.RemainingEstimateSeconds / 3600).ToString(),
                 Reference = issue.Key,
-                ScopeId = v1ScopeId
+                ScopeId = v1ScopeId,
+                Priority = priorityId
             };
         }
 
-        public static Defect ToV1Defect(this Issue issue, string v1ScopeId)
+        public static Defect ToV1Defect(this Issue issue, string v1ScopeId, string priorityId)
         {
             return new Defect
             {
@@ -41,6 +42,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 ToDo = issue.Fields.TimeTracking == null ? "" : Math.Abs(issue.Fields.TimeTracking.RemainingEstimateSeconds / 3600).ToString(),
                 Reference = issue.Key,
                 ScopeId = v1ScopeId,
+                Priority = priorityId
             };
         }
 

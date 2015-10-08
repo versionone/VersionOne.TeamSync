@@ -9,5 +9,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         string ScopeName { get; set; }
         string Number { get; set; }
         string Reference { get; set; }
+        string Priority { get; set; }
     }
 }

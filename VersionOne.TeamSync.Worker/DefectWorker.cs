@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -26,20 +27,19 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
-        public async Task DoWork(V1JiraInfo jiraInfo)
+        public async Task DoWork(IJira jiraInstance)
         {
             _log.Trace("Defect sync started...");
-            var allJiraBugs = jiraInfo.JiraInstance.GetBugsInProject(jiraInfo.JiraKey).issues;
-            var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInfo.V1ProjectId);
+            var allJiraBugs = jiraInstance.GetBugsInProject(jiraInstance.JiraProject).issues;
+            var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
 
-            UpdateDefects(jiraInfo, allJiraBugs, allV1Defects);
-            CreateDefects(jiraInfo, allJiraBugs, allV1Defects);
-            DeleteV1Defects(jiraInfo, allJiraBugs, allV1Defects);
-
+            UpdateDefects(jiraInstance, allJiraBugs, allV1Defects);
+            CreateDefects(jiraInstance, allJiraBugs, allV1Defects);
+            DeleteV1Defects(jiraInstance, allJiraBugs, allV1Defects);
             _log.Trace("Defect sync stopped...");
         }
 
-        public async void UpdateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraBugs, List<Defect> allV1Defects)
+        public async void UpdateDefects(IJira jiraInstance, List<Issue> allJiraBugs, List<Defect> allV1Defects)
         {
             _log.Trace("Updating defects started");
             var data = new Dictionary<string, int>();
@@ -55,34 +55,32 @@ namespace VersionOne.TeamSync.Worker
 
             if (existingBugs.Any())
                 _log.DebugFormat("Found {0} defects to check for update", existingBugs.Count);
-           
-            var assignedEpics = await _v1.GetEpicsWithReference(jiraInfo.V1ProjectId, jiraInfo.EpicCategory);
+
+            var assignedEpics = await _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
 
             existingBugs.ForEach(existingJDefect =>
             {
                 var defectToUpdate = allV1Defects.Single(defect => existingJDefect.Fields.Labels.Contains(defect.Number));
+                var returnedValue = UpdateDefectFromJiraToV1(jiraInstance, existingJDefect, defectToUpdate, assignedEpics, data);
 
-
-
-                var returnedValue = UpdateDefectFromJiraToV1(jiraInfo, existingJDefect, defectToUpdate, assignedEpics, data);
-               
             });
 
-            if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
+            if (data["updated"] > 0)
+                _log.InfoUpdated(data["updated"], PluralAsset);
 
-            if (data["closed"] > 0) _log.InfoClosed(data["closed"], PluralAsset);
+            if (data["closed"] > 0)
+                _log.InfoClosed(data["closed"], PluralAsset);
 
-            if (data["reopened"] > 0) _log.InfoUpdated(data["reopened"], PluralAsset);
-            
+            if (data["reopened"] > 0)
+                _log.InfoUpdated(data["reopened"], PluralAsset);
+
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(V1JiraInfo jiraInfo, Issue issue, Defect defect, List<Epic> assignedEpics, Dictionary<string, int> data)
+        public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(IJira jiraInstance, Issue issue, Defect defect, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-
-
             //need to reopen a defect first before we can update it
-            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState == "128")
+            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && defect.AssetState == "128")
             {
                 await _v1.ReOpenDefect(defect.ID);
                 _log.DebugFormat("Reopened V1 defect {0}", defect.Number);
@@ -93,7 +91,7 @@ namespace VersionOne.TeamSync.Worker
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Defect(jiraInfo.V1ProjectId);
+            var update = issue.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
             update.ID = defect.ID;
             update.OwnersIds = defect.OwnersIds;
 
@@ -108,16 +106,17 @@ namespace VersionOne.TeamSync.Worker
                 await _v1.UpdateAsset(update, update.CreateOwnersPayload());
             }
 
-            if (!issue.ItMatchesDefect(defect))
+            if (!issue.ItMatchesDefect(defect) ||
+                    (JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != defect.Priority))
             {
                 update.Super = v1EpicId;
                 _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated V1 defect {0}", defect.Number);
-                data["closed"] +=1;
+                data["closed"] += 1;
             }
 
-            if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInfo.DoneWords) && defect.AssetState != "128")
+            if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && defect.AssetState != "128")
             {
                 await _v1.CloseDefect(defect.ID);
                 _log.DebugClosedItem("defect", defect.Number);
@@ -126,37 +125,37 @@ namespace VersionOne.TeamSync.Worker
             return data;
         }
 
-        public void CreateDefects(V1JiraInfo jiraInfo, List<Issue> allJiraBugs, List<Defect> allV1Defects)
+        public void CreateDefects(IJira jiraInstance, List<Issue> allJiraBugs, List<Defect> allV1Defects)
         {
             _log.Trace("Creating defects started");
             var processedDefects = 0;
-            var newDefects = allJiraBugs.Where(bug =>
-                            {
-                if (allV1Defects.Any(x => bug.Fields.Labels.Contains(x.Number))) return false;
-                    
 
+            var newDefects = allJiraBugs.Where(bug =>
+            {
+                if (allV1Defects.Any(x => bug.Fields.Labels.Contains(x.Number)))
+                    return false;
                 return allV1Defects.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
-                                                              vDefect.Reference.Contains(bug.Key)) == null;
-                            }
-                    ).ToList();
+                    vDefect.Reference.Contains(bug.Key)) == null;
+            }).ToList();
 
             if (newDefects.Any())
                 _log.DebugFormat("Found {0} defects to check for create", newDefects.Count);
 
             newDefects.ForEach(bug =>
-                {
-                CreateDefectFromJira(jiraInfo, bug).Wait();
-                    processedDefects++;
-                });
+            {
+                CreateDefectFromJira(jiraInstance, bug).Wait();
+                processedDefects++;
+            });
 
             if (processedDefects > 0)
                 _log.InfoCreated(processedDefects, PluralAsset);
             _log.TraceCreateFinished(PluralAsset);
         }
 
-        public async Task CreateDefectFromJira(V1JiraInfo jiraInfo, Issue jiraBug)
+        public async Task CreateDefectFromJira(IJira jiraInstance, Issue jiraBug)
         {
-            var defect = jiraBug.ToV1Defect(jiraInfo.V1ProjectId);
+            var defect = jiraBug.ToV1Defect(jiraInstance.V1Project,
+                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name));
 
             if (jiraBug.HasAssignee())
             {
@@ -177,23 +176,23 @@ namespace VersionOne.TeamSync.Worker
 
             await _v1.RefreshBasicInfo(newDefect);
 
-            jiraInfo.JiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraBug.Fields.Labels), jiraBug.Key);
+            jiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraBug.Fields.Labels), jiraBug.Key);
             _log.TraceFormat("Updated labels on Jira defect {0}", jiraBug.Key);
 
-            jiraInfo.JiraInstance.AddComment(jiraBug.Key, string.Format(CreatedFromV1Comment, newDefect.Number, newDefect.ScopeName));
+            jiraInstance.AddComment(jiraBug.Key, string.Format(CreatedFromV1Comment, newDefect.Number, newDefect.ScopeName));
             _log.TraceFormat("Added comment to Jira defect {0}", jiraBug.Key);
 
-            jiraInfo.JiraInstance.AddWebLink(jiraBug.Key,
+            jiraInstance.AddWebLink(jiraBug.Key,
                         string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newDefect.Number),
                         string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
             _log.TraceFormat("Added web link to V1 defect {0} on Jira bug {1}", newDefect.Number, jiraBug.Key);
 
-            var link = new Uri(new Uri(jiraInfo.JiraInstance.InstanceUrl), string.Format("browse/{0}", jiraBug.Key)).ToString();
+            var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraBug.Key)).ToString();
             _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraBug.Key), link);
             _log.TraceFormat("Added link in V1 defect {0}", newDefect.Number);
         }
 
-        public void DeleteV1Defects(V1JiraInfo jiraInfo, List<Issue> allJiraBugs, List<Defect> allV1Defects)
+        public void DeleteV1Defects(IJira jiraInstance, List<Issue> allJiraBugs, List<Defect> allV1Defects)
         {
             _log.Trace("Deleting defects started");
             var processedDefects = 0;
@@ -211,7 +210,7 @@ namespace VersionOne.TeamSync.Worker
             jiraDeletedBugsKeys.ForEach(key =>
             {
                 _log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", key);
-                _v1.DeleteDefectWithJiraReference(jiraInfo.V1ProjectId, key);
+                _v1.DeleteDefectWithJiraReference(jiraInstance.V1Project, key);
                 _log.DebugFormat("Deleted V1 defect referencing jira defect {0}", key);
                 processedDefects++;
             });

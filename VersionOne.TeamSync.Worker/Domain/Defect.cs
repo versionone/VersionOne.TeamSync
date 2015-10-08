@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using VersionOne.TeamSync.V1Connector.Extensions;
-using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Worker.Domain
@@ -60,6 +59,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Estimate { get; set; }
         public string ToDo { get; set; }
         public string Reference { get; set; }
+        public string Priority { get; set; }
+
         public string Super { get; set; }
         public string SuperNumber { get; set; }
         public bool IsInactive { get; private set; }
@@ -75,6 +76,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("ToDo", ToDo)
                 .AddSetNode("Reference", Reference)
                 .AddSetRelationNode("Super", Super)
+                .AddSetRelationNode("Priority", Priority)
                 .AddMultiRelationNode("Owners", OwnersIds.ToDictionary(memberId => memberId, memberId => "add"));
             return doc;
         }
@@ -88,7 +90,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableSetNode("Estimate", Estimate)
                 .AddNullableSetNode("ToDo", ToDo)
                 .AddNullableSetRelationNode("Super", Super)
-                .AddSetNode("Reference", Reference);
+                .AddSetNode("Reference", Reference)
+                .AddSetRelationNode("Priority", Priority);
             return doc;
         }
 
@@ -118,6 +121,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public static Defect FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
+            var priority = asset.Elements("Relation").Single(e => e.Attribute("name").Value.Equals("Priority")).Element("Asset");
             var ownersIds =
                 asset.Elements("Relation")
                     .Where(e => e.Attribute("name").Value == "Owners")
@@ -136,6 +140,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
                 AssetState = attributes.GetValueOrDefault("AssetState"),
                 SuperNumber = attributes.GetValueOrDefault("Super.Number"),
+                Priority = priority != null ? priority.Attribute("idref").Value : string.Empty,
                 OwnersIds = ownersIds.ToList()
             };
         }

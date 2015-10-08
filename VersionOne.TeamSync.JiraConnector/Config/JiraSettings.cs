@@ -1,12 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using VersionOne.TeamSync.Core.Config;
 
 namespace VersionOne.TeamSync.JiraConnector.Config
 {
-    public class JiraSettings : ConfigurationSection
+    public interface IJiraSettings
     {
-        public static readonly JiraSettings Settings = ConfigurationManager.GetSection("jiraSettings") as JiraSettings;
+        JiraServerCollection Servers { get; set; }
+        string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority);
+        string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority);
+    }
+
+    public class JiraSettings : ConfigurationSection, IJiraSettings
+    {
+        private static IJiraSettings _instance;
+
+        public static IJiraSettings GetInstance()
+        {
+            if (_instance == null)
+                _instance = ConfigurationManager.GetSection("jiraSettings") as JiraSettings;
+
+            return _instance;
+        }
 
         [ConfigurationProperty("servers", IsDefaultCollection = true)]
         public JiraServerCollection Servers
@@ -19,6 +36,34 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             {
                 this["servers"] = value;
             }
+        }
+
+        public string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority)
+        {
+            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            var jiraPriorityIdFromMapping = jiraServer.PriorityMappings.DefaultJiraPriorityId;
+            if (!string.IsNullOrEmpty(v1Priority))
+            {
+                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>().FirstOrDefault(pm => pm.V1Priority.Equals(v1Priority));
+                if (mapping != null)
+                    jiraPriorityIdFromMapping = mapping.JiraIssuePriorityId;
+            }
+
+            return jiraPriorityIdFromMapping;
+        }
+
+        public string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority)
+        {
+            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            var v1PriorityIdFromMapping = string.Empty;
+            if (!string.IsNullOrEmpty(jiraPriority))
+            {
+                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>().FirstOrDefault(pm => pm.JiraPriority.Equals(jiraPriority));
+                if (mapping != null)
+                    v1PriorityIdFromMapping = mapping.V1WorkitemPriorityId;
+            }
+
+            return v1PriorityIdFromMapping;
         }
     }
 
@@ -85,6 +130,19 @@ namespace VersionOne.TeamSync.JiraConnector.Config
                 this["projectMappings"] = value;
             }
         }
+
+        [ConfigurationProperty("priorityMappings")]
+        public PriorityMappingCollection PriorityMappings
+        {
+            get
+            {
+                return (PriorityMappingCollection)this["priorityMappings"];
+            }
+            set
+            {
+                this["priorityMappings"] = value;
+            }
+        }
     }
 
     [ConfigurationCollection(typeof(JiraServer), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]
@@ -137,15 +195,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         }
     }
 
-    public interface IProjectMapping
-    {
-        bool Enabled { get; set; }
-        string V1Project { get; set; }
-        string JiraProject { get; set; }
-        string EpicSyncType { get; set; }
-    }
-
-    public class ProjectMapping : ConfigurationElement, IProjectMapping
+    public class ProjectMapping : ConfigurationElement
     {
         [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
         public bool Enabled
@@ -223,6 +273,89 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             {
                 return (ProjectMapping)BaseGet(idx);
             }
+        }
+    }
+
+    public class PriorityMapping : ConfigurationElement
+    {
+        public string V1WorkitemPriorityId { get; set; }
+        public string JiraIssuePriorityId { get; set; }
+
+        [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
+        public bool Enabled
+        {
+            get { return (bool)this["enabled"]; }
+            set { this["enabled"] = value; }
+        }
+
+        [ConfigurationProperty("v1Priority", IsRequired = true)]
+        public string V1Priority
+        {
+            get { return (string)this["v1Priority"]; }
+            set { this["v1Priority"] = value; }
+        }
+
+        [ConfigurationProperty("jiraPriority", IsRequired = true)]
+        public string JiraPriority
+        {
+            get { return (string)this["jiraPriority"]; }
+            set { this["jiraPriority"] = value; }
+        }
+    }
+
+    [ConfigurationCollection(typeof(PriorityMapping), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]
+    public class PriorityMappingCollection : ConfigurationElementCollection
+    {
+        internal const string PropertyName = "priority";
+
+        protected override string ElementName
+        {
+            get
+            {
+                return PropertyName;
+            }
+        }
+
+        protected override bool IsElementName(string elementName)
+        {
+            return elementName.Equals(PropertyName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new PriorityMapping();
+        }
+
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return ((PriorityMapping)(element)).V1Priority + "/" + ((PriorityMapping)(element)).JiraPriority;
+        }
+
+        public override ConfigurationElementCollectionType CollectionType
+        {
+            get
+            {
+                return ConfigurationElementCollectionType.BasicMapAlternate;
+            }
+        }
+
+        public override bool IsReadOnly()
+        {
+            return false;
+        }
+
+        public PriorityMapping this[int idx]
+        {
+            get { return (PriorityMapping)BaseGet(idx); }
+        }
+
+        public string DefaultJiraPriorityId { get; set; }
+
+        [ConfigurationProperty("defaultJiraPriority", IsRequired = true)]
+        public string DefaultJiraPriority
+        {
+            get { return (string)this["defaultJiraPriority"]; }
+            set { this["defaultJiraPriority"] = value; }
         }
     }
 }

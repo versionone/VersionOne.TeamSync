@@ -28,7 +28,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _story.Number.ShouldBeNull();
             _story.ID.ShouldBeNull();
 
-            _v1 = new V1(_mockV1.Object, new TimeSpan());
+            _v1 = new V1(_mockV1.Object);
             _createdStory = await _v1.CreateStory(_story);
         }
 

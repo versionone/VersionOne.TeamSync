@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using log4net;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.V1Connector;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -20,6 +23,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateEpicCategoryExists(string epicCategoryId);
         bool ValidateActualReferenceFieldExists();
         bool ValidateMemberPermissions();
+        Task<string> GetPriorityId(string asset, string name);
 
         void CreateLink(IV1Asset asset, string title, string url);
         Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
@@ -60,46 +64,41 @@ namespace VersionOne.TeamSync.Worker.Domain
 
     public class V1 : IV1
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
+        private const int ProjectLeadOrder = 3;
         private const int ConnectionAttempts = 3;
         private const string WhereProject = "Scope=\"{0}\"";
         private const string WhereEpicCategory = "Category=\"{0}\"";
-        private const int ProjectLeadOrder = 3;
+
+        private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
-        private readonly IV1Connector _connector;
-        private readonly string _aDayAgo;
 
-        public V1(IV1Connector connector, IDateTime dateTime, TimeSpan serviceDuration)
+        private IV1Connector _connector;
+
+        public V1()
         {
-            _connector = connector;
-
-            //need properties from the connector for this
-            InstanceUrl = _connector.InstanceUrl;
-            _aDayAgo = dateTime.UtcNow.Add(-serviceDuration).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
+            BuildConnectorFromConfig();
         }
 
-        public V1(IV1Connector connector, TimeSpan serviceDuration)
+        public V1(IV1Connector v1Connector)
         {
-            _connector = connector;
-
-            //need properties from the connector for this
-            InstanceUrl = _connector.InstanceUrl;
-            _aDayAgo = DateTime.UtcNow.Add(-serviceDuration).ToString("yyyy-MM-dd HH:mm:ss").InQuotes();
+            _connector = v1Connector;
         }
 
-        public string InstanceUrl { get; private set; }
+        public string InstanceUrl
+        {
+            get { return _connector.InstanceUrl; }
+        }
 
         public string MemberId { get; private set; }
 
         public async Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category)
         {
             return await _connector.Query("Epic",
-                new[] { "ID.Number", "Name", "Description", "Scope.Name" },
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
                 new[]
                 {
                     "Reference=\"\"",
                     "AssetState='Active'",
-                    //"CreateDateUTC>=" + _aDayAgo,
                     string.Format(WhereProject, projectId),
                     string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -116,7 +115,6 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { 
                     "Reference!=\"\"",
                     "AssetState='Closed'", 
-                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(WhereProject, projectId),
                     string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -124,10 +122,9 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
         {
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState" },
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name" },
                 new[] { 
                     "Reference!=\"\"", 
-                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(WhereProject, projectId), 
                     string.Format(WhereEpicCategory, category)
                 }, Epic.FromQuery);
@@ -139,7 +136,6 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { 
                     "Reference!=\"\"", 
                     "IsDeleted='True'",
-                    //"ChangeDateUTC>=" + _aDayAgo, 
                     string.Format(WhereProject, projectId), 
                     string.Format(WhereEpicCategory, category) 
                 }, Epic.FromQuery);
@@ -183,6 +179,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             var defect = await GetDefectWithJiraReference(projectId, jiraStoryKey);
             await _connector.Post(defect, defect.RemoveReference());
             await _connector.Operation(defect, "Delete");
+        }
+
+        public async Task<string> GetPriorityId(string asset, string name)
+        {
+            var result = await _connector.Query(asset, new[] { "" }, new[] { string.Format("Name='{0}'", name) }, element => element.Attribute("id").Value);
+            return result.FirstOrDefault();
         }
 
         public async void CreateLink(IV1Asset asset, string title, string url)
@@ -280,14 +282,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Story>> GetStoriesWithJiraReference(string projectId)
         {
             return await _connector.Query("Story",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Owners" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Priority", "Owners" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Story.FromQuery);
         }
 
         public async Task<List<Defect>> GetDefectsWithJiraReference(string projectId)
         {
             return await _connector.Query("Defect",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Owners" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Priority", "Owners" },
                 new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Defect.FromQuery);
         }
 
@@ -355,6 +357,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             return actual;
         }
 
+        // D-09877
         //public async Task<XDocument> CreateScheduleForProject(string projectId)
         //{
         //    var projectName = _connector.Query("Scope", new[] { "Name" }, new[] { string.Format("ID='{0}'", projectId) },
@@ -372,6 +375,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         //    return await _connector.Post("Schedule", payload.ToString());
         //}
 
+        // D-09877
         //public async Task<XDocument> SetScheduleToProject(string projectId, string scheduleId)
         //{
         //    var payload = XDocument.Parse("<Asset></Asset>")
@@ -409,10 +413,51 @@ namespace VersionOne.TeamSync.Worker.Domain
             }
             return member ?? await CreateMember(jiraUser.ToV1Member());
         }
-    }
 
-    public interface IDateTime
-    {
-        DateTime UtcNow { get; }
+        private void BuildConnectorFromConfig()
+        {
+            var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
+                .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
+
+            ICanSetProxyOrGetConnector authConnector;
+            switch (V1Settings.Settings.AuthenticationType)
+            {
+                case 0:
+                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
+                        .WithAccessToken(V1Settings.Settings.AccessToken);
+                    break;
+                case 1:
+                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
+                        .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password);
+                    break;
+                case 2:
+                    authConnector = anonymousConnector
+                        .WithWindowsIntegrated()
+                        .UseOAuthEndpoints();
+                    break;
+                case 3:
+                    authConnector = anonymousConnector
+                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password)
+                        .UseOAuthEndpoints();
+                    break;
+                case 4:
+                    authConnector = anonymousConnector
+                        .WithAccessToken(V1Settings.Settings.AccessToken)
+                        .UseOAuthEndpoints();
+                    break;
+
+                default:
+                    throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
+            }
+
+            if (V1Settings.Settings.Proxy.Enabled)
+            {
+                authConnector = (ICanSetProxyOrGetConnector)authConnector.WithProxy(new ProxyProvider(new Uri(V1Settings.Settings.Proxy.Url),
+                    V1Settings.Settings.Proxy.Username, V1Settings.Settings.Proxy.Password,
+                    V1Settings.Settings.Proxy.Domain));
+            }
+
+            _connector = authConnector.Build();
+        }
     }
 }

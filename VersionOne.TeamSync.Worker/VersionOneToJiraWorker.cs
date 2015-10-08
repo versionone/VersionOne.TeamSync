@@ -2,12 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Xml.Linq;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
-using VersionOne.TeamSync.V1Connector;
-using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Worker
@@ -15,72 +12,28 @@ namespace VersionOne.TeamSync.Worker
     public class VersionOneToJiraWorker
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
-        private readonly List<IAsyncWorker> _asyncWorkers;
-        private readonly IEnumerable<V1JiraInfo> _jiraInstances;
         private readonly IV1 _v1;
-        private static DateTime _syncTime;
+        private readonly IList<IJira> _jiraInstances;
+        private readonly List<IAsyncWorker> _asyncWorkers;
 
-        public bool IsActualWorkEnabled { get; private set; }
-
-        public VersionOneToJiraWorker(TimeSpan serviceDuration)
+        public VersionOneToJiraWorker()
         {
-            var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
-                .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
+            _v1 = new V1();
 
-            ICanSetProxyOrGetConnector authConnector;
-            switch (V1Settings.Settings.AuthenticationType)
+            _jiraInstances = new List<IJira>();
+            foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
-                case 0:
-                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
-                        .WithAccessToken(V1Settings.Settings.AccessToken);
-                    break;
-                case 1:
-                    authConnector = (ICanSetProxyOrGetConnector)anonymousConnector
-                        .WithUsernameAndPassword(V1Settings.Settings.Username, V1Settings.Settings.Password);
-                    break;
-                case 2:
-                    authConnector = anonymousConnector
-                        .WithWindowsIntegrated()
-                        .UseOAuthEndpoints();
-                    break;
-                case 3:
-                    authConnector = anonymousConnector
-                        .WithWindowsIntegrated(V1Settings.Settings.Username, V1Settings.Settings.Password)
-                        .UseOAuthEndpoints();
-                    break;
-                case 4:
-                    authConnector = anonymousConnector
-                        .WithAccessToken(V1Settings.Settings.AccessToken)
-                        .UseOAuthEndpoints();
-                    break;
+                var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
 
-                default:
-                    throw new Exception("Unsupported authentication type. Please check the VersionOne authenticationType setting in the config file.");
+                var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
+                if (projectMappings.Any())
+                {
+                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
+                }
+                else
+                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
             }
 
-            if (V1Settings.Settings.Proxy.Enabled)
-            {
-                authConnector = (ICanSetProxyOrGetConnector)authConnector.WithProxy(new ProxyProvider(new Uri(V1Settings.Settings.Proxy.Url),
-                    V1Settings.Settings.Proxy.Username, V1Settings.Settings.Proxy.Password,
-                    V1Settings.Settings.Proxy.Domain));
-            }
-
-            _v1 = new V1(authConnector.Build(), serviceDuration);
-
-            _asyncWorkers = new List<IAsyncWorker>
-            {
-                new EpicWorker(_v1, Log),
-                new StoryWorker(_v1, Log),
-                new DefectWorker(_v1, Log),
-                new ActualsWorker(_v1, Log)
-            };
-
-            _jiraInstances = V1JiraInfo.BuildJiraInfo(JiraSettings.Settings.Servers);
-        }
-
-        public VersionOneToJiraWorker(IV1 v1)
-        {
-            _v1 = v1;
             _asyncWorkers = new List<IAsyncWorker>
             {
                 new EpicWorker(_v1, Log),
@@ -92,20 +45,20 @@ namespace VersionOne.TeamSync.Worker
 
         public void DoWork()
         {
+            var syncTime = DateTime.Now;
             Log.Info("Beginning sync...");
 
-            _jiraInstances.ToList().ForEach(jiraInfo =>
+            _jiraInstances.ToList().ForEach(jiraInstance =>
             {
-                _syncTime = DateTime.Now;
-                Log.Info(string.Format("Syncing between {0} and {1}", jiraInfo.JiraKey, jiraInfo.V1ProjectId));
+                Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
-                _asyncWorkers.ForEach(worker => worker.DoWork(jiraInfo));
+                _asyncWorkers.ForEach(worker => worker.DoWork(jiraInstance));
 
-                jiraInfo.JiraInstance.CleanUpAfterRun(Log);
+                jiraInstance.CleanUpAfterRun(Log);
             });
 
             Log.Info("Ending sync...");
-            Log.DebugFormat("Total sync time: {0}", DateTime.Now - _syncTime);
+            Log.DebugFormat("Total sync time: {0}", DateTime.Now - syncTime);
         }
 
         public void ValidateConnections()
@@ -127,7 +80,7 @@ namespace VersionOne.TeamSync.Worker
                 foreach (var jiraInstanceInfo in _jiraInstances.ToList())
                 {
                     Log.InfoFormat("Verifying Jira connection...");
-                    Log.DebugFormat("URL: {0}", jiraInstanceInfo.JiraInstance.InstanceUrl);
+                    Log.DebugFormat("URL: {0}", jiraInstanceInfo.InstanceUrl);
                     Log.Info(jiraInstanceInfo.ValidateConnection()
                         ? "Jira connection successful!"
                         : "Jira connection failed!");
@@ -143,16 +96,35 @@ namespace VersionOne.TeamSync.Worker
         {
             foreach (var jiraInstance in _jiraInstances.ToList())
             {
-                Log.InfoFormat("Verifying V1ProjectID={1} to JiraProjectID={0} project mapping...", jiraInstance.JiraKey, jiraInstance.V1ProjectId);
+                var isMappingValid = true;
+                Log.InfoFormat("Verifying V1ProjectID={1} to JiraProjectID={0} project mapping...", jiraInstance.JiraProject, jiraInstance.V1Project);
 
-                if (jiraInstance.ValidateMapping(_v1))
+                if (!jiraInstance.ValidateProjectExists())
+                {
+                    Log.ErrorFormat("Jira project '{0}' does not exist. Current project mapping will be ignored", jiraInstance.JiraProject);
+                    isMappingValid = false;
+                }
+                if (!_v1.ValidateProjectExists(jiraInstance.V1Project))
+                {
+                    Log.ErrorFormat(
+                        "VersionOne project '{0}' does not exist or does not have a role assigned for user {1}. Current project mapping will be ignored",
+                        jiraInstance.V1Project, V1Settings.Settings.Username);
+                    isMappingValid = false;
+                }
+                if (!_v1.ValidateEpicCategoryExists(jiraInstance.EpicCategory))
+                {
+                    Log.ErrorFormat("VersionOne Epic Category '{0}' does not exist. Current project mapping will be ignored", jiraInstance.EpicCategory);
+                    isMappingValid = false;
+                }
+
+                if (isMappingValid)
                 {
                     Log.Info("Mapping successful! Projects will be synchronized.");
                 }
                 else
                 {
                     Log.Error("Mapping failed. Projects will not be synchronized.");
-                    ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
+                    _jiraInstances.Remove(jiraInstance);
                 }
             }
 
@@ -177,7 +149,7 @@ namespace VersionOne.TeamSync.Worker
             foreach (var jiraInstanceInfo in _jiraInstances.ToList())
             {
                 Log.InfoFormat("Verifying JIRA member account permissions...");
-                Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.JiraInstance.InstanceUrl, jiraInstanceInfo.JiraInstance.Username);
+                Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.InstanceUrl, jiraInstanceInfo.Username);
                 if (jiraInstanceInfo.ValidateMemberPermissions())
                 {
                     Log.Info("JIRA user has valid permissions.");
@@ -185,7 +157,7 @@ namespace VersionOne.TeamSync.Worker
                 else
                 {
                     Log.Error("JIRA user is not valid, must belong to 'jira-developers' or 'jira-administrators' group.");
-                    throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.JiraInstance.Username));
+                    throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.Username));
                 }
             }
         }
@@ -234,6 +206,43 @@ namespace VersionOne.TeamSync.Worker
         //    if (!_jiraInstances.Any())
         //        throw new Exception("No valid projects to synchronize. You need at least one VersionOne project with a valid schedule for the service to run.");
         //}
+
+        public void ValidatePriorityMappings()
+        {
+            foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            {
+                var jira = _jiraInstances.FirstOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
+                if (jira != null)
+                {
+                    var jiraDefaultPriorityId = jira.GetPriorityId(serverSettings.PriorityMappings.DefaultJiraPriority);
+                    if (jiraDefaultPriorityId == null)
+                    {
+                        Log.DebugFormat(
+                            "Jira default priority '{0}' not found on Jira Server '{1}'. Server won't be synced",
+                            serverSettings.PriorityMappings.DefaultJiraPriority, serverSettings.Url);
+                        _jiraInstances.Where(j => j.InstanceUrl.Equals(serverSettings.Url))
+                            .ToList()
+                            .ForEach(j => _jiraInstances.Remove(j));
+                    }
+                    else
+                    {
+                        serverSettings.PriorityMappings.DefaultJiraPriorityId = jiraDefaultPriorityId;
+                        foreach (var priorityMapping in serverSettings.PriorityMappings.Cast<PriorityMapping>())
+                        {
+                            var v1WorkitemPriorityId = _v1.GetPriorityId("WorkitemPriority", priorityMapping.V1Priority).Result;
+                            priorityMapping.V1WorkitemPriorityId = v1WorkitemPriorityId;
+                            if (v1WorkitemPriorityId == null)
+                                Log.DebugFormat("Version One workintem priority '{0}' not found. Default priority will be set", priorityMapping.V1Priority);
+
+                            var jiraIssuePriorityId = jira.GetPriorityId(priorityMapping.JiraPriority);
+                            priorityMapping.JiraIssuePriorityId = jiraIssuePriorityId;
+                            if (jiraIssuePriorityId == null)
+                                Log.DebugFormat("Jira priority '{0}' not found. No priority will be set", priorityMapping.JiraPriority);
+                        }
+                    }
+                }
+            }
+        }
 
         private void LogVersionOneErrorMessage(XDocument error)
         {
