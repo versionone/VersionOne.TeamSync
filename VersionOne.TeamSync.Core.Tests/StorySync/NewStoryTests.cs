@@ -109,7 +109,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_log_an_error()
         {
-            _mockLogger.Verify(x => x.Error("failure"));
+            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic maybe closed"));
         }
 
         [TestMethod]
