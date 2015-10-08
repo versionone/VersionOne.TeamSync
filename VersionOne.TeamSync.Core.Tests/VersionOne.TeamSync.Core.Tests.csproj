@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssetAttribute.cs" />
     <Compile Include="EpicExtensionTests.cs" />
     <Compile Include="Jira\SettingProjectToResoved_Tests.cs" />
     <Compile Include="Workers\DefectWorkerTests.cs" />

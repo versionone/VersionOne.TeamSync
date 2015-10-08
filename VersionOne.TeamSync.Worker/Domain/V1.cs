@@ -27,6 +27,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         void CreateLink(IV1Asset asset, string title, string url);
         Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
+        Task<string> GetOpenAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey);
+
         Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
 
         Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category);
@@ -311,7 +313,23 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey)
         {
-            var response = await _connector.Query(assetType, new[] { "ID" }, new[] { "Reference=" + jiraEpicKey.InQuotes() },
+            var response = await _connector.Query(assetType,
+                new[] { "ID" },
+                new[] { "Reference=" + jiraEpicKey.InQuotes() },
+                element => element.Attribute("id").Value);
+
+            return response.FirstOrDefault();
+        }
+
+        public async Task<string> GetOpenAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey)
+        {
+            var response = await _connector.Query(assetType,
+                new[] { "ID" },
+                new[]
+                {
+                    "Reference=" + jiraEpicKey.InQuotes(),
+                    "IsClosed=\"False\""
+                },
                 element => element.Attribute("id").Value);
 
             return response.FirstOrDefault();

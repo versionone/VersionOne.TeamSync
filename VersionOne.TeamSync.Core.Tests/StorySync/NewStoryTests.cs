@@ -67,6 +67,77 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         }
     }
 
+    [TestClass]
+    [DefectNumber("D-09878")]
+    public class take_jira_story_to_v1_story_and_epic_is_closed : worker_bits
+    {
+        private StoryWorker _worker;
+        private Story _createdStory;
+        private string _issueKey = "OPC-71";
+
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+            _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>()))
+                .Callback((Story story) =>
+                {
+                    _createdStory = story;
+                })
+                .ReturnsAsync(_createdStory);
+
+            _mockV1.Setup(x => x.GetOpenAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+                .ReturnsAsync("");
+            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
+            await _worker.CreateStoryFromJira(MakeInfo(), new Issue()
+            {
+                Key = _issueKey,
+                RenderedFields = new RenderedFields() { Description = "descript" },
+                Fields = new Fields()
+                {
+                    EpicLink = "E-1000"
+                }
+            });
+        }
+
+        [TestMethod]
+        public void should_call_create_story_once()
+        {
+            _mockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_log_an_error()
+        {
+            _mockLogger.Verify(x => x.Error("failure"));
+        }
+
+        [TestMethod]
+        public void should_not_update_the_issue()
+        {
+            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_call_refresh_info()
+        {
+            _mockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Story>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_create_a_comment()
+        {
+            _mockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_try_to_add_weblink()
+        {
+            _mockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+    }
+
+
     public abstract class update_jira_story_to_v1 : worker_bits
     {
         private const string IssueKey = "OPC-71";
@@ -190,6 +261,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
     }
 
     [TestClass]
+    [DefectNumber("D-09878")]
     public class and_the_status_is_normal_but_the_parent_epic_is_closed : update_jira_story_to_v1
     {
         [TestInitialize]
@@ -200,6 +272,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             _epic.Number = "E-1000";
             _story.AssetState = "64";
             _story.Super = "Epic:2000";
+            _story.SuperNumber = "E-2000";
 
             _status = new Status() { Name = "In Progress" };
             Context();
@@ -213,15 +286,15 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         }
 
         [TestMethod]
-        public void should_not_update_the_parent()
+        public void should_not_update_the_parent_epic() //null value means no update
         {
-            _updateStory.Super.ShouldEqual("Epic:2000");
+            _updateStory.Super.ShouldBeNull();
         }
 
         [TestMethod]
         public void should_log_a_message_about_the_closed_epic()
         {
-            _mockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but please reassign to an open Epic"));
+            _mockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic"), Times.Once);
         }
     }
 

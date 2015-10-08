@@ -261,7 +261,8 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             BuildContext();
             NewIssue.Fields.EpicLink = EpicLink;
-
+            MockV1.Setup(x => x.GetOpenAssetIdFromJiraReferenceNumber(It.IsAny<string>(), _epicLink))
+                .ReturnsAsync("Epic:1000");
             Worker.CreateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Story> { ExistingStory });
         }
 
@@ -274,7 +275,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_try_to_get_an_epic_id()
         {
-            MockV1.Verify(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            MockV1.Verify(x => x.GetOpenAssetIdFromJiraReferenceNumber(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
