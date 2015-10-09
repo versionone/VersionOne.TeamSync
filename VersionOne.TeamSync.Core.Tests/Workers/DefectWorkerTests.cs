@@ -348,6 +348,77 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
     }
 
+    [TestClass]
+    [DefectNumber("D-09878")]
+    public class take_jira_bug_to_v1_defect_and_epic_is_closed : worker_bits
+    {
+        private DefectWorker _worker;
+        private Defect _createdDefect;
+        private string _issueKey = "OPC-71";
+
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+            _mockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>()))
+                .Callback((Defect story) =>
+                {
+                    _createdDefect = story;
+                })
+                .ReturnsAsync(_createdDefect);
+
+            _mockV1.Setup(x => x.GetOpenAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+                .ReturnsAsync("");
+            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
+            await _worker.CreateDefectFromJira(MakeInfo(), new Issue()
+            {
+                Key = _issueKey,
+                RenderedFields = new RenderedFields() { Description = "descript" },
+                Fields = new Fields()
+                {
+                    EpicLink = "E-1000"
+                }
+            });
+        }
+
+        [TestMethod]
+        public void should_call_create_story_once()
+        {
+            _mockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_log_an_error()
+        {
+            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic maybe closed"));
+        }
+
+        [TestMethod]
+        public void should_not_update_the_issue()
+        {
+            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_call_refresh_info()
+        {
+            _mockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Defect>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_create_a_comment()
+        {
+            _mockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_try_to_add_weblink()
+        {
+            _mockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+    }
+
+
     public abstract class update_jira_bug_to_v1 : worker_bits
     {
         private string _issueKey = "OPC-71";

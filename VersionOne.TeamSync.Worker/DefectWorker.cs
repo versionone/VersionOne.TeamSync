@@ -168,8 +168,15 @@ namespace VersionOne.TeamSync.Worker
 
             if (!string.IsNullOrEmpty(jiraBug.Fields.EpicLink))
             {
-                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraBug.Fields.EpicLink);
-                defect.Super = epicId;
+                var epicId = await _v1.GetOpenAssetIdFromJiraReferenceNumber("Epic", jiraBug.Fields.EpicLink);
+
+                if (!string.IsNullOrWhiteSpace(epicId))
+                    defect.Super = epicId;
+                else
+                {
+                    _log.Error("Unable to assign epic " + jiraBug.Fields.EpicLink + " -- Epic maybe closed");
+                    return;
+                }
             }
 
             _log.TraceFormat("Attempting to create V1 defect from Jira defect {0}", jiraBug.Key);
