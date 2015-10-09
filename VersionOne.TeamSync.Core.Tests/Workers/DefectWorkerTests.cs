@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -311,6 +310,96 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
     }
 
     [TestClass]
+    [DefectNumber("D-09878")]
+    public class defect_update_with_closed_epic : update_jira_bug_to_v1
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            _epic.AssetState = "128";
+            _epic.ID = "1000";
+            _epic.Number = "E-1000";
+            _defect.AssetState = "64";
+            _defect.Super = "Epic:2000";
+            _defect.SuperNumber = "E-2000";
+
+            _status = new Status() { Name = "In Progress" };
+            Context();
+        }
+
+        [TestMethod]
+        public void should_not_call_either_operations_to_close_or_reopen()
+        {
+            _mockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+            _mockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_update_the_parent_epic() //null value means no update
+        {
+            _updateDefect.Super.ShouldBeNull();
+        }
+
+        [TestMethod]
+        public void should_log_a_message_about_the_closed_epic()
+        {
+            _mockLogger.Verify(x => x.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic"), Times.Once);
+        }
+
+    }
+
+    public abstract class update_jira_bug_to_v1 : worker_bits
+    {
+        private string _issueKey = "OPC-71";
+        protected Defect _updateDefect;
+        private string _defectId = "Defect:1000";
+        protected Status _status;
+        protected Defect _defect = new Defect();
+        protected Epic _epic = new Epic() { AssetState = "64" };
+        private DefectWorker _worker;
+
+        public async void Context()
+        {
+            BuildContext();
+            _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()))
+                .Callback<IV1Asset, XDocument>((defect, doc) =>
+                {
+                    _updateDefect = (Defect)defect;
+                })
+                .ReturnsAsync(new XDocument());
+
+            _defect.ID = _defectId;
+            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
+            await _worker.UpdateDefectFromJiraToV1(MakeInfo(), new Issue()
+            {
+                Key = _issueKey,
+                RenderedFields = new RenderedFields()
+                {
+                    Description = "descript"
+                },
+                Fields = new Fields()
+                {
+                    Status = _status,
+                    Summary = "summary",
+                }
+            }, _defect, new List<Epic>() { _epic });
+        }
+
+        [TestMethod]
+        public void should_update_the_asset_once()
+        {
+            _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_pass_along_data_to_update_story()
+        {
+            _updateDefect.ID.ShouldEqual(_defectId);
+            _updateDefect.Reference.ShouldEqual(_issueKey);
+        }
+    }
+
+    [TestClass]
     public class defect_with_assignee : defect_bits
     {
         [TestInitialize]
@@ -334,4 +423,5 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
         }
     }
+
 }

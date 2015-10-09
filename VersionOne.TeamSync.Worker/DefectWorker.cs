@@ -102,14 +102,16 @@ namespace VersionOne.TeamSync.Worker
                     await _v1.UpdateAsset(update, update.CreateOwnersPayload(member.Oid()));
             }
             else if (update.OwnersIds.Any()) // Unassign Owner
-            {
                 await _v1.UpdateAsset(update, update.CreateOwnersPayload());
-            }
+
+            if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
+                _log.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic");
 
             if (!issue.ItMatchesDefect(defect) ||
                     (JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != defect.Priority))
             {
-                update.Super = v1EpicId;
+                if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
+                    update.Super = v1EpicId;
                 _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated V1 defect {0}", defect.Number);
