@@ -394,101 +394,101 @@ namespace VersionOne.TeamSync.Core.Tests
         }
     }
 
-    [TestClass]
-    public class Worker_when_a_VersionOne_epic_is_closed : worker_bits
-    {
-        private Epic _epic;
-        private SearchResult _searchResult;
-        private EpicWorker _worker;
+    //[TestClass]
+    //public class Worker_when_a_VersionOne_epic_is_closed : worker_bits
+    //{
+    //    private Epic _epic;
+    //    private SearchResult _searchResult;
+    //    private EpicWorker _worker;
 
-        [TestInitialize]
-        public async void Context()
-        {
-            BuildContext();
-            _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
-            _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "Pending" } } });
+    //    [TestInitialize]
+    //    public async void Context()
+    //    {
+    //        BuildContext();
+    //        _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
+    //        _searchResult = new SearchResult();
+    //        _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "Pending" } } });
 
-            MockV1.Setup(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
-            {
-                _epic
-            });
-            MockV1.Setup(x => x.UpdateEpicReference(_epic));
-            MockV1.Setup(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()));
+    //        MockV1.Setup(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
+    //        {
+    //            _epic
+    //        });
+    //        MockV1.Setup(x => x.UpdateEpicReference(_epic));
+    //        MockV1.Setup(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()));
 
-            MockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
+    //        MockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+    //        _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
 
-            await _worker.ClosedV1EpicsSetJiraEpicsToResolved(MockJira.Object);
-        }
+    //        await _worker.ClosedV1EpicsSetJiraEpicsToResolved(MockJira.Object);
+    //    }
 
-        [TestMethod]
-        public void should_call_EpicsWithoutReference_one_time()
-        {
-            MockV1.Verify(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory), Times.Once);
-        }
+    //    [TestMethod]
+    //    public void should_call_EpicsWithoutReference_one_time()
+    //    {
+    //        MockV1.Verify(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory), Times.Once);
+    //    }
 
-        [TestMethod]
-        public void should_call_CreateEpic_on_jira()
-        {
-            MockJira.Verify(x => x.GetEpicByKey("OPC-10"), Times.Once());
-        }
+    //    [TestMethod]
+    //    public void should_call_CreateEpic_on_jira()
+    //    {
+    //        MockJira.Verify(x => x.GetEpicByKey("OPC-10"), Times.Once());
+    //    }
 
-        [TestMethod]
-        public void should_create_a_link_on_v1_epic()
-        {
-            MockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
-        }
-    }
+    //    [TestMethod]
+    //    public void should_create_a_link_on_v1_epic()
+    //    {
+    //        MockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
+    //    }
+    //}
 
-    [TestClass]
-    public class Worker_when_a_VersionOne_epic_is_closed_and_already_updated : worker_bits
-    {
-        private Epic _epic;
-        private SearchResult _searchResult;
-        private EpicWorker _epicWorker;
+    //[TestClass]
+    //public class Worker_when_a_VersionOne_epic_is_closed_and_already_updated : worker_bits
+    //{
+    //    private Epic _epic;
+    //    private SearchResult _searchResult;
+    //    private EpicWorker _epicWorker;
 
-        [TestInitialize]
-        public async void Context()
-        {
-            BuildContext();
-            _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
-            _searchResult = new SearchResult();
-            _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "Done" } } });
+    //    [TestInitialize]
+    //    public async void Context()
+    //    {
+    //        BuildContext();
+    //        _epic = new Epic { Reference = "OPC-10", Name = "Johnny", AssetState = "128" };
+    //        _searchResult = new SearchResult();
+    //        _searchResult.issues.Add(new Issue { Key = "OPC-10", Fields = new Fields() { Status = new Status() { Name = "Done" } } });
 
-            MockV1.Setup(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
-            {
-                _epic
-            });
-            MockV1.Setup(x => x.UpdateEpicReference(_epic));
-            MockV1.Setup(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()));
+    //        MockV1.Setup(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
+    //        {
+    //            _epic
+    //        });
+    //        MockV1.Setup(x => x.UpdateEpicReference(_epic));
+    //        MockV1.Setup(x => x.CreateLink(_epic, "Jira Epic", It.IsAny<string>()));
 
-            MockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
+    //        MockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
-            _epicWorker = new EpicWorker(MockV1.Object, MockLogger.Object);
-            await _epicWorker.ClosedV1EpicsSetJiraEpicsToResolved(MockJira.Object);
-        }
+    //        _epicWorker = new EpicWorker(MockV1.Object, MockLogger.Object);
+    //        await _epicWorker.ClosedV1EpicsSetJiraEpicsToResolved(MockJira.Object);
+    //    }
 
-        [TestMethod]
-        public void should_call_EpicsWithoutReference_one_time()
-        {
-            MockV1.Verify(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory), Times.Once);
-        }
+    //    [TestMethod]
+    //    public void should_call_EpicsWithoutReference_one_time()
+    //    {
+    //        MockV1.Verify(x => x.GetClosedTrackedEpics(ProjectId, EpicCategory), Times.Once);
+    //    }
 
-        [TestMethod]
-        public void should_call_CreateEpic_on_jira()
-        {
-            MockJira.Verify(x => x.GetEpicByKey("OPC-10"), Times.Once());
-        }
+    //    [TestMethod]
+    //    public void should_call_CreateEpic_on_jira()
+    //    {
+    //        MockJira.Verify(x => x.GetEpicByKey("OPC-10"), Times.Once());
+    //    }
 
-        [TestMethod]
-        public void should_not_set_the_issue_again()
-        {
-            MockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>(), It.IsAny<string[]>()), Times.Never);
-        }
+    //    [TestMethod]
+    //    public void should_not_set_the_issue_again()
+    //    {
+    //        MockJira.Verify(x => x.SetIssueToResolved(It.IsAny<string>(), It.IsAny<string[]>()), Times.Never);
+    //    }
 
-    }
+    //}
 
     [TestClass]
     public class Worker_when_a_VersionOne_epic_is_deleted : worker_bits

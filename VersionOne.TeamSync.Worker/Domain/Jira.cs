@@ -49,6 +49,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetBugsInProject(string jiraProject);
 
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
+        string GetIssueTransitionId(string issueKey, string toState);
+        void RunTransitionOnIssue(string transitionId, string issueKey);
 
         void CleanUpAfterRun(ILog log);
         IJiraSettings JiraSettings { get; }
@@ -270,7 +272,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", "Epic")
             },
-                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self", "labels", "priority" }
+                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self", "labels", "priority", "status" }
             );
         }
 
@@ -385,6 +387,24 @@ namespace VersionOne.TeamSync.Worker.Domain
                 timeSpentSeconds = i.timeSpentSeconds,
                 id = i.id
             });
+        }
+
+        public string GetIssueTransitionId(string issueKey, string toState)
+        {
+            var path = string.Format("{0}/issue/{{issueIdOrKey}}/transitions", Connector.JiraConnector.JiraRestApiUrl);
+            var content = _connector.Get(path, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
+
+            dynamic data = JObject.Parse(content);
+            var id = ((JArray)data.transitions).Where<dynamic>(i => i.to.name.ToString().ToLower().Equals(toState.ToLower())).Select(i => i.id).FirstOrDefault();
+
+            return id;
+        }
+
+        public void RunTransitionOnIssue(string transitionId, string issueKey)
+        {
+            var path = string.Format("{0}/issue/{{issueIdOrKey}}/transitions", Connector.JiraConnector.JiraRestApiUrl);
+            _connector.Post(path, new {transition = new {id = transitionId}}, HttpStatusCode.NoContent,
+                new KeyValuePair<string, string>("issueIdOrKey", issueKey));
         }
 
         public void CleanUpAfterRun(ILog log)

@@ -99,7 +99,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category)
         {
             return await _connector.Query("Epic",
-                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name", "Status.Name" },
                 new[]
                 {
                     "Reference=\"\"",
@@ -141,7 +141,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
         {
-            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name" },
+            return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name", "Status.Name" },
                 new[] { 
                     "Reference!=\"\"", 
                     string.Format(WhereProject, projectId), 

@@ -12,6 +12,8 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         string RunFromThisDateOn { get; }
         string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority);
         string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority);
+
+        string GetJiraStatusFromMapping(string baseUrl, string jiraProject, string v1Status);
     }
 
     public class JiraSettings : ConfigurationSection, IJiraSettings
@@ -76,6 +78,21 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             }
 
             return v1PriorityIdFromMapping;
+        }
+
+        public string GetJiraStatusFromMapping(string baseUrl, string jiraProject, string v1Status)
+        {
+            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            var projectMapping = jiraServer.ProjectMappings.Cast<ProjectMapping>().FirstOrDefault(pm => pm.JiraProject.Equals(jiraProject));
+            if (projectMapping != null)
+            {
+                var statusMapping =
+                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.V1Status.Equals(v1Status));
+
+                if (statusMapping != null) return statusMapping.JiraStatus;
+            }
+
+            return null;
         }
     }
 

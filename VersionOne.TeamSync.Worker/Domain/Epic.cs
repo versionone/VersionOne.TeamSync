@@ -24,6 +24,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string AssetState { get; set; }
         public string Reference { get; set; }
         public string Priority { get; set; }
+        public string Status { get; set; }
 
         public static Epic FromQuery(XElement asset)
         {
@@ -37,7 +38,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 AssetState = attributes.GetValueOrDefault("AssetState"),
                 Reference = attributes.GetValueOrDefault("Reference"),
                 ScopeName = attributes.GetValueOrDefault("Scope.Name"),
-                Priority = attributes.GetValueOrDefault("Priority.Name")
+                Priority = attributes.GetValueOrDefault("Priority.Name"),
+                Status = attributes.GetValueOrDefault("Status.Name")
             };
         }
 
