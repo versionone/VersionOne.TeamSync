@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.Remoting;
 using System.ServiceProcess;
 using System.Timers;
@@ -16,9 +17,21 @@ namespace VersionOne.TeamSync.SystemTray
         public SystemTray()
         {
             InitializeComponent();
-            RemotingConfiguration.Configure("VersionOne.TeamSync.SystemTray.exe.config", false);
-            RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
+            try
+            {
+                //define full path??
+                string filePath = null;//= File.MapPath("VersionOne.TeamSync.SystemTray.exe.config");
+             
+                RemotingConfiguration.Configure(filePath, false);
+                RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
 
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.Message, e);
+           
+            }
+         
             Log.Info("*** VersionOne SystemTray started ***");
 
             contextMenuStrip1.Renderer = new CustomRenderer();

@@ -63,6 +63,13 @@ namespace VersionOne.TeamSync.Service
             Log.DebugFormat("The service event was completed at {0}", DateTime.Now);
         }
 
+        protected override void OnContinue()
+        {
+            Log.Info("*** VersionOne starting again ***");
+            base.OnContinue();
+            Log.Info("*** VersionOne after oncontinue ***");
+        }
+
         private static void StartMessage()
         {
             Log.Info("*** VersionOne TeamSync ***");
