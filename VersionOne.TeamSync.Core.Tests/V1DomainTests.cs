@@ -24,7 +24,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             var mockConnector = new Mock<IV1Connector>();
 
-            var api = SetApiQuery("Epic", mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
+            var api = SetApiQuery("Epic", mockConnector, new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name", "Status.Name" },
                              new[] { "Reference=\"\"", "AssetState='Active'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 
@@ -54,7 +54,7 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IV1Connector>();
 
             var api = SetApiQuery("Epic", mockConnector,
-                new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name" },
+                new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name", "Status.Name" },
                 new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
                              new List<Epic>());
 

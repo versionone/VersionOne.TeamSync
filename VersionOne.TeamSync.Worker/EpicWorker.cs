@@ -76,7 +76,6 @@ namespace VersionOne.TeamSync.Worker
                 {
                     if (!string.IsNullOrEmpty(v1Epic.Status))
                     {
-
                         string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraData.Key,
                             JiraSettings.GetInstance().GetJiraStatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, v1Epic.Status));
                         jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraData.Key);

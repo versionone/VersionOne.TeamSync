@@ -92,7 +92,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
     public class Worker_when_there_is_a_new_epic_in_v1 : worker_bits
     {
-        protected Epic Epic;
+        protected Epic Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1", Status = "" };
         protected ItemBase ItemBase;
 
         private EpicWorker _worker;
@@ -100,13 +100,13 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void DataSetup()
         {
             BuildContext();
-            Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1" };
             ItemBase = new ItemBase { Key = JiraKey };
 
             MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
             {
                 Epic
             });
+            MockJira.Setup(x => x.GetIssueTransitionId(It.IsAny<string>(), It.IsAny<string>())).Returns("3");
             MockV1.Setup(x => x.UpdateEpicReference(Epic));
             MockV1.Setup(x => x.CreateLink(Epic, string.Format("Jira {0}", JiraKey), It.IsAny<string>()));
             MockJira.Setup(x => x.CreateEpic(Epic, JiraKey)).Returns(() => ItemBase);
@@ -148,6 +148,51 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_create_a_link_on_v1_epic()
         {
             MockV1.Verify(x => x.CreateLink(Epic, string.Format("Jira {0}", JiraKey), It.IsAny<string>()), Times.Once);
+        }
+    }
+
+    [TestClass]
+    public class and_it_has_no_status_set : Worker_when_there_is_a_new_epic_in_v1
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            DataSetup();
+        }
+
+        [TestMethod]
+        public void do_not_call_GetIssueTransitionId()
+        {
+            MockJira.Verify(x => x.GetIssueTransitionId(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void do_not_call_RunTransitionOnIssue()
+        {
+            MockJira.Verify(x => x.RunTransitionOnIssue(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+    }
+
+    [TestClass]
+    public class and_it_has_status_set : Worker_when_there_is_a_new_epic_in_v1
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            Epic.Status = "Test";
+            DataSetup();
+        }
+
+        [TestMethod]
+        public void call_GetIssueTransitionId_once()
+        {
+            MockJira.Verify(x => x.GetIssueTransitionId(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void call_RunTransitionOnIssue_once()
+        {
+            MockJira.Verify(x => x.RunTransitionOnIssue("3", It.IsAny<string>()), Times.Once);
         }
     }
 
@@ -277,11 +322,11 @@ namespace VersionOne.TeamSync.Core.Tests
             MockJira.Verify(x => x.UpdateIssue(It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
         }
 
-        [TestMethod]
-        public void calls_SetEpicTo_ToDo_once()
-        {
-            MockJira.Verify(x => x.SetIssueToToDo(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
-        }
+        //[TestMethod]
+        //public void calls_SetEpicTo_ToDo_once()
+        //{
+        //    MockJira.Verify(x => x.SetIssueToToDo(It.IsAny<string>(), It.IsAny<string[]>()), Times.Once);
+        //}
     }
 
     [TestClass]
