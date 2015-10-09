@@ -217,6 +217,12 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         }
 
         [TestMethod]
+        public void should_give_us_a_count_of_the_defects_created()
+        {
+            _mockLogger.Verify(x => x.DebugFormat("Found {0} defects to check for create", 1), Times.Once);
+        }
+
+        [TestMethod]
         public void should_call_create_asset_just_one_time()
         {
             MockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Once);
