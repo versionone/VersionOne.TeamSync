@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.Remoting;
 using System.ServiceProcess;
@@ -19,12 +20,11 @@ namespace VersionOne.TeamSync.SystemTray
             InitializeComponent();
             try
             {
-                //define full path??
-                string filePath = null;//= File.MapPath("VersionOne.TeamSync.SystemTray.exe.config");
-             
+                var filePath =  Directory.GetCurrentDirectory() + "\\VersionOne.TeamSync.SystemTray.exe.config";
+                Log.Info("Loading config from " + filePath);
+
                 RemotingConfiguration.Configure(filePath, false);
                 RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
-
             }
             catch (Exception e)
             {
