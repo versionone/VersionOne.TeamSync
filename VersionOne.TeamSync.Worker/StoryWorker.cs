@@ -74,7 +74,7 @@ namespace VersionOne.TeamSync.Worker
             existingStories.ForEach(existingJStory =>
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
-                var result = UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Result;
+                UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Wait();
             });
 
             if (data["updated"] > 0)
@@ -103,7 +103,7 @@ namespace VersionOne.TeamSync.Worker
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
+            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name), string.Empty);
             update.ID = story.ID;
             update.OwnersIds = story.OwnersIds;
 
@@ -152,7 +152,7 @@ namespace VersionOne.TeamSync.Worker
                     return false;
 
                 return allV1Stories.SingleOrDefault(vStory => !string.IsNullOrWhiteSpace(vStory.Reference) &&
-                                                              vStory.Reference.Contains(story.Key)) == null;
+                    vStory.Reference.Contains(story.Key)) == null;
             }).ToList();
 
             if (newStories.Any())
@@ -166,13 +166,19 @@ namespace VersionOne.TeamSync.Worker
 
             if (processedStories > 0)
                 _log.InfoCreated(processedStories, PluralAsset);
+
             _log.TraceCreateFinished(PluralAsset);
         }
 
         public async Task<bool> CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
+            var v1StatusId =
+                await
+                    _v1.GetStatusIdFromName(JiraSettings.GetInstance()
+                        .GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraStory.Fields.Status.Name));
             var story = jiraStory.ToV1Story(jiraInstance.V1Project,
-                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name));
+                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name),
+                v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {

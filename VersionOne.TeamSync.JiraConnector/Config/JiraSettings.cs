@@ -14,6 +14,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
         string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority);
 
         string GetJiraStatusFromMapping(string baseUrl, string jiraProject, string v1Status);
+        string GetV1StatusFromMapping(string baseUrl, string jiraProject, string jiraStatus);
     }
 
     public class JiraSettings : ConfigurationSection, IJiraSettings
@@ -89,7 +90,24 @@ namespace VersionOne.TeamSync.JiraConnector.Config
                 var statusMapping =
                     projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.V1Status.Equals(v1Status));
 
-                if (statusMapping != null) return statusMapping.JiraStatus;
+                if (statusMapping != null)
+                    return statusMapping.JiraStatus;
+            }
+
+            return null;
+        }
+
+        public string GetV1StatusFromMapping(string baseUrl, string jiraProject, string jiraStatus)
+        {
+            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
+            var projectMapping = jiraServer.ProjectMappings.Cast<ProjectMapping>().FirstOrDefault(pm => pm.JiraProject.Equals(jiraProject));
+            if (projectMapping != null)
+            {
+                var statusMapping =
+                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.JiraStatus.Equals(jiraStatus));
+
+                if (statusMapping != null)
+                    return statusMapping.V1Status;
             }
 
             return null;

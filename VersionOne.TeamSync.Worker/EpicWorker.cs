@@ -148,7 +148,7 @@ namespace VersionOne.TeamSync.Worker
                 var jiraStatusFromMapping = JiraSettings.GetInstance().GetJiraStatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, v1Epic.Status);
                 if (jiraStatusFromMapping != null && !relatedJiraEpic.Fields.Status.Name.Equals(jiraStatusFromMapping))
                 {
-                    string transitionIdToRun = jiraInstance.GetIssueTransitionId(relatedJiraEpic.Key, jiraStatusFromMapping);
+                    var transitionIdToRun = jiraInstance.GetIssueTransitionId(relatedJiraEpic.Key, jiraStatusFromMapping);
                     jiraInstance.RunTransitionOnIssue(transitionIdToRun, relatedJiraEpic.Key);
                 }
 

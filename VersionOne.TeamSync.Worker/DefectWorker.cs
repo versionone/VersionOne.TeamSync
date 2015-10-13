@@ -146,6 +146,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 if (allV1Defects.Any(x => bug.Fields.Labels.Contains(x.Number)))
                     return false;
+
                 return allV1Defects.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
                     vDefect.Reference.Contains(bug.Key)) == null;
             }).ToList();
@@ -161,6 +162,7 @@ namespace VersionOne.TeamSync.Worker
 
             if (processedDefects > 0)
                 _log.InfoCreated(processedDefects, PluralAsset);
+
             _log.TraceCreateFinished(PluralAsset);
         }
 

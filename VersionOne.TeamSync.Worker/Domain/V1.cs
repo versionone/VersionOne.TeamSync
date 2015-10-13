@@ -61,6 +61,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Member> GetMember(string jiraUsername);
         Task<Member> CreateMember(Member member);
         Task<Member> SyncMemberFromJiraUser(User jiraUser);
+
+        Task<string> GetStatusIdFromName(string name);
         Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate);
         Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate);
         Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate);
@@ -470,6 +472,12 @@ namespace VersionOne.TeamSync.Worker.Domain
                 await _connector.Post(member, member.CreateUpdatePayload());
             }
             return member ?? await CreateMember(jiraUser.ToV1Member());
+        }
+
+        public async Task<string> GetStatusIdFromName(string name)
+        {
+            var result = await _connector.Query("StoryStatus", new[] { "" }, new[] { string.Format("Name='{0}'", name) }, element => element.Attribute("id").Value);
+            return result.FirstOrDefault();
         }
 
         private void BuildConnectorFromConfig()
