@@ -162,14 +162,16 @@ namespace VersionOne.TeamSync.Worker
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
-                var epicId = await _v1.GetOpenAssetIdFromJiraReferenceNumber("Epic", jiraStory.Fields.EpicLink);
+                var epic = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraStory.Fields.EpicLink);
 
-                if (!string.IsNullOrWhiteSpace(epicId))
-                    story.Super = epicId;
-                else
+                if (epic != null)
                 {
-                    _log.Error("Unable to assign epic " + jiraStory.Fields.EpicLink + " -- Epic maybe closed");
-                    return;
+                    if (epic.IsClosed)
+                    {
+                        _log.Error("Unable to assign epic " + jiraStory.Fields.EpicLink + " -- Epic may be closed");
+                        return;
+                    }
+                    story.Super = epic.ID;
                 }
             }
 

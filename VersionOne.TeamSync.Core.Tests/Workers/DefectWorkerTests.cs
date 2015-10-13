@@ -54,6 +54,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             Worker.UpdateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue, updatedIssue }, new List<Defect> { ExistingDefect, _updatedDefect });
         }
 
+
         [TestMethod]
         public void should_call_update_asset_just_one_time()
         {
@@ -159,7 +160,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
     public abstract class defect_bits : worker_bits
     {
         protected Defect ExistingDefect;
-        protected Defect FakeCreatedStory;
+        protected Defect FakeCreatedDefect;
         protected Issue NewIssue;
         protected Issue ExistingIssue;
         protected SearchResult SearchResult;
@@ -195,7 +196,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 RenderedFields = new RenderedFields()
             };
             FakeCreatedStory = new Defect { Number = "S-8900" };
-            MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(FakeCreatedStory);
+            MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(FakeCreatedDefect);
             Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
         }
     }
@@ -213,6 +214,11 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
 
             Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
+        }
+        [TestMethod]
+        public void should_tell_us_about_creating_a_defect()
+        {
+            _mockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
         }
 
         [TestMethod]
@@ -236,7 +242,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_refresh_the_defect_once()
         {
-            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedStory), Times.Once);
+            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedDefect), Times.Once);
         }
 
         [TestMethod]
@@ -272,6 +278,13 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
         }
 
+
+        [TestMethod]
+        public void should_tell_us_about_creating_a_defect()
+        {
+            _mockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
+        }
+
         [TestMethod]
         public void should_call_create_asset_just_one_time()
         {
@@ -287,7 +300,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_refresh_the_defect_once()
         {
-            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedStory), Times.Once);
+            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedDefect), Times.Once);
         }
 
         [TestMethod]
@@ -367,8 +380,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 })
                 .ReturnsAsync(_createdDefect);
 
-            _mockV1.Setup(x => x.GetOpenAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
-                .ReturnsAsync("");
+            _mockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+                .ReturnsAsync(new BasicAsset(){AssetState = "128"});
             _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
             await _worker.CreateDefectFromJira(MakeInfo(), new Issue()
             {
@@ -390,7 +403,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_log_an_error()
         {
-            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic maybe closed"));
+            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
         }
 
         [TestMethod]
@@ -417,7 +430,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             _mockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
     }
-
 
     public abstract class update_jira_bug_to_v1 : worker_bits
     {

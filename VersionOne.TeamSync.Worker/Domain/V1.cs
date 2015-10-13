@@ -26,8 +26,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<string> GetPriorityId(string asset, string name);
 
         void CreateLink(IV1Asset asset, string title, string url);
-        Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
-        Task<string> GetOpenAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey);
+        Task<BasicAsset> GetAssetIdFromJiraReferenceNumber(string assetType, string assetIdNumber);
 
         Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
 
@@ -311,26 +310,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             return await _connector.Post(asset, updateData);
         }
 
-        public async Task<string> GetAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey)
+        public async Task<BasicAsset> GetAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey)
         {
             var response = await _connector.Query(assetType,
-                new[] { "ID" },
+                new[] { "ID", "AssetState" },
                 new[] { "Reference=" + jiraEpicKey.InQuotes() },
-                element => element.Attribute("id").Value);
-
-            return response.FirstOrDefault();
-        }
-
-        public async Task<string> GetOpenAssetIdFromJiraReferenceNumber(string assetType, string jiraEpicKey)
-        {
-            var response = await _connector.Query(assetType,
-                new[] { "ID" },
-                new[]
-                {
-                    "Reference=" + jiraEpicKey.InQuotes(),
-                    "IsClosed=\"False\""
-                },
-                element => element.Attribute("id").Value);
+                BasicAsset.FromQuery);
 
             return response.FirstOrDefault();
         }

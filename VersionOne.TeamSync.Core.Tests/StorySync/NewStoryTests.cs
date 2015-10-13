@@ -86,8 +86,8 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                 })
                 .ReturnsAsync(_createdStory);
 
-            _mockV1.Setup(x => x.GetOpenAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
-                .ReturnsAsync("");
+            _mockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+                .ReturnsAsync(new BasicAsset(){AssetState = "128"});
             _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
             await _worker.CreateStoryFromJira(MakeInfo(), new Issue()
             {
@@ -109,7 +109,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_log_an_error()
         {
-            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic maybe closed"));
+            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
         }
 
         [TestMethod]
