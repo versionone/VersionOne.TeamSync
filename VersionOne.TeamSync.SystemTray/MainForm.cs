@@ -20,9 +20,8 @@ namespace VersionOne.TeamSync.SystemTray
             InitializeComponent();
             try
             {
-                var filePath =  Directory.GetCurrentDirectory() + "\\VersionOne.TeamSync.SystemTray.exe.config";
-                Log.Info("Loading config from " + filePath);
-
+                var filePath = AppDomain.CurrentDomain.BaseDirectory + "VersionOne.TeamSync.SystemTray.exe.config";
+                Log.Info("Loading config for systemtray from " + filePath);
                 RemotingConfiguration.Configure(filePath, false);
                 RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
             }
