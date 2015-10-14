@@ -189,7 +189,8 @@ namespace VersionOne.TeamSync.Core.Tests
                 Key = NewIssueKey,
                 Fields = new Fields
                 {
-                    Priority = new Priority { Name = "Medium" }
+                    Priority = new Priority { Name = "Medium" },
+                    Status = new Status { Name = "To Do" }
                 },
                 RenderedFields = new RenderedFields()
             };

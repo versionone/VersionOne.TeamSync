@@ -38,7 +38,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             };
 
-            _story = issue.ToV1Story("Scope:1000", "");
+            _story = issue.ToV1Story("Scope:1000", "", "");
 
             var worklog = new Worklog
             {

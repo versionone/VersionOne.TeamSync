@@ -28,7 +28,8 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                 RenderedFields = new RenderedFields { Description = "descript" },
                 Fields = new Fields
                 {
-                    Priority = new Priority { Name = "Medium" }
+                    Priority = new Priority { Name = "Medium" },
+                    Status = new Status { Name = "To Do" }
                 }
             });
         }
