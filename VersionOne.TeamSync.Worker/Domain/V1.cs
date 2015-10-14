@@ -308,7 +308,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private async Task<List<Story>> GetStoriesWithJiraReference(string[] whereStrings)
         {
             return await _connector.Query("Story",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Priority", "Owners" },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Priority", "Owners", "Status" },
                 whereStrings,
                 Story.FromQuery);
         }

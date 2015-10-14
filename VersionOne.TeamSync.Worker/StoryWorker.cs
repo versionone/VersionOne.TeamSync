@@ -91,19 +91,26 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(IJira jiraInstance, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            //need to reopen a story first before we can update it
-            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && story.AssetState == "128")
+            var v1StatusId = string.Empty;
+            if (issue.Fields.Status != null)
             {
-                await _v1.ReOpenStory(story.ID);
-                _log.DebugFormat("Reopened story V1 {0}", story.Number);
-                data["reopened"] += 1;
+                v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, issue.Fields.Status.Name));
+
+                //need to reopen a story first before we can update it
+                if (!issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && story.AssetState == "128")
+                {
+                    await _v1.ReOpenStory(story.ID);
+                    _log.DebugFormat("Reopened story V1 {0}", story.Number);
+                    data["reopened"] += 1;
+                }
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name), string.Empty);
+
+            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name), v1StatusId);
             update.ID = story.ID;
             update.OwnersIds = story.OwnersIds;
 
@@ -119,7 +126,7 @@ namespace VersionOne.TeamSync.Worker
             if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
                 _log.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic");
 
-            if (!issue.ItMatchesStory(story) || update.Priority != story.Priority)
+            if (!issue.ItMatchesStory(story) || update.Priority != story.Priority || update.Status != story.Status)
             {
                 if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
                     update.Super = v1EpicId;
@@ -172,13 +179,8 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<bool> CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
-            var v1StatusId =
-                await
-                    _v1.GetStatusIdFromName(JiraSettings.GetInstance()
-                        .GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraStory.Fields.Status.Name));
-            var story = jiraStory.ToV1Story(jiraInstance.V1Project,
-                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name),
-                v1StatusId);
+            var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraStory.Fields.Status.Name));
+            var story = jiraStory.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name), v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
