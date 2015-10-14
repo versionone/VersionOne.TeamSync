@@ -13,7 +13,6 @@ namespace VersionOne.TeamSync.Core.Tests
 {
     public abstract class worker_bits
     {
-        protected Mock<IJiraSettings> Settings;
         protected Mock<IV1> MockV1;
         protected Mock<IJiraSettings> MockJiraSettings;
         protected Mock<IJira> MockJira;
@@ -27,9 +26,9 @@ namespace VersionOne.TeamSync.Core.Tests
         protected virtual void BuildContext()
         {
             MockV1 = new Mock<IV1>();
+
             MockJiraSettings = new Mock<IJiraSettings>();
-            MockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), "Medium"))
-                .Returns("3");
+            MockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), "Medium")).Returns("3");
             MockJiraSettings.Setup(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), "Medium"))
                 .Returns("WorkitemPriority:139");
 
@@ -148,51 +147,6 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_create_a_link_on_v1_epic()
         {
             MockV1.Verify(x => x.CreateLink(Epic, string.Format("Jira {0}", JiraKey), It.IsAny<string>()), Times.Once);
-        }
-    }
-
-    [TestClass]
-    public class and_it_has_no_status_set : Worker_when_there_is_a_new_epic_in_v1
-    {
-        [TestInitialize]
-        public void Context()
-        {
-            DataSetup();
-        }
-
-        [TestMethod]
-        public void do_not_call_GetIssueTransitionId()
-        {
-            MockJira.Verify(x => x.GetIssueTransitionId(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void do_not_call_RunTransitionOnIssue()
-        {
-            MockJira.Verify(x => x.RunTransitionOnIssue(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-    }
-
-    [TestClass]
-    public class and_it_has_status_set : Worker_when_there_is_a_new_epic_in_v1
-    {
-        [TestInitialize]
-        public void Context()
-        {
-            Epic.Status = "Test";
-            DataSetup();
-        }
-
-        [TestMethod]
-        public void call_GetIssueTransitionId_once()
-        {
-            MockJira.Verify(x => x.GetIssueTransitionId(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-        }
-
-        [TestMethod]
-        public void call_RunTransitionOnIssue_once()
-        {
-            MockJira.Verify(x => x.RunTransitionOnIssue("3", It.IsAny<string>()), Times.Once);
         }
     }
 
