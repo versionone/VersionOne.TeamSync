@@ -68,7 +68,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate);
     }
 
-    public class V1 : IV1 
+    public class V1 : IV1
     {
         private const int ProjectLeadOrder = 3;
         private const int ConnectionAttempts = 3;
@@ -114,7 +114,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate)
         {
             return await _connector.Query("Epic",
-                new[] {"ID.Number", "Name", "Description", "Scope.Name", "Priority.Name"},
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
                 new[]
                 {
                     "Reference=\"\"",
@@ -334,11 +334,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private async Task<List<Defect>> GetDefects(string[] whereClauses)
         {
             return await _connector.Query("Defect",
-                new[]
-                {
-                    "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState",
-                    "Super.Number", "Priority", "Owners"
-                },
+                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Priority", "Owners", "Status" },
                 whereClauses, Defect.FromQuery);
         }
 

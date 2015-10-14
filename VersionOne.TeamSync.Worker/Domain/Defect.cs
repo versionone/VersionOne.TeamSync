@@ -60,6 +60,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string ToDo { get; set; }
         public string Reference { get; set; }
         public string Priority { get; set; }
+        public string Status { get; set; }
 
         public string Super { get; set; }
         public string SuperNumber { get; set; }
@@ -77,6 +78,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddSetNode("Reference", Reference)
                 .AddSetRelationNode("Super", Super)
                 .AddSetRelationNode("Priority", Priority)
+                .AddSetRelationNode("Status", Status)
                 .AddMultiRelationNode("Owners", OwnersIds.ToDictionary(memberId => memberId, memberId => "add"));
             return doc;
         }
@@ -91,7 +93,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 .AddNullableSetNode("ToDo", ToDo)
                 .AddNullableSetRelationNode("Super", Super)
                 .AddSetNode("Reference", Reference)
-                .AddSetRelationNode("Priority", Priority);
+                .AddSetRelationNode("Priority", Priority)
+                .AddSetRelationNode("Status", Status);
             return doc;
         }
 
@@ -137,6 +140,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 AssetState = attributes.GetValueOrDefault("AssetState"),
                 SuperNumber = attributes.GetValueOrDefault("Super.Number"),
                 Priority = relation.GetSingleRelationValueOrDefault("Priority"),
+                Status = relation.GetSingleRelationValueOrDefault("Status"),
                 OwnersIds = relation.GetMultipleRelationValueOrDefault("Owners")
             };
         }

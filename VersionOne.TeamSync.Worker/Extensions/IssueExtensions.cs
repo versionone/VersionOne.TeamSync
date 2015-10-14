@@ -33,7 +33,7 @@ namespace VersionOne.TeamSync.Worker.Extensions
             };
         }
 
-        public static Defect ToV1Defect(this Issue issue, string v1ScopeId, string priorityId)
+        public static Defect ToV1Defect(this Issue issue, string v1ScopeId, string priorityId, string statusId)
         {
             return new Defect
             {
@@ -43,7 +43,8 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 ToDo = issue.Fields.TimeTracking == null ? "" : Math.Abs(issue.Fields.TimeTracking.RemainingEstimateSeconds / 3600).ToString(),
                 Reference = issue.Key,
                 ScopeId = v1ScopeId,
-                Priority = priorityId
+                Priority = priorityId,
+                Status = statusId
             };
         }
 

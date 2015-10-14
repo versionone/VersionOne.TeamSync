@@ -87,19 +87,26 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(IJira jiraInstance, Issue issue, Defect defect, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            //need to reopen a defect first before we can update it
-            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && defect.AssetState == "128")
+            var v1StatusId = string.Empty;
+            if (issue.Fields.Status != null)
             {
-                await _v1.ReOpenDefect(defect.ID);
-                _log.DebugFormat("Reopened V1 defect {0}", defect.Number);
-                data["reopened"] += 1;
+                v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, issue.Fields.Status.Name));
+
+                //need to reopen a defect first before we can update it
+                if (!issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && defect.AssetState == "128")
+                {
+                    await _v1.ReOpenDefect(defect.ID);
+                    _log.DebugFormat("Reopened V1 defect {0}", defect.Number);
+                    data["reopened"] += 1;
+                }
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
+
+            var update = issue.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name), v1StatusId);
             update.ID = defect.ID;
             update.OwnersIds = defect.OwnersIds;
 
@@ -115,7 +122,7 @@ namespace VersionOne.TeamSync.Worker
             if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
                 _log.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic");
 
-            if (!issue.ItMatchesDefect(defect) || update.Priority != defect.Priority)
+            if (!issue.ItMatchesDefect(defect) || update.Priority != defect.Priority || update.Status != defect.Status)
             {
                 if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
                     update.Super = v1EpicId;
@@ -168,8 +175,8 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<bool> CreateDefectFromJira(IJira jiraInstance, Issue jiraBug)
         {
-            var defect = jiraBug.ToV1Defect(jiraInstance.V1Project,
-                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name));
+            var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraBug.Fields.Status.Name));
+            var defect = jiraBug.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name), v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraBug.Fields.EpicLink))
             {
