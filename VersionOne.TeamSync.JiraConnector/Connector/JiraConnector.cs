@@ -22,7 +22,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         public const string JiraAgileApiUrl = "agile/latest";
         public const string InQuery = "{0} in ({1})";
 
-        private static readonly ILog Log = LogManager.GetLogger(typeof(JiraConnector));
+        private static ILog Log = LogManager.GetLogger(typeof(JiraConnector));
 
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new JiraSerializer();
@@ -75,9 +75,10 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         {
         }
 
-        public JiraConnector(IRestClient restClient)
+        public JiraConnector(IRestClient restClient, ILog logger)
         {
             _client = restClient;
+            Log = logger;
         }
 
         #region EXECUTE
@@ -221,6 +222,54 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         #endregion
 
+        public SearchResult GetAllSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
+        {
+            var path = string.Format("{0}/search", JiraRestApiUrl);
+
+            query.Add("maxResults", new[] {"1000"});
+            
+            var queryString = string.Join(" AND ", query.Select(item =>
+            {
+                if (item.Value.Count() == 1)
+                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
+                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
+            }));
+
+            var content = Get(path, default(KeyValuePair<string, string>),
+                new Dictionary<string, string>
+                {
+                    {"jql", queryString},
+                    {"fields", string.Join(",", properties)}
+                });
+
+            var result = JsonConvert.DeserializeObject<SearchResult>(content);
+
+            if (result.total <= 1000)
+                return result;
+
+            Log.Info("More than 1000 results found ... gathering up all " + result.total);
+
+            var timesToRun = Math.Abs(result.maxResults/1000);
+
+            for (var i = 1; i < timesToRun + 1; i++)
+            {
+                var pagedQuery = queryString + "startAt=" + (i*1000);
+                var pagedContent = Get(path, default(KeyValuePair<string, string>),
+                new Dictionary<string, string>
+                {
+                    {"jql", pagedQuery},
+                    {"fields", string.Join(",", properties)}
+                });
+
+                var pagedResult = JsonConvert.DeserializeObject<SearchResult>(pagedContent);
+
+                result.issues.AddRange(pagedResult.issues);
+            }
+
+            return result;
+        }
+
+
         public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties) //not entirely convinced this belongs here
         {
             var path = string.Format("{0}/search", JiraRestApiUrl);
@@ -233,7 +282,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             var content = Get(path, default(KeyValuePair<string, string>),
                 new Dictionary<string, string>
                 {
-                    {"jql",  queryString},
+                    {"jql", queryString},
                     {"fields", string.Join(",", properties)}
                 });
 

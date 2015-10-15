@@ -225,7 +225,7 @@ namespace VersionOne.TeamSync.Core.Tests
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
-            return new JiraConnector.Connector.JiraConnector(restClient.Object);
+            return new JiraConnector.Connector.JiraConnector(restClient.Object, new Mock<ILog>().Object);
         }
 
         [TestMethod]
@@ -304,7 +304,7 @@ namespace VersionOne.TeamSync.Core.Tests
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
-            return new JiraConnector.Connector.JiraConnector(restClient.Object);
+            return new JiraConnector.Connector.JiraConnector(restClient.Object, new Mock<ILog>().Object);
         }
 
         [TestMethod]
