@@ -225,8 +225,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         public SearchResult GetAllSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
         {
             var path = string.Format("{0}/search", JiraRestApiUrl);
-
-            query.Add("maxResults", new[] {"1000"});
             
             var queryString = string.Join(" AND ", query.Select(item =>
             {
@@ -239,7 +237,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                 new Dictionary<string, string>
                 {
                     {"jql", queryString},
-                    {"fields", string.Join(",", properties)}
+                    {"fields", string.Join(",", properties)},
+                    {"maxResults", "1000"}
                 });
 
             var result = JsonConvert.DeserializeObject<SearchResult>(content);
@@ -253,12 +252,14 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             for (var i = 1; i < timesToRun + 1; i++)
             {
-                var pagedQuery = queryString + "startAt=" + (i*1000);
+                var pagedQuery = queryString;
                 var pagedContent = Get(path, default(KeyValuePair<string, string>),
                 new Dictionary<string, string>
                 {
                     {"jql", pagedQuery},
-                    {"fields", string.Join(",", properties)}
+                    {"fields", string.Join(",", properties)},
+                    {"maxResults", "1000"},
+                    {"startAt", ((i*1000) + 1).ToString()}
                 });
 
                 var pagedResult = JsonConvert.DeserializeObject<SearchResult>(pagedContent);
