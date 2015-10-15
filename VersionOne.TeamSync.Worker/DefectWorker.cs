@@ -27,6 +27,11 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
+        public Task DoFirstRun(IJira jiraInstance)
+        {
+            return null;
+        }
+
         public async Task DoWork(IJira jiraInstance)
         {
             _log.Trace("Defect sync started...");

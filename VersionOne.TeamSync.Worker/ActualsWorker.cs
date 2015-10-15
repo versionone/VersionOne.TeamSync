@@ -26,6 +26,12 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
+
+        public Task DoFirstRun(IJira jiraInstance)
+        {
+            return null;
+        }
+
         public async Task DoWork(IJira jiraInstance)
         {
             // TODO: check if we can do this validation only on startup
@@ -164,5 +170,7 @@ namespace VersionOne.TeamSync.Worker
             var member = _v1.GetMember(worklog.updateAuthor.name).Result;
             return member != null && member.Oid().Equals(actual.MemberId) && worklog.updateAuthor.ItMatchesMember(member);
         }
+
+
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace VersionOne.TeamSync.JiraConnector
+﻿using System;
+
+namespace VersionOne.TeamSync.JiraConnector
 {
     public class JqOperator
     {
@@ -28,6 +30,16 @@
             {
                 Property = "updated",
                 Value = "\"-" + minutes + "m\"",
+                Operator = ">="
+            };
+        }
+
+        public static JqOperator CreatedOnOrBefore(DateTime date)
+        {
+            return new JqOperator //no idea if this'll actually work
+            {
+                Property = "created",
+                Value = "\"-" + date.ToString("yyyy/MM/dd") + "\"",
                 Operator = ">="
             };
         }

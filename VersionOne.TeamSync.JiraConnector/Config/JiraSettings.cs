@@ -30,6 +30,12 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             return _instance;
         }
 
+        [ConfigurationProperty("runFromThisDateOn", IsRequired = false, DefaultValue = "1/1/1980")]
+        public string RunFromThisDateOn
+        {
+            get { return (string)this["runFromThisDateOn"]; }
+        }
+
         [ConfigurationProperty("servers", IsDefaultCollection = true)]
         public JiraServerCollection Servers
         {

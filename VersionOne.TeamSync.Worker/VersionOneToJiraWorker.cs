@@ -27,9 +27,7 @@ namespace VersionOne.TeamSync.Worker
 
                 var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())
-                {
                     projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
-                }
                 else
                     Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
             }
@@ -41,6 +39,23 @@ namespace VersionOne.TeamSync.Worker
                 new DefectWorker(_v1, Log),
                 new ActualsWorker(_v1, Log)
             };
+        }
+
+        public void DoFirstRun()
+        {
+            var syncTime = DateTime.Now;
+            Log.Info("Beginning first run...");
+            _jiraInstances.ToList().ForEach(jiraInstance =>
+            {
+                Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
+
+                _asyncWorkers.ForEach(worker => worker.DoFirstRun(jiraInstance));
+
+                jiraInstance.CleanUpAfterRun(Log);
+            });
+
+            Log.Info("Ending first run...");
+            Log.DebugFormat("Total time: {0}", DateTime.Now - syncTime);
         }
 
         public void DoWork()

@@ -38,6 +38,8 @@ namespace VersionOne.TeamSync.Service
                 //_worker.ValidateVersionOneSchedules(); D-09877
                 _worker.ValidatePriorityMappings();
 
+                _worker.DoFirstRun();
+
                 _timer = new Timer(OnTimedEvent, null, 0, (int)_serviceDuration.TotalMilliseconds);
             }
             catch (Exception e)
