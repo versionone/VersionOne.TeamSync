@@ -91,7 +91,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(IJira jiraInstance, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            var v1StatusId = string.Empty;
+            string v1StatusId = null;
             if (issue.Fields.Status != null)
             {
                 v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, issue.Fields.Status.Name));

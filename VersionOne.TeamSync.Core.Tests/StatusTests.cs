@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
 
@@ -9,7 +11,7 @@ namespace VersionOne.TeamSync.Core.Tests
 {
 
     [TestClass]
-    public class and_it_has_no_status_set : Worker_when_there_is_a_new_epic_in_v1
+    public class and_epic_has_no_status_set : Worker_when_there_is_a_new_epic_in_v1
     {
         [TestInitialize]
         public void Context()
@@ -31,7 +33,7 @@ namespace VersionOne.TeamSync.Core.Tests
     }
 
     [TestClass]
-    public class and_it_has_status_set : Worker_when_there_is_a_new_epic_in_v1
+    public class and_epic_has_status_set : Worker_when_there_is_a_new_epic_in_v1
     {
         [TestInitialize]
         public void Context()
@@ -108,6 +110,80 @@ namespace VersionOne.TeamSync.Core.Tests
         public void calls_RunTransitionOnIssue_three_times()
         {
             MockJira.Verify(x => x.RunTransitionOnIssue("3", It.IsAny<string>()), Times.Exactly(3));
+        }
+    }
+
+    [TestClass]
+    public class and_new_story_has_status_set : story_bits
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildContext();
+            MockV1.Setup(x => x.GetStatusIdFromName("To Do")).ReturnsAsync("StoryStatus:133");
+            MockJiraSettings.Setup(x => x.GetV1StatusFromMapping(It.IsAny<string>(), It.IsAny<string>(), "To Do"))
+                .Returns("ToDo");
+            NewIssue.Fields.EpicLink = null;
+            
+            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            Worker.CreateStories(MockJira.Object, new List<Issue> { NewIssue }, new List<Story>());
+        }
+        
+        [TestMethod]
+        public void call_GetV1StatusFromMapping_once()
+        {
+            MockJiraSettings.Verify(x => x.GetV1StatusFromMapping(It.IsAny<string>(), It.IsAny<string>(), "To Do"), Times.Once);
+        }
+
+        [TestMethod]
+        public void call_GetStatusIdFromName_once()
+        {
+            MockV1.Verify(x => x.GetStatusIdFromName("ToDo"), Times.Once);
+        }
+
+        [TestMethod]
+        public void call_CreateStory_once()
+        {
+            MockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Once);
+        }
+    }
+
+    [TestClass]
+    public class and_existing_story_has_new_status_set : story_bits
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildContext();
+            MockV1.Setup(x => x.GetEpicsWithReference(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new List<Epic>());
+            MockV1.Setup(x => x.GetStatusIdFromName("In Progress")).ReturnsAsync("StoryStatus:134");
+            MockJiraSettings.Setup(x => x.GetV1StatusFromMapping(It.IsAny<string>(), It.IsAny<string>(), "In progress"))
+                .Returns("In Progress");
+
+            ExistingStory.Status = "To Do";
+            ExistingIssue.Fields.Status = new Status{Name = "In progress"};
+
+            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            Worker.UpdateStories(MockJira.Object, new List<Issue> { ExistingIssue }, new List<Story>{ExistingStory});
+        }
+
+        [TestMethod]
+        public void call_GetV1StatusFromMapping_once()
+        {
+            MockJiraSettings.Verify(x => x.GetV1StatusFromMapping(It.IsAny<string>(), It.IsAny<string>(), "In progress"), Times.Once);
+        }
+
+        [TestMethod]
+        public void call_GetStatusIdFromName_once()
+        {
+            MockV1.Verify(x => x.GetStatusIdFromName("In Progress"), Times.Once);
+        }
+
+        [TestMethod]
+        public void call_CreateStory_once()
+        {
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<IV1Asset>(), It.IsAny<XDocument>()), Times.Once);
         }
     }
 }
