@@ -20,10 +20,14 @@ namespace VersionOne.TeamSync.SystemTray
             InitializeComponent();
             try
             {
-                var filePath = AppDomain.CurrentDomain.BaseDirectory + "VersionOne.TeamSync.SystemTray.exe.config";
-                Log.Info("Loading config for systemtray from " + filePath);
-                RemotingConfiguration.Configure(filePath, false);
+                string path = TeamSyncServiceController.GetServicePath().Replace(".Service.exe", ".SystemTray.exe.config");
+                RemotingConfiguration.Configure(path.Replace("\"", ""), false);
+                
+                Log.Info("Loading config for systemtray from " + path);
+                
                 RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
+
+                Log.Info("Service registered");
             }
             catch (Exception e)
             {
@@ -166,7 +170,10 @@ namespace VersionOne.TeamSync.SystemTray
         {
             if (e.ToolStrip.Items.IndexOf(e.Item) == 0)
             {
-                e.Graphics.DrawImage(new Bitmap("versionone-logo-noTagline.png"),
+                string path = TeamSyncServiceController.GetServicePath().Replace("VersionOne.TeamSync.Service.exe", "");
+                path = path.Replace("\"", "");
+               
+                e.Graphics.DrawImage(new Bitmap(path + "versionone-logo-noTagline.png"),
                     new Rectangle(10, 0, 125, 25));
             }
             else base.OnRenderMenuItemBackground(e);
