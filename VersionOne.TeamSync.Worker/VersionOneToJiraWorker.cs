@@ -1,6 +1,7 @@
 ﻿using log4net;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Xml.Linq;
 using VersionOne.TeamSync.Core.Config;
@@ -21,13 +22,22 @@ namespace VersionOne.TeamSync.Worker
             _v1 = new V1();
 
             _jiraInstances = new List<IJira>();
+
+            var runDate = JiraSettings.GetInstance().RunFromThisDateOn;
+
+            DateTime parsedRunFromDate;
+            if (!DateTime.TryParse(runDate, out parsedRunFromDate))
+                throw new ConfigurationErrorsException("RunFromThisDateOn contains an invalid entry");
+
+            var jiraDate = parsedRunFromDate.ToString("yyyy-MM-dd");
+
             foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
                 var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
-
+                
                 var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())
-                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
+                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm, jiraDate)));
                 else
                     Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
             }
@@ -48,9 +58,7 @@ namespace VersionOne.TeamSync.Worker
             _jiraInstances.ToList().ForEach(jiraInstance =>
             {
                 Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
-
                 _asyncWorkers.ForEach(worker => worker.DoFirstRun(jiraInstance));
-
                 jiraInstance.CleanUpAfterRun(Log);
             });
 

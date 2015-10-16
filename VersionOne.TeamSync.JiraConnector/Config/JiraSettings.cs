@@ -9,6 +9,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
     public interface IJiraSettings
     {
         JiraServerCollection Servers { get; set; }
+        string RunFromThisDateOn { get; }
         string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority);
         string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority);
     }

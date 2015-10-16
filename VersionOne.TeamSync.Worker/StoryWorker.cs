@@ -21,6 +21,8 @@ namespace VersionOne.TeamSync.Worker
         private readonly IV1 _v1;
         private readonly ILog _log;
 
+        public bool FirstRunCompleted { get; private set; }
+
         public StoryWorker(IV1 v1, ILog log)
         {
             _v1 = v1;
@@ -31,7 +33,7 @@ namespace VersionOne.TeamSync.Worker
         {
             _log.Trace("Story First Run started...");
             var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
-            var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
+            var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
 
             UpdateStories(jiraInstance, allJiraStories, allV1Stories);
             CreateStories(jiraInstance, allJiraStories, allV1Stories);

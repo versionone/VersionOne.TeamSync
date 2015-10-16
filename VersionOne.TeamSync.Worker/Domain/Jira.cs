@@ -53,6 +53,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         void CleanUpAfterRun(ILog log);
         IJiraSettings JiraSettings { get; }
         SearchResult GetAllStoriesInProjectSince(string jiraProject, string date);
+        string RunFromThisDateOn { get; }
     }
 
     public class Jira : IJira
@@ -79,6 +80,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public string EpicCategory { get; private set; }
 
+        public string RunFromThisDateOn { get; private set; }
         public string[] DoneWords
         {
             get
@@ -105,12 +107,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public Jira(IJiraConnector connector, ProjectMapping projectMapping)
-            : this(connector)
+        public Jira(IJiraConnector connector, ProjectMapping projectMapping, string runFromThisDateOn) : this(connector)
         {
             JiraProject = projectMapping.JiraProject;
             V1Project = projectMapping.V1Project;
             EpicCategory = projectMapping.EpicSyncType;
+            RunFromThisDateOn = runFromThisDateOn;
             _log = LogManager.GetLogger(typeof(Jira));
         }
 

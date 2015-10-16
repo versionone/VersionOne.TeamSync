@@ -36,10 +36,10 @@ namespace VersionOne.TeamSync.JiraConnector
 
         public static JqOperator CreatedOnOrBefore(DateTime date)
         {
-            return new JqOperator //no idea if this'll actually work
+            return new JqOperator
             {
                 Property = "created",
-                Value = "\"-" + date.ToString("yyyy/MM/dd") + "\"",
+                Value = "\"" + date.ToString("yyyy/MM/dd") + "\"",
                 Operator = ">="
             };
         }
