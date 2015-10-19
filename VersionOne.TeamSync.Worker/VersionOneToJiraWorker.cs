@@ -60,11 +60,7 @@ namespace VersionOne.TeamSync.Worker
             _jiraInstances.ToList().ForEach(jiraInstance => 
             {
                 Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
-                _asyncWorkers.ForEach(worker =>
-                {
-                    worker.DoFirstRun(jiraInstance);
-                    Log.Info(worker.GetType().Name + " completed");
-                });
+                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoFirstRun(jiraInstance)).ToArray());
                 jiraInstance.CleanUpAfterRun(Log);
             });
 
@@ -81,7 +77,8 @@ namespace VersionOne.TeamSync.Worker
             {
                 Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
-                _asyncWorkers.ForEach(worker => worker.DoWork(jiraInstance));
+                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoWork(jiraInstance)).ToArray());
+
                 jiraInstance.CleanUpAfterRun(Log);
             });
 

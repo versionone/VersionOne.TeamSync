@@ -27,11 +27,11 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
-        public void DoFirstRun(IJira jiraInstance)
+        public async Task DoFirstRun(IJira jiraInstance)
         {
             _log.Trace("Defect sync started...");
             var allJiraBugs = jiraInstance.GetAllBugsInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
-            var allV1Defects = _v1.GetDefectsWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn).Result;
+            var allV1Defects = await _v1.GetDefectsWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
 
             UpdateDefects(jiraInstance, allJiraBugs, allV1Defects);
             CreateDefects(jiraInstance, allJiraBugs, allV1Defects);

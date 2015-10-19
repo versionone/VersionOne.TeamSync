@@ -29,11 +29,11 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
-        public void DoFirstRun(IJira jiraInstance)
+        public async Task DoFirstRun(IJira jiraInstance)
         {
             _log.Trace("Story First Run started...");
             var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
-            var allV1Stories = _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn).Result;
+            var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
 
             UpdateStories(jiraInstance, allJiraStories, allV1Stories);
             CreateStories(jiraInstance, allJiraStories, allV1Stories);
