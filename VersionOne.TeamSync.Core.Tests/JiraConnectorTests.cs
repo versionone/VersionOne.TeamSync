@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using log4net;
+using log4net.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RestSharp;
@@ -225,7 +226,10 @@ namespace VersionOne.TeamSync.Core.Tests
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
-            return new JiraConnector.Connector.JiraConnector(restClient.Object, new Mock<ILog>().Object);
+            var logger = new Mock<ILog>();
+            logger.SetupGet(x => x.Logger).Returns(new Mock<ILogger>().Object);
+
+            return new JiraConnector.Connector.JiraConnector(restClient.Object, logger.Object);
         }
 
         [TestMethod]
@@ -304,7 +308,10 @@ namespace VersionOne.TeamSync.Core.Tests
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
-            return new JiraConnector.Connector.JiraConnector(restClient.Object, new Mock<ILog>().Object);
+            var logger = new Mock<ILog>();
+            logger.SetupGet(x => x.Logger).Returns(new Mock<ILogger>().Object);
+
+            return new JiraConnector.Connector.JiraConnector(restClient.Object, logger.Object);
         }
 
         [TestMethod]
