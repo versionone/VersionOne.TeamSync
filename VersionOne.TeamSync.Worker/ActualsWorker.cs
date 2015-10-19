@@ -29,14 +29,22 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoFirstRun(IJira jiraInstance)
         {
-            await Task.Delay(1);
+            ValidateRequiredV1Fields();
+            if (!_isActualWorkEnabled)
+                return;
+
+            var allJiraDefects = jiraInstance.GetAllBugsInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
+            var allV1Defects = await _v1.GetDefectsWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
+            DoActualWork(jiraInstance, allJiraDefects, allV1Defects);
+
+            var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
+            var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
+            DoActualWork(jiraInstance, allJiraStories, allV1Stories);
+
         }
 
         public async Task DoWork(IJira jiraInstance)
         {
-            // TODO: check if we can do this validation only on startup
-            ValidateRequiredV1Fields();
-
             if (!_isActualWorkEnabled)
                 return;
 
