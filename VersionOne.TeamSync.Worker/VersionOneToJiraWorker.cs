@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
@@ -55,10 +56,15 @@ namespace VersionOne.TeamSync.Worker
         {
             var syncTime = DateTime.Now;
             Log.Info("Beginning first run...");
-            _jiraInstances.ToList().ForEach(jiraInstance =>
+
+            _jiraInstances.ToList().ForEach(jiraInstance => 
             {
                 Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
-                _asyncWorkers.ForEach(worker => worker.DoFirstRun(jiraInstance));
+                _asyncWorkers.ForEach(worker =>
+                {
+                    worker.DoFirstRun(jiraInstance);
+                    Log.Info(worker.GetType().Name + " completed");
+                });
                 jiraInstance.CleanUpAfterRun(Log);
             });
 

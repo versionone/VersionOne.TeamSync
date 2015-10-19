@@ -27,9 +27,9 @@ namespace VersionOne.TeamSync.Worker
         }
 
 
-        public Task DoFirstRun(IJira jiraInstance)
+        public void DoFirstRun(IJira jiraInstance)
         {
-            return null;
+            //await Task.Delay(1);
         }
 
         public async Task DoWork(IJira jiraInstance)

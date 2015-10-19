@@ -53,7 +53,9 @@ namespace VersionOne.TeamSync.Worker.Domain
         void CleanUpAfterRun(ILog log);
         IJiraSettings JiraSettings { get; }
         SearchResult GetAllStoriesInProjectSince(string jiraProject, string date);
+
         string RunFromThisDateOn { get; }
+        SearchResult GetAllBugsInProjectSince(string jiraProject, string createdDate);
     }
 
     public class Jira : IJira
@@ -81,13 +83,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string EpicCategory { get; private set; }
 
         public string RunFromThisDateOn { get; private set; }
+
         public string[] DoneWords
         {
-            get
-            {
-                return _doneWords ??
-                       (_doneWords = JiraVersionItems.VersionDoneWords[VersionInfo.VersionNumbers[0]]);
-            }
+            get { return _doneWords ?? (_doneWords = JiraVersionItems.VersionDoneWords[VersionInfo.VersionNumbers[0]]); }
         }
 
         public IJiraSettings JiraSettings
@@ -337,6 +336,19 @@ namespace VersionOne.TeamSync.Worker.Domain
             return GetAllIssuesInProject(jiraProject, "Bug");
         }
 
+
+        public SearchResult GetAllBugsInProjectSince(string jiraProject, string createdDate)
+        {
+            var operators = new List<JqOperator>
+            {
+                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
+                JqOperator.Equals("issuetype", "Bug"),
+                JqOperator.CreatedOnOrBefore(createdDate)
+            };
+
+            return GetIssuesInProject(operators);
+        }
+
         public IEnumerable<Worklog> GetIssueWorkLogs(string issueKey)
         {
             var path = string.Format("{0}/issue/{{issueIdOrKey}}/worklog", Connector.JiraConnector.JiraRestApiUrl);
@@ -416,12 +428,11 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", issueType),
-                JqOperator.CreatedOnOrBefore(DateTime.Parse(dateSince))
-            },
-                jiraProject, issueType);
+                JqOperator.CreatedOnOrBefore(dateSince)
+            });
         }
 
-        private SearchResult GetIssuesInProject(IList<JqOperator> operators, string jiraProject, string issueType)
+        private SearchResult GetIssuesInProject(IList<JqOperator> operators)
         {
             return _connector.GetSearchResults(operators,
                 new[]
@@ -445,8 +456,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             {
                 JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", issueType),
-            },
-            jiraProject, issueType);
+            });
         }
 
         // D-09877

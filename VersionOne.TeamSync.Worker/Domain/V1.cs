@@ -62,9 +62,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Member> CreateMember(Member member);
         Task<Member> SyncMemberFromJiraUser(User jiraUser);
         Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate);
+        Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate);
     }
 
-    public class V1 : IV1
+    public class V1 : IV1 
     {
         private const int ProjectLeadOrder = 3;
         private const int ConnectionAttempts = 3;
@@ -287,7 +288,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             return await GetStoriesWithJiraReference(new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) });
         }
 
-        public async Task<List<Story>> GetStoriesWithJiraReference(string[] whereStrings)
+        private async Task<List<Story>> GetStoriesWithJiraReference(string[] whereStrings)
         {
             return await _connector.Query("Story",
                 new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Priority", "Owners" },
@@ -306,9 +307,31 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async Task<List<Defect>> GetDefectsWithJiraReference(string projectId)
         {
+            return await GetDefects(new[]
+            {
+                "Reference!=\"\"", 
+                string.Format(WhereProject, projectId)
+            });
+        }
+
+        private async Task<List<Defect>> GetDefects(string[] whereClauses)
+        {
             return await _connector.Query("Defect",
-                new[] { "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState", "Super.Number", "Priority", "Owners" },
-                new[] { "Reference!=\"\"", string.Format(WhereProject, projectId) }, Defect.FromQuery);
+                new[]
+                {
+                    "ID.Number", "Name", "Description", "Estimate", "ToDo", "Reference", "IsInactive", "AssetState",
+                    "Super.Number", "Priority", "Owners"
+                },
+                whereClauses, Defect.FromQuery);
+        }
+
+        public async Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate)
+        {
+            return await GetDefects(new[] { 
+                "Reference!=\"\"", 
+                string.Format(WhereProject, projectId),
+                string.Format(CreateOnUTC_before, createdDate.InQuotes())
+            });
         }
 
         public async Task RefreshBasicInfo(IPrimaryWorkItem workItem)

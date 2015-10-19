@@ -27,9 +27,16 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
-        public Task DoFirstRun(IJira jiraInstance)
+        public void DoFirstRun(IJira jiraInstance)
         {
-            return null;
+            _log.Trace("Defect sync started...");
+            var allJiraBugs = jiraInstance.GetAllBugsInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
+            var allV1Defects = _v1.GetDefectsWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn).Result;
+
+            UpdateDefects(jiraInstance, allJiraBugs, allV1Defects);
+            CreateDefects(jiraInstance, allJiraBugs, allV1Defects);
+            DeleteV1Defects(jiraInstance, allJiraBugs, allV1Defects);
+            _log.Trace("Defect sync stopped...");
         }
 
         public async Task DoWork(IJira jiraInstance)
