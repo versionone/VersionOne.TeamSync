@@ -63,6 +63,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Member> SyncMemberFromJiraUser(User jiraUser);
         Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate);
         Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate);
+        Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate);
     }
 
     public class V1 : IV1 
@@ -105,6 +106,20 @@ namespace VersionOne.TeamSync.Worker.Domain
                     "AssetState='Active'",
                     string.Format(WhereProject, projectId),
                     string.Format(WhereEpicCategory, category)
+                }, Epic.FromQuery);
+        }
+
+        public async Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate)
+        {
+            return await _connector.Query("Epic",
+                new[] {"ID.Number", "Name", "Description", "Scope.Name", "Priority.Name"},
+                new[]
+                {
+                    "Reference=\"\"",
+                    "AssetState='Active'",
+                    string.Format(WhereProject, v1Project),
+                    string.Format(WhereEpicCategory, epicCategory),
+                    string.Format(CreateOnUTC_before, createdDate)
                 }, Epic.FromQuery);
         }
 

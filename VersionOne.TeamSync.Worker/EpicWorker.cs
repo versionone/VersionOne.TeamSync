@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using log4net;
@@ -26,7 +27,9 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoFirstRun(IJira jiraInstance)
         {
-            await Task.Delay(1);
+            _log.Trace("Epic sync started...");
+            await CreateEpicsSince(jiraInstance);
+            _log.Trace("Epic sync stopped...");
         }
 
         public async Task DoWork(IJira jiraInstance)
@@ -39,11 +42,17 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Epic sync stopped...");
         }
 
-        public async Task CreateEpics(IJira jiraInstance)
+        public async Task CreateEpicsSince(IJira jiraInstance)
+        {
+            var epics = await _v1.GetEpicsWithoutReferenceSince(jiraInstance.V1Project, jiraInstance.EpicCategory, jiraInstance.RunFromThisDateOn);
+            CreateEpics(jiraInstance, epics);
+        }
+
+        private void CreateEpics(IJira jiraInstance, List<Epic> epics)
         {
             _log.Trace("Creating epics started");
             var processedEpics = 0;
-            var unassignedV1Epics = await _v1.GetEpicsWithoutReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var unassignedV1Epics = epics;
 
             if (unassignedV1Epics.Any())
                 _log.DebugFormat("Found {0} epics to check for create", unassignedV1Epics.Count);
@@ -82,6 +91,12 @@ namespace VersionOne.TeamSync.Worker
             if (processedEpics > 0) _log.DebugFormat("Resolved {0} Jira epics", processedEpics);
             _log.InfoFormat("Created {0} Jira epics", processedEpics);
             _log.Trace("Create epics stopped");
+        }
+
+        public async Task CreateEpics(IJira jiraInstance)
+        {
+            var epics = await _v1.GetEpicsWithoutReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            CreateEpics(jiraInstance, epics);
         }
 
         public async Task UpdateEpics(IJira jiraInstance)
