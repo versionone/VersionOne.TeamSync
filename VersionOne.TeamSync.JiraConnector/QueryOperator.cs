@@ -34,12 +34,12 @@ namespace VersionOne.TeamSync.JiraConnector
             };
         }
 
-        public static JqOperator CreatedOnOrBefore(DateTime date)
+        public static JqOperator CreatedOnOrBefore(string date)
         {
             return new JqOperator
             {
                 Property = "created",
-                Value = "\"" + date.ToString("yyyy/MM/dd") + "\"",
+                Value = "\"" + date + "\"",
                 Operator = ">="
             };
         }
