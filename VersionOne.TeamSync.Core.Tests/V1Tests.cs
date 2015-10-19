@@ -1,17 +1,73 @@
-﻿using System.Xml.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
-    [TestClass]
-    public class when_creating_a_story
+    public abstract class v1_bits
     {
-        private V1 _v1;
-        private Mock<IV1Connector> _mockV1;
+        protected IV1 V1;
+        protected Mock<IV1Connector> MockV1Connector;
+
+        protected virtual void BuildContext()
+        {
+            MockV1Connector = new Mock<IV1Connector>();
+        }
+    }
+
+    [TestClass]
+    public class sync_member : v1_bits
+    {
+        private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
+
+        protected User Assignee = new User
+        {
+            displayName = "Administrator",
+            name = "admin",
+            emailAddress = "admin@versionone.com"
+        };
+
+        protected Member Member;
+
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+
+            Member = Assignee.ToV1Member();
+
+            MockV1Connector.Setup(x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>())).ReturnsAsync(new List<Member>());
+            MockV1Connector.Setup(x => x.Post(It.Is<Member>(m => MemberAreEquals(m)), It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString())))).ReturnsAsync(XDocument.Parse(CreatedMember));
+
+            V1 = new V1(MockV1Connector.Object);
+            await V1.SyncMemberFromJiraUser(Assignee);
+        }
+
+        [TestMethod]
+        public void should_call_create_member_just_once()
+        {
+            MockV1Connector.Verify(x => x.Post(It.Is<Member>(m => MemberAreEquals(m)), It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))), Times.Once);
+        }
+
+        private bool MemberAreEquals(Member member)
+        {
+            return
+                Member.Name.Equals(member.Name) &&
+                Member.Nickname.Equals(member.Nickname) &&
+                Member.Email.Equals(member.Email);
+        }
+    }
+
+    [TestClass]
+    public class when_creating_a_story : v1_bits
+    {
         private XDocument _xDocument;
         private Story _createdStory;
         private readonly Story _story = new Story { Name = "Name" };
@@ -19,22 +75,22 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestInitialize]
         public async void Context()
         {
-            _mockV1 = new Mock<IV1Connector>();
+            BuildContext();
+
             _xDocument = XDocument.Parse("<Asset href=\"/VersionOne/rest-1.v1/Data/Story/1126/2089\" id=\"Story:1126:2089\"><Attribute name=\"Name\">Example 2</Attribute><Relation name=\"Scope\"><Asset href=\"/VersionOne/rest-1.v1/Data/Scope/0\" idref=\"Scope:0\" /></Relation></Asset>");
-            _mockV1.Setup(x => x.Post(_story, It.IsAny<XDocument>()))
-                .ReturnsAsync(_xDocument);
+            MockV1Connector.Setup(x => x.Post(_story, It.IsAny<XDocument>())).ReturnsAsync(_xDocument);
 
             _story.Number.ShouldBeNull();
             _story.ID.ShouldBeNull();
 
-            _v1 = new V1(_mockV1.Object);
-            _createdStory = await _v1.CreateStory(_story);
+            V1 = new V1(MockV1Connector.Object);
+            _createdStory = await V1.CreateStory(_story);
         }
 
         [TestMethod]
         public void should_post_to_v1()
         {
-            _mockV1.Verify(x => x.Post(_story, It.IsAny<XDocument>()), Times.Once);
+            MockV1Connector.Verify(x => x.Post(_story, It.IsAny<XDocument>()), Times.Once);
         }
 
         [TestMethod]
