@@ -74,12 +74,11 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static bool ItMatchesDefect(this Issue issue, Defect defect)
         {
             return string.Equals(defect.Name, issue.Fields.Summary.Trim()) &&
-                string.Equals(defect.Description, issue.RenderedFields.Description.ToEmptyIfNull()) &&
-                string.Equals(defect.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
-                string.Equals(defect.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
-                string.Equals(defect.Reference, issue.Key) &&
-                string.Equals(defect.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull()) &&
-                string.Equals(defect.Priority, issue.Fields.Priority.ToEmptyIfNull());
+                   string.Equals(defect.Description, issue.RenderedFields.Description.ToEmptyIfNull()) &&
+                   string.Equals(defect.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
+                   string.Equals(defect.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
+                   string.Equals(defect.Reference, issue.Key) &&
+                   string.Equals(defect.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull());
         }
 
         public static bool HasAssignee(this Issue issue)
