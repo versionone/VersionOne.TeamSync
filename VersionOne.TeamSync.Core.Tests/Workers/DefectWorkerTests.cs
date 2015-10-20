@@ -195,7 +195,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 },
                 RenderedFields = new RenderedFields()
             };
-            FakeCreatedStory = new Defect { Number = "S-8900" };
+            FakeCreatedDefect = new Defect { Number = "S-8900" };
             MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(FakeCreatedDefect);
             Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
         }
@@ -218,13 +218,13 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_tell_us_about_creating_a_defect()
         {
-            _mockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
+            MockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
         }
 
         [TestMethod]
         public void should_give_us_a_count_of_the_defects_created()
         {
-            _mockLogger.Verify(x => x.DebugFormat("Found {0} defects to check for create", 1), Times.Once);
+            MockLogger.Verify(x => x.DebugFormat("Found {0} defects to check for create", 1), Times.Once);
         }
 
         [TestMethod]
@@ -282,7 +282,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_tell_us_about_creating_a_defect()
         {
-            _mockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
+            MockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
         }
 
         [TestMethod]
@@ -343,8 +343,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_not_call_either_operations_to_close_or_reopen()
         {
-            _mockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
-            _mockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -356,7 +356,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_log_a_message_about_the_closed_epic()
         {
-            _mockLogger.Verify(x => x.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic"), Times.Once);
+            MockLogger.Verify(x => x.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic"), Times.Once);
         }
 
     }
@@ -373,17 +373,17 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public async void Context()
         {
             BuildContext();
-            _mockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>()))
+            MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>()))
                 .Callback((Defect story) =>
                 {
                     _createdDefect = story;
                 })
                 .ReturnsAsync(_createdDefect);
 
-            _mockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+            MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
                 .ReturnsAsync(new BasicAsset(){AssetState = "128"});
-            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
-            await _worker.CreateDefectFromJira(MakeInfo(), new Issue()
+            _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            await _worker.CreateDefectFromJira(MockJira.Object, new Issue()
             {
                 Key = _issueKey,
                 RenderedFields = new RenderedFields() { Description = "descript" },
@@ -397,37 +397,37 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_call_create_story_once()
         {
-            _mockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Never);
+            MockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Never);
         }
 
         [TestMethod]
         public void should_log_an_error()
         {
-            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
+            MockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
         }
 
         [TestMethod]
         public void should_not_update_the_issue()
         {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
         }
 
         [TestMethod]
         public void should_not_call_refresh_info()
         {
-            _mockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Defect>()), Times.Never);
+            MockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Defect>()), Times.Never);
         }
 
         [TestMethod]
         public void does_not_create_a_comment()
         {
-            _mockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            MockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void does_not_try_to_add_weblink()
         {
-            _mockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            MockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
     }
 
@@ -444,7 +444,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public async void Context()
         {
             BuildContext();
-            _mockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()))
+            MockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()))
                 .Callback<IV1Asset, XDocument>((defect, doc) =>
                 {
                     _updateDefect = (Defect)defect;
@@ -452,8 +452,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 .ReturnsAsync(new XDocument());
 
             _defect.ID = _defectId;
-            _worker = new DefectWorker(_mockV1.Object, _mockLogger.Object);
-            await _worker.UpdateDefectFromJiraToV1(MakeInfo(), new Issue()
+            _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            await _worker.UpdateDefectFromJiraToV1(MockJira.Object, new Issue()
             {
                 Key = _issueKey,
                 RenderedFields = new RenderedFields()
@@ -465,13 +465,13 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                     Status = _status,
                     Summary = "summary",
                 }
-            }, _defect, new List<Epic>() { _epic });
+            }, _defect, new List<Epic>() { _epic }, new Dictionary<string, int>());
         }
 
         [TestMethod]
         public void should_update_the_asset_once()
         {
-            _mockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
         }
 
         [TestMethod]

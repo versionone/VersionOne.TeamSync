@@ -76,13 +76,19 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public RenderedFields RenderedFields { get; set; }
     }
 
-    public class Priority
+    public class Priority : IJiraRelation
     {
         public string Id { get; set; }
         public string Name { get; set; }
     }
 
-    public class Status
+    public interface IJiraRelation
+    {
+        string Id { get; set; }
+        string Name { get; set; }
+    }
+
+    public class Status : IJiraRelation
     {
         public string Name { get; set; }
         public string Id { get; set; }

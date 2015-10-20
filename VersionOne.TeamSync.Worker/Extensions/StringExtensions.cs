@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using VersionOne.TeamSync.JiraConnector.Entities;
 
 namespace VersionOne.TeamSync.Worker.Extensions
 {
@@ -15,6 +16,11 @@ namespace VersionOne.TeamSync.Worker.Extensions
         public static string ToEmptyIfNull(this string value)
         {
             return value ?? "";
+        }
+
+        public static string ToEmptyIfNull(this IJiraRelation jiraRelation)
+        {
+            return jiraRelation != null ? jiraRelation.Name : "";
         }
 
         public static bool Is(this string value, string[] items)

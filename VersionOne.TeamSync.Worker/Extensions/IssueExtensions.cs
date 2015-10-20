@@ -67,7 +67,8 @@ namespace VersionOne.TeamSync.Worker.Extensions
                    string.Equals(story.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
                    string.Equals(story.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
                    string.Equals(story.Reference, issue.Key) &&
-                   string.Equals(story.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull());
+                   string.Equals(story.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull()) &&
+                   string.Equals(story.Priority, issue.Fields.Priority.ToEmptyIfNull());
         }
 
         public static bool ItMatchesDefect(this Issue issue, Defect defect)
@@ -77,7 +78,8 @@ namespace VersionOne.TeamSync.Worker.Extensions
                 string.Equals(defect.Estimate, issue.Fields.StoryPoints.ToEmptyIfNull()) &&
                 string.Equals(defect.ToDo, issue.Fields.RemainingInDays.ToEmptyIfNull()) &&
                 string.Equals(defect.Reference, issue.Key) &&
-                string.Equals(defect.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull());
+                string.Equals(defect.SuperNumber, issue.Fields.EpicLink.ToEmptyIfNull()) &&
+                string.Equals(defect.Priority, issue.Fields.Priority.ToEmptyIfNull());
         }
 
         public static bool HasAssignee(this Issue issue)

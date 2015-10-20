@@ -261,7 +261,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             BuildContext();
             NewIssue.Fields.EpicLink = EpicLink;
-            MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), _epicLink))
+            MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), EpicLink))
                 .ReturnsAsync(new BasicAsset(){AssetState = "64", ID = "Epic:1000"});
             Worker.CreateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Story> { ExistingStory });
         }

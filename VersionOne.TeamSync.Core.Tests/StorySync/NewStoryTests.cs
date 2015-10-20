@@ -79,17 +79,17 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         public async void Context()
         {
             BuildContext();
-            _mockV1.Setup(x => x.CreateStory(It.IsAny<Story>()))
+            MockV1.Setup(x => x.CreateStory(It.IsAny<Story>()))
                 .Callback((Story story) =>
                 {
                     _createdStory = story;
                 })
                 .ReturnsAsync(_createdStory);
 
-            _mockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+            MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
                 .ReturnsAsync(new BasicAsset(){AssetState = "128"});
-            _worker = new StoryWorker(_mockV1.Object, _mockLogger.Object);
-            await _worker.CreateStoryFromJira(MakeInfo(), new Issue()
+            _worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            await _worker.CreateStoryFromJira(MockJira.Object, new Issue()
             {
                 Key = _issueKey,
                 RenderedFields = new RenderedFields() { Description = "descript" },
@@ -103,37 +103,37 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_call_create_story_once()
         {
-            _mockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Never);
+            MockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Never);
         }
 
         [TestMethod]
         public void should_log_an_error()
         {
-            _mockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
+            MockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
         }
 
         [TestMethod]
         public void should_not_update_the_issue()
         {
-            _mockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
         }
 
         [TestMethod]
         public void should_not_call_refresh_info()
         {
-            _mockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Story>()), Times.Never);
+            MockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Story>()), Times.Never);
         }
 
         [TestMethod]
         public void does_not_create_a_comment()
         {
-            _mockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            MockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void does_not_try_to_add_weblink()
         {
-            _mockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            MockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
     }
 
@@ -144,8 +144,9 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         private const string StoryId = "Story:1000";
         protected Status Status;
         protected Story Story = new Story();
-        private Story _updateStory;
+        protected Story _updateStory;
         private StoryWorker _worker;
+        protected Epic _epic = new Epic();
 
         public async void Context()
         {
@@ -270,19 +271,19 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             _epic.AssetState = "128";
             _epic.ID = "1000";
             _epic.Number = "E-1000";
-            _story.AssetState = "64";
-            _story.Super = "Epic:2000";
-            _story.SuperNumber = "E-2000";
+            Story.AssetState = "64";
+            Story.Super = "Epic:2000";
+            Story.SuperNumber = "E-2000";
 
-            _status = new Status() { Name = "In Progress" };
+            Status = new Status() { Name = "In Progress" };
             Context();
         }
 
         [TestMethod]
         public void should_not_call_either_operations_to_close_or_reopen()
         {
-            _mockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
-            _mockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -294,7 +295,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_log_a_message_about_the_closed_epic()
         {
-            _mockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic"), Times.Once);
+            MockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic"), Times.Once);
         }
     }
 
