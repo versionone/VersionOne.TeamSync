@@ -130,7 +130,6 @@ namespace VersionOne.TeamSync.Core.Tests
         private string _description = "a description";
         private string _summary = "a summary";
         private string _epicLink = "E-1000";
-        private string _priorityName = "Medium";
         private int _days = 10;
         private string _points = "5";
 
@@ -149,7 +148,6 @@ namespace VersionOne.TeamSync.Core.Tests
                     StoryPoints = _points,
                     TimeTracking = new TimeTracking() {RemainingEstimateSeconds = 3600*10},
                     EpicLink = _epicLink,
-                    Priority = new Priority() {Name = _priorityName}
                 }
             };
         }
@@ -164,7 +162,6 @@ namespace VersionOne.TeamSync.Core.Tests
                 ToDo = _days.ToString(),
                 Reference = _reference,
                 SuperNumber = _epicLink,
-                Priority = _priorityName,
             };
         }
 
@@ -178,7 +175,6 @@ namespace VersionOne.TeamSync.Core.Tests
                 ToDo = _days.ToString(),
                 Reference = _reference,
                 SuperNumber = _epicLink,
-                Priority = _priorityName,
             };
         }
 
@@ -249,11 +245,12 @@ namespace VersionOne.TeamSync.Core.Tests
         }
 
         [TestMethod]
-        public void should_not_match_if_priority_is_different()
+        public void should_be_a_match_even_if_someone_adds_spaces()
         {
             var issue = CreateIssue();
-            issue.Fields.Priority.Name = "the world is ending";
-            DoesNotMatch(issue);
+            issue.Fields.Summary += " ";
+            issue.ItMatchesStory(CreateStory()).ShouldBeTrue();
+            issue.ItMatchesDefect(CreateDefect()).ShouldBeTrue();
         }
     }
 }
