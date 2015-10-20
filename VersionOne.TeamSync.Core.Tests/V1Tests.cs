@@ -16,47 +16,24 @@ namespace VersionOne.TeamSync.Core.Tests
         protected IV1 V1;
         protected Mock<IV1Connector> MockV1Connector;
 
+        protected User Assignee;
+        protected Member Member;
+
         protected virtual void BuildContext()
         {
             MockV1Connector = new Mock<IV1Connector>();
-        }
-    }
 
-    [TestClass]
-    public class when_assignee_does_not_exists_in_v1 : v1_bits
-    {
-        private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
-
-        protected User Assignee = new User
-        {
-            displayName = "Administrator",
-            name = "admin",
-            emailAddress = "admin@versionone.com"
-        };
-
-        protected Member Member;
-
-        [TestInitialize]
-        public async void Context()
-        {
-            BuildContext();
+            Assignee = new User
+            {
+                displayName = "Administrator",
+                name = "admin",
+                emailAddress = "admin@versionone.com"
+            };
 
             Member = Assignee.ToV1Member();
-
-            MockV1Connector.Setup(x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>())).ReturnsAsync(new List<Member>());
-            MockV1Connector.Setup(x => x.Post(It.Is<Member>(m => MemberAreEquals(m)), It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString())))).ReturnsAsync(XDocument.Parse(CreatedMember));
-
-            V1 = new V1(MockV1Connector.Object);
-            await V1.SyncMemberFromJiraUser(Assignee);
         }
 
-        [TestMethod]
-        public void should_call_create_member_just_once()
-        {
-            MockV1Connector.Verify(x => x.Post(It.Is<Member>(m => MemberAreEquals(m)), It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))), Times.Once);
-        }
-
-        private bool MemberAreEquals(Member member)
+        protected bool MembersAreEquals(Member member)
         {
             return
                 Member.Name.Equals(member.Name) &&
@@ -66,37 +43,102 @@ namespace VersionOne.TeamSync.Core.Tests
     }
 
     [TestClass]
-    public class when_assignee_exists_in_v1 : v1_bits
+    public class when_assignee_does_not_exists_in_v1 : v1_bits
     {
-        protected User Assignee = new User
-        {
-            displayName = "John Doe",
-            name = "jdoe",
-            emailAddress = "jdoe@versionone.com"
-        };
-
-        protected Member Member;
+        private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
 
         [TestInitialize]
         public async void Context()
         {
             BuildContext();
 
-            Member = Assignee.ToV1Member();
-
             MockV1Connector.Setup(
                 x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
-                .ReturnsAsync(new List<Member> {Assignee.ToV1Member()});
-            //MockV1Connector.Setup(x => x.Post(It.Is<Member>(m => MemberAreEquals(m)), It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString())))).ReturnsAsync(XDocument.Parse(CreatedMember));
+                .ReturnsAsync(new List<Member>());
+            MockV1Connector.Setup(
+                x =>
+                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+                        It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))))
+                .ReturnsAsync(XDocument.Parse(CreatedMember));
 
             V1 = new V1(MockV1Connector.Object);
             await V1.SyncMemberFromJiraUser(Assignee);
         }
 
         [TestMethod]
-        public void should_not_call_create_member_just_once()
+        public void should_call_create_member_just_once()
+        {
+            MockV1Connector.Verify(
+                x =>
+                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+                        It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))),
+                Times.Once);
+        }
+    }
+
+    [TestClass]
+    public class when_assignee_exists_in_v1_and_it_matches_equals_true : v1_bits
+    {
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+
+            MockV1Connector.Setup(
+                x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
+                .ReturnsAsync(new List<Member> { Assignee.ToV1Member() });
+
+            V1 = new V1(MockV1Connector.Object);
+            await V1.SyncMemberFromJiraUser(Assignee);
+        }
+
+        [TestMethod]
+        public void should_create_a_post_to_create_member()
         {
             MockV1Connector.Verify(x => x.Post(It.IsAny<Member>(), It.IsAny<XDocument>()), Times.Never);
+        }
+    }
+
+    [TestClass]
+    public class when_assignee_exists_in_v1_and_it_matches_equals_false : v1_bits
+    {
+        private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
+
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+
+            var modifiedAssignee = new User
+            {
+                displayName = "TeamSync User",
+                name = "teamsyncuser",
+                emailAddress = "teamsyncuser@versionone.com"
+            };
+
+            MockV1Connector.Setup(
+                x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
+                .ReturnsAsync(new List<Member> { modifiedAssignee.ToV1Member() });
+            MockV1Connector.Setup(
+                x =>
+                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+                        It.Is<XDocument>(
+                            doc => doc.ToString().Equals(Assignee.ToV1Member().CreateUpdatePayload().ToString()))))
+                .ReturnsAsync(XDocument.Parse(CreatedMember));
+
+            V1 = new V1(MockV1Connector.Object);
+            await V1.SyncMemberFromJiraUser(Assignee);
+        }
+
+        [TestMethod]
+        public void should_create_a_post_to_update_member()
+        {
+            MockV1Connector.Verify(
+                x =>
+                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+                        It.Is<XDocument>(
+                            doc => doc.ToString().Equals(Assignee.ToV1Member().CreateUpdatePayload().ToString()))),
+                Times.Once);
         }
     }
 
