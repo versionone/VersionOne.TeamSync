@@ -8,6 +8,7 @@ using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
@@ -155,6 +156,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
     public abstract class story_bits : worker_bits
     {
+        protected User Assignee;
         protected Story ExistingStory;
         protected Story FakeCreatedStory;
         protected Issue NewIssue;
@@ -168,6 +170,13 @@ namespace VersionOne.TeamSync.Core.Tests
         protected override void BuildContext()
         {
             base.BuildContext();
+
+            Assignee = new User
+            {
+                displayName = "Administrator",
+                name = "admin",
+                emailAddress = "admin@versionone.com"
+            };
             ExistingIssueKey = "OPC-10";
             ExistingStory = new Story { Reference = ExistingIssueKey, Name = "Johnny", Number = StoryNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
             ExistingIssue = new Issue
@@ -297,6 +306,31 @@ namespace VersionOne.TeamSync.Core.Tests
         public void makes_a_call_add_a_link_back_to_jira()
         {
             MockJira.Verify(x => x.AddWebLink(NewIssueKey, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+        }
+    }
+
+    [TestClass]
+    public class story_with_assignee : story_bits
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildContext();
+            NewIssue.Fields.EpicLink = null;
+            NewIssue.Fields.Assignee = Assignee;
+
+            MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
+            MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
+
+            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+
+            Worker.CreateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Story> { ExistingStory });
+        }
+
+        [TestMethod]
+        public void should_sync_member_at_least_once()
+        {
+            MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
         }
     }
 }

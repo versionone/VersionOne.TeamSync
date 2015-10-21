@@ -15,17 +15,9 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         protected Worklog Worklog;
         protected Actual Actual;
+        protected Member Member;
 
         protected string WorkItemId = "Defect:1077";
-
-        protected Member Member = new Member
-        {
-            ID = "Member:20",
-            Name = "Administrator",
-            Nickname = "",
-            Username = "admin",
-            Email = "admin@versionone.com"
-        };
 
         protected override void BuildContext()
         {
@@ -39,6 +31,15 @@ namespace VersionOne.TeamSync.Core.Tests
             };
 
             Actual = new Actual { ID = "1080" };
+
+            Member = new Member
+            {
+                ID = "Member:20",
+                Name = "Administrator",
+                Nickname = "",
+                Username = "admin",
+                Email = "admin@versionone.com"
+            };
         }
     }
 

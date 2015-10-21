@@ -34,6 +34,7 @@ namespace VersionOne.TeamSync.Core.Tests
             MockJiraSettings = new Mock<IJiraSettings>();
             MockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns("3");
+
             MockJira = new Mock<IJira>();
             MockJira.SetupGet(x => x.InstanceUrl).Returns(InstanceUrl);
             MockJira.Setup(x => x.JiraSettings).Returns(MockJiraSettings.Object);
@@ -42,6 +43,7 @@ namespace VersionOne.TeamSync.Core.Tests
             MockJira.Setup(x => x.JiraProject).Returns(JiraKey);
             MockJira.Setup(x => x.EpicCategory).Returns(EpicCategory);
             MockJira.Setup(x => x.DoneWords).Returns(new[] { "Done" });
+
             MockLogger = new Mock<ILog>();
             MockLogger.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
         }
