@@ -95,7 +95,8 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                 RenderedFields = new RenderedFields() { Description = "descript" },
                 Fields = new Fields()
                 {
-                    EpicLink = "E-1000"
+                    EpicLink = "E-1000",
+                    Priority = new Priority() { Name = "Low"}
                 }
             });
         }
@@ -178,7 +179,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     Summary = "summary",
                     Priority = new Priority { Name = "Medium" }
                 }
-            }, Story, new List<Epic>(), data);
+            }, Story, new List<Epic>() { _epic }, data);
         }
 
         [TestMethod]

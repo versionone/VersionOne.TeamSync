@@ -389,7 +389,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 RenderedFields = new RenderedFields() { Description = "descript" },
                 Fields = new Fields()
                 {
-                    EpicLink = "E-1000"
+                    EpicLink = "E-1000",
+                    Priority = new Priority() { Name = "Low"}
                 }
             });
         }
@@ -436,7 +437,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         private string _issueKey = "OPC-71";
         protected Defect _updateDefect;
         private string _defectId = "Defect:1000";
-        protected Status _status;
+        protected Status _status = new Status();
         protected Defect _defect = new Defect();
         protected Epic _epic = new Epic() { AssetState = "64" };
         private DefectWorker _worker;
@@ -464,6 +465,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 {
                     Status = _status,
                     Summary = "summary",
+                    Priority = new Priority() { Name = "Low"}
                 }
             }, _defect, new List<Epic>() { _epic }, new Dictionary<string, int>());
         }

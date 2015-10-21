@@ -26,15 +26,12 @@ namespace VersionOne.TeamSync.Core.Tests
 
         protected virtual void BuildContext()
         {
-            Settings = new Mock<IJiraSettings>();
-            Settings.Setup(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns("Medium");
-            JiraSettings.Instance = Settings.Object;
-
             MockV1 = new Mock<IV1>();
             MockJiraSettings = new Mock<IJiraSettings>();
             MockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns("3");
+
+            JiraSettings.Instance = MockJiraSettings.Object;
 
             MockJira = new Mock<IJira>();
             MockJira.SetupGet(x => x.InstanceUrl).Returns(InstanceUrl);
