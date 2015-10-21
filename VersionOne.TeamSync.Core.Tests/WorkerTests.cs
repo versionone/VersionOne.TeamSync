@@ -22,6 +22,7 @@ namespace VersionOne.TeamSync.Core.Tests
         protected string JiraKey = "OPC";
         protected string EpicCategory = "EpicCategory:1000";
         protected string InstanceUrl = "http://localhost:8080";
+        protected User Assignee;
 
         protected virtual void BuildContext()
         {
@@ -46,6 +47,13 @@ namespace VersionOne.TeamSync.Core.Tests
 
             MockLogger = new Mock<ILog>();
             MockLogger.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
+
+            Assignee = new User
+            {
+                displayName = "Administrator",
+                name = "admin",
+                emailAddress = "admin@versionone.com"
+            };
         }
     }
 

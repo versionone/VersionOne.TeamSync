@@ -156,7 +156,6 @@ namespace VersionOne.TeamSync.Core.Tests
 
     public abstract class story_bits : worker_bits
     {
-        protected User Assignee;
         protected Story ExistingStory;
         protected Story FakeCreatedStory;
         protected Issue NewIssue;
@@ -171,12 +170,6 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             base.BuildContext();
 
-            Assignee = new User
-            {
-                displayName = "Administrator",
-                name = "admin",
-                emailAddress = "admin@versionone.com"
-            };
             ExistingIssueKey = "OPC-10";
             ExistingStory = new Story { Reference = ExistingIssueKey, Name = "Johnny", Number = StoryNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
             ExistingIssue = new Issue

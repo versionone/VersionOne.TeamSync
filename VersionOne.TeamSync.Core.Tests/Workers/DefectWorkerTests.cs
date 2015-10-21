@@ -159,7 +159,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
     public abstract class defect_bits : worker_bits
     {
-        protected User Assignee;
         protected Defect ExistingDefect;
         protected Defect FakeCreatedStory;
         protected Issue NewIssue;
@@ -174,12 +173,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             base.BuildContext();
 
-            Assignee = new User
-            {
-                displayName = "Administrator",
-                name = "admin",
-                emailAddress = "admin@versionone.com"
-            };
             ExistingIssueKey = "OPC-10";
             ExistingDefect = new Defect { Reference = ExistingIssueKey, Name = "Johnny", Number = DefectNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
             ExistingIssue = new Issue

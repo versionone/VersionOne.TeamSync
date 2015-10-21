@@ -8,6 +8,7 @@ using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
@@ -15,7 +16,6 @@ namespace VersionOne.TeamSync.Core.Tests
     {
         protected Worklog Worklog;
         protected Actual Actual;
-        protected Member Member;
 
         protected string WorkItemId = "Defect:1077";
 
@@ -27,19 +27,11 @@ namespace VersionOne.TeamSync.Core.Tests
             {
                 id = 10127,
                 timeSpentSeconds = 1800,
-                started = DateTime.UtcNow
+                started = DateTime.UtcNow,
+                updateAuthor = Assignee
             };
 
             Actual = new Actual { ID = "1080" };
-
-            Member = new Member
-            {
-                ID = "Member:20",
-                Name = "Administrator",
-                Nickname = "",
-                Username = "admin",
-                Email = "admin@versionone.com"
-            };
         }
     }
 
@@ -55,7 +47,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
 
             MockV1.Setup(x => x.CreateActual(It.IsAny<Actual>())).ReturnsAsync(Actual);
-            MockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
+            MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
 
             var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
             worker.CreateActualsFromWorklogs(MockJira.Object, new List<Worklog> { Worklog }, WorkItemId, V1Number, IssueKey);
@@ -65,6 +57,12 @@ namespace VersionOne.TeamSync.Core.Tests
         public void should_call_create_actual_just_one_time()
         {
             MockV1.Verify(x => x.CreateActual(It.IsAny<Actual>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_sync_member_at_least_once()
+        {
+            MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
         }
 
         [TestMethod]
@@ -104,7 +102,7 @@ namespace VersionOne.TeamSync.Core.Tests
     </Relation>
 </Asset>");
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>())).ReturnsAsync(_updatedActual);
-            MockV1.Setup(x => x.SyncMemberFromJiraUser(It.IsAny<User>())).ReturnsAsync(Member);
+            MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
 
             var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
             worker.UpdateActualsFromWorklogs(MockJira.Object, new List<Worklog> { Worklog }, WorkItemId, new List<Actual> { Actual });
