@@ -61,7 +61,7 @@ namespace VersionOne.TeamSync.Worker
             existingBugs.ForEach(existingJDefect =>
             {
                 var defectToUpdate = allV1Defects.Single(defect => existingJDefect.Fields.Labels.Contains(defect.Number));
-                var returnedValue = UpdateDefectFromJiraToV1(jiraInstance, existingJDefect, defectToUpdate, assignedEpics, data);
+                UpdateDefectFromJiraToV1(jiraInstance, existingJDefect, defectToUpdate, assignedEpics, data).Wait();
 
             });
 

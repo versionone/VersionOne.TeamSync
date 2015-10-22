@@ -53,7 +53,6 @@ namespace VersionOne.TeamSync.Worker
                 Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
                 _asyncWorkers.ForEach(worker => worker.DoWork(jiraInstance));
-
                 jiraInstance.CleanUpAfterRun(Log);
             });
 
