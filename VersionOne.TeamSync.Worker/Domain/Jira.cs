@@ -225,7 +225,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             var transition = content.Transitions.Where(t => doneWords.Contains(t.Name)).ToList();
             if (transition.Count != 1)
             {
-                _log.Error("None or multiple transistions exists for {0} with the status of " + string.Join(" or ", doneWords) + ".  This epic will not be updated");
+                _log.Error("None or multiple transistions exists for " + issueKey + " with the status of " + string.Join(" or ", doneWords) + ".  This epic will not be updated");
                 return;
             }
 
