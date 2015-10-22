@@ -247,7 +247,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 transition = new { id = transition.Single().Id }
             }, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
 
-            _log.Info(string.Format("Attempting to set status on {0}", issueKey));
+            _log.Info(string.Format("Set status on {0} to {1}", issueKey, transition.Single().Name));
         }
 
         public SearchResult GetEpicByKey(string reference)
