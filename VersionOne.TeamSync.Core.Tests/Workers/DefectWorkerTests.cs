@@ -9,6 +9,7 @@ using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.Worker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests.Workers
 {
@@ -171,6 +172,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         protected override void BuildContext()
         {
             base.BuildContext();
+
             ExistingIssueKey = "OPC-10";
             ExistingDefect = new Defect { Reference = ExistingIssueKey, Name = "Johnny", Number = DefectNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
             ExistingIssue = new Issue
@@ -299,6 +301,31 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public void makes_a_call_add_a_link_back_to_jira()
         {
             MockJira.Verify(x => x.AddWebLink(NewIssueKey, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+        }
+    }
+
+    [TestClass]
+    public class defect_with_assignee : defect_bits
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildContext();
+            NewIssue.Fields.EpicLink = null;
+            NewIssue.Fields.Assignee = Assignee;
+
+            MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
+            MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
+
+            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+
+            Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
+        }
+
+        [TestMethod]
+        public void should_sync_member_at_least_once()
+        {
+            MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
         }
     }
 }
