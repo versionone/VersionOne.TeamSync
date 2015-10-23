@@ -9,7 +9,6 @@ namespace VersionOne.TeamSync.SystemTray
     public abstract class TeamSyncServiceController
     {
         private const string ServiceName = "VersionOne.TeamSync.Service";
-
         private const string NoAdminPrivilegesMessage =
             "Unable to perform this action. The VersionOne TeamSync system tray application must be running with administrator privileges to control the TeamSync service.";
         private const string TimeoutMessageFormat =
@@ -39,7 +38,7 @@ namespace VersionOne.TeamSync.SystemTray
             var path = key.GetValue("ImagePath").ToString();
             key.Close();
 
-            return Environment.ExpandEnvironmentVariables(path).Trim(new char[] { '"' });
+            return path;
         }
 
         public static void StartService()

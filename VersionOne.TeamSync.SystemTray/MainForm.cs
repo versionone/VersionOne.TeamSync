@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.Remoting;
 using System.ServiceProcess;
 using System.Timers;
@@ -16,9 +18,23 @@ namespace VersionOne.TeamSync.SystemTray
         public SystemTray()
         {
             InitializeComponent();
-            RemotingConfiguration.Configure("VersionOne.TeamSync.SystemTray.exe.config", false);
-            RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
+            try
+            {
+                string path = TeamSyncServiceController.GetServicePath().Replace(".Service.exe", ".SystemTray.exe.config");
+                RemotingConfiguration.Configure(path.Replace("\"", ""), false);
+                
+                Log.Info("Loading config for systemtray from " + path);
+                
+                RemotingConfiguration.RegisterWellKnownServiceType(new WellKnownServiceTypeEntry(typeof(RemoteLoggingSink), "LoggingSink", WellKnownObjectMode.SingleCall));
 
+                Log.Info("Service registered");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.Message, e);
+           
+            }
+         
             Log.Info("*** VersionOne SystemTray started ***");
 
             contextMenuStrip1.Renderer = new CustomRenderer();
@@ -154,7 +170,10 @@ namespace VersionOne.TeamSync.SystemTray
         {
             if (e.ToolStrip.Items.IndexOf(e.Item) == 0)
             {
-                e.Graphics.DrawImage(new Bitmap("versionone-logo-noTagline.png"),
+                string path = TeamSyncServiceController.GetServicePath().Replace("VersionOne.TeamSync.Service.exe", "");
+                path = path.Replace("\"", "");
+               
+                e.Graphics.DrawImage(new Bitmap(path + "versionone-logo-noTagline.png"),
                     new Rectangle(10, 0, 125, 25));
             }
             else base.OnRenderMenuItemBackground(e);
