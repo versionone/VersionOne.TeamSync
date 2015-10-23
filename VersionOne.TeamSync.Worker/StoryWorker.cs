@@ -171,7 +171,7 @@ namespace VersionOne.TeamSync.Worker
                         _log.Error("Unable to assign epic " + jiraStory.Fields.EpicLink + " -- Epic may be closed");
                         return;
                     }
-                    story.Super = epic.ID;
+                    story.Super = epic.Token;
                 }
             }
 

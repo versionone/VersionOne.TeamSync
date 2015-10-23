@@ -8,6 +8,7 @@ namespace VersionOne.TeamSync.Worker.Domain
     public class BasicAsset
     {
         public string ID { get; set; }
+        public string Token { get; set; }
         public string AssetState { get; set; }
         public bool IsClosed { get { return AssetState == "128"; } }
 
@@ -17,8 +18,10 @@ namespace VersionOne.TeamSync.Worker.Domain
             return new BasicAsset()
             {
                 ID = asset.GetAssetID(),
+                Token = asset.GetToken(),
                 AssetState = attributes.GetValueOrDefault("AssetState"),
             };
         }
+
     }
 }
