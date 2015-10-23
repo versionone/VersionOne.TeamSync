@@ -203,31 +203,6 @@ namespace VersionOne.TeamSync.Core.Tests
     }
 
     [TestClass]
-    public class for_setting_a_project_to_resolved
-    {
-        private const string IssueKey = "AKey-10";
-
-        [TestMethod]
-        public void should_request_an_update_correctly()
-        {
-            var mockLogger = new Mock<ILog>();
-            mockLogger.Setup(x => x.Error(It.IsAny<string>()));
-            var mockConnector = new Mock<IJiraConnector>();
-            mockConnector.Setup(x => x.Get<TransitionResponse>("api/latest/issue/{issueIdOrKey}/transitions", new KeyValuePair<string, string>("issueIdOrKey", IssueKey), It.IsAny<Dictionary<string, string>>())).Returns(new TransitionResponse
-            {
-                Transitions = new List<Transition> { new Transition { Id = "5", Name = "Done" } }
-            }).Verifiable();
-            mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey))).Verifiable();
-
-            var jira = new Jira(mockConnector.Object, null, mockLogger.Object);
-
-            jira.SetIssueToResolved(IssueKey, new[] { "Done" });
-
-            mockConnector.VerifyAll();
-        }
-    }
-
-    [TestClass]
     public class Executing_a_request_with_no_return
     {
         private const string AppropriateScreenJsonError = "{\"errorMessages\":[],\"errors\":{\"targetProperty\":\"Field 'components' cannot be set. It is not on the appropriate screen, or unknown.\"}}";

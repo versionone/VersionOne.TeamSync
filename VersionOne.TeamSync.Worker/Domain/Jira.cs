@@ -225,7 +225,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             var transition = content.Transitions.Where(t => doneWords.Contains(t.Name)).ToList();
             if (transition.Count != 1)
             {
-                _log.Error("None or multiple transistions exists for {0} with the status of " + string.Join(" or ", doneWords) + ".  This epic will not be updated");
+                _log.Error("None or multiple transistions exists for " + issueKey + " with the status of " + string.Join(" or ", doneWords) + ".  This epic will not be updated");
                 return;
             }
 
@@ -247,7 +247,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 transition = new { id = transition.Single().Id }
             }, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
 
-            _log.Info(string.Format("Attempting to set status on {0}", issueKey));
+            _log.Info(string.Format("Set status on {0} to {1}", issueKey, transition.Single().Name));
         }
 
         public SearchResult GetEpicByKey(string reference)
