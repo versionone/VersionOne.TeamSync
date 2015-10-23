@@ -94,13 +94,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         public static Story FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
-            var priorityRelationNode = asset.Elements("Relation").SingleOrDefault(e => e.Attribute("name").Value.Equals("Priority"));
-            var priority = priorityRelationNode != null ? priorityRelationNode.Element("Asset") : null;
-            var ownersIds =
-                asset.Elements("Relation")
-                    .Where(e => e.Attribute("name").Value == "Owners")
-                    .Elements("Asset")
-                    .Select(i => i.Attribute("idref").Value);
+            var relation = asset.Elements("Relation").ToDictionary(item => item.Attribute("name").Value, item => item.Elements("Asset").Select(x => x.Attribute("idref").Value).ToList());
+
             return new Story
             {
                 ID = asset.GetAssetID(),
@@ -114,8 +109,8 @@ namespace VersionOne.TeamSync.Worker.Domain
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
                 AssetState = attributes.GetValueOrDefault("AssetState"),
                 SuperNumber = attributes.GetValueOrDefault("Super.Number"),
-                Priority = priority != null ? priority.Attribute("idref").Value : string.Empty,
-                OwnersIds = ownersIds.ToList()
+                Priority = relation.GetSingleRelationValueOrDefault("Priority"),
+                OwnersIds = relation.GetMultipleRelationValueOrDefault("Owners")
             };
         }
     }

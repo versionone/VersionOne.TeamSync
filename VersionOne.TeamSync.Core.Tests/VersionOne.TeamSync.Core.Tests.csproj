@@ -82,6 +82,7 @@
     <Compile Include="WorkerTests_Actual.cs" />
     <Compile Include="WorkerTests_Story.cs" />
     <Compile Include="WorkitemEqualsTests.cs" />
+    <Compile Include="Xml\Defect_Tests.cs" />
     <Compile Include="Xml\SetNodeTests.cs" />
   </ItemGroup>
   <ItemGroup>
