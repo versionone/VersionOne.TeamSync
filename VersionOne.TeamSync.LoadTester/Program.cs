@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using JiraSoapProxy;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
+using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -18,7 +19,10 @@ namespace VersionOne.TeamSync.LoadTester
     {
         private const int NumberOfProjects = 2;
         private const int NumberOfV1Epics = 0;
-
+        private const int NumberOfBugs = 0;
+        private const int NumberOfStories = 0;
+        private const int NumberOfWorlogs = 5;
+        static Epic[] v1Epics = new Epic[] { };
         private const int NumberOfRandomChars = 3;
 
         private static Random _random = new Random((int)DateTime.Now.Ticks);
@@ -38,33 +42,55 @@ namespace VersionOne.TeamSync.LoadTester
             var config =
                 ConfigurationManager.OpenMappedMachineConfiguration(new ConfigurationFileMap(serviceConfigFilePath));
             var jiraSettings = config.GetSection("jiraSettings") as JiraSettings;
-            var jiraServerSettings = jiraSettings.Servers[0];
-            for (int i = 1; i <= NumberOfProjects; i++)
+            if (jiraSettings != null)
             {
-                var projectName = AddRandomCharsToName("Load Testing project ");
-                Console.WriteLine("Creating V1 Project: " + projectName + "...");
-                
-                var v1ProjectId = CreateV1Project(projectName);
-
-                var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
-                    projectName);
-
-                _projectMappings.Add(v1ProjectId, jiraProjectId);
-            }
-
-            foreach (var projectMapping in _projectMappings)
-            {
-                jiraServerSettings.ProjectMappings.Add(new ProjectMapping
+                var jiraServerSettings = jiraSettings.Servers[0];
+                for (int i = 1; i <= NumberOfProjects; i++)
                 {
-                    Enabled = true,
-                    V1Project = projectMapping.Key,
-                    JiraProject = projectMapping.Value,
-                    EpicSyncType = "EpicCategory:208"
-                });
+                    var projectName = AddRandomCharsToName("Load Testing project ");
+                    Console.WriteLine("Creating V1 Project: " + projectName + "...");
+                
+                    var v1ProjectId = CreateV1Project(projectName);
+
+                    var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
+                        projectName);
+
+                    _projectMappings.Add(v1ProjectId, jiraProjectId);
+                    //createStory(jiraProjectId);
+                    //createBug(jiraProjectId);
+
+                }
+
+
+
+                foreach (var projectMapping in _projectMappings)
+                {
+                    jiraServerSettings.ProjectMappings.Add(new ProjectMapping
+                    {
+                        Enabled = true,
+                        V1Project = projectMapping.Key,
+                        JiraProject = projectMapping.Value,
+                        EpicSyncType = "EpicCategory:208"
+                    });
+
+               
+                }
             }
             config.Save(ConfigurationSaveMode.Full);
 
             Console.ReadKey();
+        }
+
+        private static void createBug(string jiraProjectId)
+        {
+
+            //createWorlog
+            throw new NotImplementedException();
+        }
+
+        private static void RunServiceOnce(string jiraProjectId)
+        {
+            throw new NotImplementedException();
         }
 
         private static void CreateV1Connector()
@@ -98,6 +124,7 @@ namespace VersionOne.TeamSync.LoadTester
             return project.key;
         }
 
+
         private static string CreateV1Project(string projectName)
         {
             var scope = new Scope(){Name = projectName, Parent = "Scope:0", Scheme = "Scheme:1001"};
@@ -112,15 +139,41 @@ namespace VersionOne.TeamSync.LoadTester
 
         private static void CreateV1Epics(string v1ProjectId)
         {
+          
             for (int i = 1; i <= NumberOfV1Epics; i++)
             {
                 var epicName = AddRandomCharsToName("Load Testing Epic ") + " on " + v1ProjectId;
                 Console.WriteLine("\tCreating V1 Epic " + epicName + "...");
                 var epic = new Epic() {Name = epicName, ScopeId = v1ProjectId};
                 _v1Connector.Post(epic, epic.CreatePayload());
+                createStory(epic);
+                createDefect(epic);
             }
         }
-        
+
+        private static void createStory(Epic epic)
+        {
+            for (int i = 1; i <= NumberOfV1Epics; i++)
+            {
+                
+            }
+        }
+
+        private static void createDefect(Epic epic)
+        {
+
+            for (int i = 1; i <= NumberOfV1Epics; i++)
+            {
+
+            }
+        }
+
+
+
+
+
+
+
         private static string AddRandomCharsToName(string name)
         {
             StringBuilder builder = new StringBuilder(name);
