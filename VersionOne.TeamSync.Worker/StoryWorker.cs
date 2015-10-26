@@ -63,7 +63,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
 
-                var returnValue = UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data);
+                UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Wait();
 
             });
             if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);

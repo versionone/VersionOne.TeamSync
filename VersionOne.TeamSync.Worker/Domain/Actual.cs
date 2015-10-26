@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
@@ -46,13 +47,15 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
 
+            var memberAsset = asset.Elements("Relation").Where(e => e.Attribute("name").Value.Equals("Member")).Elements("Asset").SingleOrDefault();
+
             return new Actual
             {
                 ID = asset.GetAssetID(),
                 Date = DateTime.Parse(attributes.GetValueOrDefault("Date")),
                 Value = attributes.GetValueOrDefault("Value"),
                 Reference = attributes.GetValueOrDefault("Reference"),
-                MemberId = asset.Elements("Relation").Where(e => e.Attribute("name").Value.Equals("Member")).Elements("Asset").Single().Attribute("idref").Value
+                MemberId = memberAsset != null ? memberAsset.Attribute("idref").Value : null
             };
         }
     }
