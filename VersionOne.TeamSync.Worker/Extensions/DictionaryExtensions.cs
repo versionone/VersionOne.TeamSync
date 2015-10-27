@@ -14,6 +14,16 @@ namespace VersionOne.TeamSync.Worker.Extensions
 			return dictionary.ContainsKey(key) ? dictionary[key] : default(T);
 		}
 
+        public static T GetSingleRelationValueOrDefault<T>(this IDictionary<string, List<T>> dictionary, string key)
+        {
+            return dictionary.ContainsKey(key) ? dictionary[key].SingleOrDefault() : default(T);
+        }
+
+        public static List<T> GetMultipleRelationValueOrDefault<T>(this IDictionary<string, List<T>> dictionary, string key)
+        {
+            return dictionary.ContainsKey(key) ? dictionary[key].ToList() : default(List<T>);
+        }
+
         public static string GetPlainTextFromHtmlOrDefault(this IDictionary<string, string> dictionary, string key)
         {
             if (!dictionary.ContainsKey(key))

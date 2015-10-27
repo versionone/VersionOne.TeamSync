@@ -102,14 +102,16 @@ namespace VersionOne.TeamSync.Worker
                     await _v1.UpdateAsset(update, update.CreateOwnersPayload(member.Oid()));
             }
             else if (update.OwnersIds.Any()) // Unassign Owner
-            {
                 await _v1.UpdateAsset(update, update.CreateOwnersPayload());
-            }
+
+            if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
+                _log.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic");
 
             if (!issue.ItMatchesDefect(defect) ||
                     (JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != defect.Priority))
             {
-                update.Super = v1EpicId;
+                if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
+                    update.Super = v1EpicId;
                 _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated V1 defect {0}", defect.Number);
@@ -143,8 +145,8 @@ namespace VersionOne.TeamSync.Worker
 
             newDefects.ForEach(bug =>
             {
-                CreateDefectFromJira(jiraInstance, bug).Wait();
-                processedDefects++;
+                if (CreateDefectFromJira(jiraInstance, bug).Result)
+                    processedDefects++;
             });
 
             if (processedDefects > 0)
@@ -152,7 +154,7 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceCreateFinished(PluralAsset);
         }
 
-        public async Task CreateDefectFromJira(IJira jiraInstance, Issue jiraBug)
+        public async Task<bool> CreateDefectFromJira(IJira jiraInstance, Issue jiraBug)
         {
             var defect = jiraBug.ToV1Defect(jiraInstance.V1Project,
                 JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name));
@@ -166,8 +168,17 @@ namespace VersionOne.TeamSync.Worker
 
             if (!string.IsNullOrEmpty(jiraBug.Fields.EpicLink))
             {
-                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraBug.Fields.EpicLink);
-                defect.Super = epicId;
+                var epic = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraBug.Fields.EpicLink);
+
+                if (epic != null)
+                {
+                    if (epic.IsClosed)
+                    {
+                        _log.Error("Unable to assign epic " + jiraBug.Fields.EpicLink + " -- Epic may be closed");
+                        return false;
+                    }
+                    defect.Super = epic.Token;
+                }
             }
 
             _log.TraceFormat("Attempting to create V1 defect from Jira defect {0}", jiraBug.Key);
@@ -190,6 +201,8 @@ namespace VersionOne.TeamSync.Worker
             var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraBug.Key)).ToString();
             _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraBug.Key), link);
             _log.TraceFormat("Added link in V1 defect {0}", newDefect.Number);
+
+            return true;
         }
 
         public void DeleteV1Defects(IJira jiraInstance, List<Issue> allJiraBugs, List<Defect> allV1Defects)

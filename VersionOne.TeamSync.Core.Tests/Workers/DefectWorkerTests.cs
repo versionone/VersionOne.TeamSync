@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -54,6 +53,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
             Worker.UpdateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue, updatedIssue }, new List<Defect> { ExistingDefect, _updatedDefect });
         }
+
 
         [TestMethod]
         public void should_call_update_asset_just_one_time()
@@ -160,7 +160,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
     public abstract class defect_bits : worker_bits
     {
         protected Defect ExistingDefect;
-        protected Defect FakeCreatedStory;
+        protected Defect FakeCreatedDefect;
         protected Issue NewIssue;
         protected Issue ExistingIssue;
         protected SearchResult SearchResult;
@@ -195,8 +195,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 },
                 RenderedFields = new RenderedFields()
             };
-            FakeCreatedStory = new Defect { Number = "S-8900" };
-            MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(FakeCreatedStory);
+            FakeCreatedDefect = new Defect { Number = "S-8900" };
+            MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(FakeCreatedDefect);
             Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
         }
     }
@@ -215,6 +215,17 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
             Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
         }
+        [TestMethod]
+        public void should_tell_us_about_creating_a_defect()
+        {
+            MockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_give_us_a_count_of_the_defects_created()
+        {
+            MockLogger.Verify(x => x.DebugFormat("Found {0} defects to check for create", 1), Times.Once);
+        }
 
         [TestMethod]
         public void should_call_create_asset_just_one_time()
@@ -231,7 +242,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_refresh_the_defect_once()
         {
-            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedStory), Times.Once);
+            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedDefect), Times.Once);
         }
 
         [TestMethod]
@@ -267,6 +278,13 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
         }
 
+
+        [TestMethod]
+        public void should_tell_us_about_creating_a_defect()
+        {
+            MockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
+        }
+
         [TestMethod]
         public void should_call_create_asset_just_one_time()
         {
@@ -282,7 +300,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_refresh_the_defect_once()
         {
-            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedStory), Times.Once);
+            MockV1.Verify(x => x.RefreshBasicInfo(FakeCreatedDefect), Times.Once);
         }
 
         [TestMethod]
@@ -301,6 +319,168 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public void makes_a_call_add_a_link_back_to_jira()
         {
             MockJira.Verify(x => x.AddWebLink(NewIssueKey, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+        }
+    }
+
+    [TestClass]
+    [DefectNumber("D-09878")]
+    public class defect_update_with_closed_epic : update_jira_bug_to_v1
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            _epic.AssetState = "128";
+            _epic.ID = "1000";
+            _epic.Number = "E-1000";
+            _defect.AssetState = "64";
+            _defect.Super = "Epic:2000";
+            _defect.SuperNumber = "E-2000";
+
+            _status = new Status() { Name = "In Progress" };
+            Context();
+        }
+
+        [TestMethod]
+        public void should_not_call_either_operations_to_close_or_reopen()
+        {
+            MockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_update_the_parent_epic() //null value means no update
+        {
+            _updateDefect.Super.ShouldBeNull();
+        }
+
+        [TestMethod]
+        public void should_log_a_message_about_the_closed_epic()
+        {
+            MockLogger.Verify(x => x.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic"), Times.Once);
+        }
+
+    }
+
+    [TestClass]
+    [DefectNumber("D-09878")]
+    public class take_jira_bug_to_v1_defect_and_epic_is_closed : worker_bits
+    {
+        private DefectWorker _worker;
+        private Defect _createdDefect;
+        private string _issueKey = "OPC-71";
+
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+            MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>()))
+                .Callback((Defect story) =>
+                {
+                    _createdDefect = story;
+                })
+                .ReturnsAsync(_createdDefect);
+
+            MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+                .ReturnsAsync(new BasicAsset(){AssetState = "128"});
+            _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            await _worker.CreateDefectFromJira(MockJira.Object, new Issue()
+            {
+                Key = _issueKey,
+                RenderedFields = new RenderedFields() { Description = "descript" },
+                Fields = new Fields()
+                {
+                    EpicLink = "E-1000",
+                    Priority = new Priority() { Name = "Low"}
+                }
+            });
+        }
+
+        [TestMethod]
+        public void should_call_create_story_once()
+        {
+            MockV1.Verify(x => x.CreateDefect(It.IsAny<Defect>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_log_an_error()
+        {
+            MockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
+        }
+
+        [TestMethod]
+        public void should_not_update_the_issue()
+        {
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_call_refresh_info()
+        {
+            MockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Defect>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_create_a_comment()
+        {
+            MockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_try_to_add_weblink()
+        {
+            MockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+    }
+
+    public abstract class update_jira_bug_to_v1 : worker_bits
+    {
+        private string _issueKey = "OPC-71";
+        protected Defect _updateDefect;
+        private string _defectId = "Defect:1000";
+        protected Status _status = new Status();
+        protected Defect _defect = new Defect();
+        protected Epic _epic = new Epic() { AssetState = "64" };
+        private DefectWorker _worker;
+
+        public async void Context()
+        {
+            BuildContext();
+            MockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()))
+                .Callback<IV1Asset, XDocument>((defect, doc) =>
+                {
+                    _updateDefect = (Defect)defect;
+                })
+                .ReturnsAsync(new XDocument());
+
+            _defect.ID = _defectId;
+            _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            await _worker.UpdateDefectFromJiraToV1(MockJira.Object, new Issue()
+            {
+                Key = _issueKey,
+                RenderedFields = new RenderedFields()
+                {
+                    Description = "descript"
+                },
+                Fields = new Fields()
+                {
+                    Status = _status,
+                    Summary = "summary",
+                    Priority = new Priority() { Name = "Low"}
+                }
+            }, _defect, new List<Epic>() { _epic }, new Dictionary<string, int>());
+        }
+
+        [TestMethod]
+        public void should_update_the_asset_once()
+        {
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_pass_along_data_to_update_story()
+        {
+            _updateDefect.ID.ShouldEqual(_defectId);
+            _updateDefect.Reference.ShouldEqual(_issueKey);
         }
     }
 
@@ -328,4 +508,5 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
         }
     }
+
 }

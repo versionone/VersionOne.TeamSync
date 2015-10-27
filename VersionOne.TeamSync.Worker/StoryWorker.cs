@@ -76,8 +76,6 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(IJira jiraInstance, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-
-
             //need to reopen a story first before we can update it
             if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && story.AssetState == "128")
             {
@@ -87,6 +85,7 @@ namespace VersionOne.TeamSync.Worker
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
@@ -101,14 +100,16 @@ namespace VersionOne.TeamSync.Worker
                     await _v1.UpdateAsset(update, update.CreateOwnersPayload(member.Oid()));
             }
             else if (update.OwnersIds.Any()) // Unassign Owner
-            {
                 await _v1.UpdateAsset(update, update.CreateOwnersPayload());
-            }
+
+            if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
+                _log.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic");
 
             if (!issue.ItMatchesStory(story) ||
                     (JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != story.Priority))
             {
-                update.Super = v1EpicId;
+                if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
+                    update.Super = v1EpicId;
                 _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated story V1 {0}", story.Number);
@@ -157,17 +158,26 @@ namespace VersionOne.TeamSync.Worker
             var story = jiraStory.ToV1Story(jiraInstance.V1Project,
                 JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name));
 
+            if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
+            {
+                var epic = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraStory.Fields.EpicLink);
+
+                if (epic != null)
+                {
+                    if (epic.IsClosed)
+                    {
+                        _log.Error("Unable to assign epic " + jiraStory.Fields.EpicLink + " -- Epic may be closed");
+                        return;
+                    }
+                    story.Super = epic.Token;
+                }
+            }
+
             if (jiraStory.HasAssignee())
             {
                 var member = await TrySyncMemberFromJiraUser(jiraStory.Fields.Assignee);
                 if (member != null)
                     story.OwnersIds.Add(member.Oid());
-            }
-
-            if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
-            {
-                var epicId = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraStory.Fields.EpicLink);
-                story.Super = epicId;
             }
 
             _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);

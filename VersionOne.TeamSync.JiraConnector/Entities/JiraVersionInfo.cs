@@ -18,7 +18,7 @@ namespace VersionOne.TeamSync.JiraConnector.Entities
         public static Dictionary<string, string[]> VersionDoneWords = new Dictionary<string, string[]>
         {
             {"5", new[] {"Closed", "Close Issue"}},
-            {"6", new[] {"Done", "Close Issue"}}
+            {"6", new[] {"Done", "Closed", "Close Issue"}}
         };  
     }
 }

@@ -122,4 +122,135 @@ namespace VersionOne.TeamSync.Core.Tests
             _actual.WorkItemId.ShouldEqual("Defect:1064");
         }
     }
+
+    [TestClass]
+    public class IssueExtension_MatchesTests
+    {
+        private string _reference = "PROJ-10";
+        private string _description = "a description";
+        private string _summary = "a summary";
+        private string _epicLink = "E-1000";
+        private int _days = 10;
+        private string _points = "5";
+
+        private Issue CreateIssue()
+        {
+            return new Issue()
+            {
+                Key = _reference,
+                RenderedFields = new RenderedFields()
+                {
+                    Description = _description
+                },
+                Fields = new Fields()
+                {
+                    Summary = _summary,
+                    StoryPoints = _points,
+                    TimeTracking = new TimeTracking() {RemainingEstimateSeconds = 3600*10},
+                    EpicLink = _epicLink,
+                }
+            };
+        }
+
+        private Story CreateStory()
+        {
+            return new Story()
+            {
+                Name = _summary,
+                Description = _description,
+                Estimate = _points,
+                ToDo = _days.ToString(),
+                Reference = _reference,
+                SuperNumber = _epicLink,
+            };
+        }
+
+        private Defect CreateDefect()
+        {
+            return new Defect()
+            {
+                Name = _summary,
+                Description = _description,
+                Estimate = _points,
+                ToDo = _days.ToString(),
+                Reference = _reference,
+                SuperNumber = _epicLink,
+            };
+        }
+
+        private void DoesNotMatch(Issue issue)
+        {
+            issue.ItMatchesStory(CreateStory()).ShouldBeFalse();
+            issue.ItMatchesDefect(CreateDefect()).ShouldBeFalse();
+        }
+
+        [TestMethod]
+        public void should_match_story()
+        {
+            CreateIssue().ItMatchesStory(CreateStory()).ShouldBeTrue();
+        }
+
+        [TestMethod]
+        public void should_match_defect()
+        {
+            CreateIssue().ItMatchesDefect(CreateDefect()).ShouldBeTrue();
+        }
+
+        [TestMethod]
+        public void should_not_match_if_summary_is_different()
+        {
+            var issue = CreateIssue();
+            issue.Fields.Summary = "something else";
+            DoesNotMatch(issue);
+        }
+
+        [TestMethod]
+        public void should_not_match_if_description_is_different()
+        {
+            var issue = CreateIssue();
+            issue.RenderedFields.Description = "something else";
+            DoesNotMatch(issue);
+        }
+
+        [TestMethod]
+        public void should_not_match_if_story_points_is_different()
+        {
+            var issue = CreateIssue();
+            issue.Fields.StoryPoints= "9";
+            DoesNotMatch(issue);
+        }
+
+        [TestMethod]
+        public void should_not_match_if_remainingInDays_is_different()
+        {
+            var issue = CreateIssue();
+            issue.Fields.TimeTracking.RemainingEstimateSeconds = 3600 * 20;
+            DoesNotMatch(issue);
+        }
+
+        [TestMethod]
+        public void should_not_match_if_the_key_is_different()
+        {
+            var issue = CreateIssue();
+            issue.Key = "OCT-20";
+            DoesNotMatch(issue);
+        }
+
+        [TestMethod]
+        public void should_not_match_if_epicLink_is_different()
+        {
+            var issue = CreateIssue();
+            issue.Fields.EpicLink = "E-3045";
+            DoesNotMatch(issue);
+        }
+
+        [TestMethod]
+        public void should_be_a_match_even_if_someone_adds_spaces()
+        {
+            var issue = CreateIssue();
+            issue.Fields.Summary += " ";
+            issue.ItMatchesStory(CreateStory()).ShouldBeTrue();
+            issue.ItMatchesDefect(CreateDefect()).ShouldBeTrue();
+        }
+    }
 }

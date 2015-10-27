@@ -67,14 +67,87 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         }
     }
 
+    [TestClass]
+    [DefectNumber("D-09878")]
+    public class take_jira_story_to_v1_story_and_epic_is_closed : worker_bits
+    {
+        private StoryWorker _worker;
+        private Story _createdStory;
+        private string _issueKey = "OPC-71";
+
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildContext();
+            MockV1.Setup(x => x.CreateStory(It.IsAny<Story>()))
+                .Callback((Story story) =>
+                {
+                    _createdStory = story;
+                })
+                .ReturnsAsync(_createdStory);
+
+            MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
+                .ReturnsAsync(new BasicAsset(){AssetState = "128"});
+            _worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            await _worker.CreateStoryFromJira(MockJira.Object, new Issue()
+            {
+                Key = _issueKey,
+                RenderedFields = new RenderedFields() { Description = "descript" },
+                Fields = new Fields()
+                {
+                    EpicLink = "E-1000",
+                    Priority = new Priority() { Name = "Low"}
+                }
+            });
+        }
+
+        [TestMethod]
+        public void should_call_create_story_once()
+        {
+            MockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_log_an_error()
+        {
+            MockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
+        }
+
+        [TestMethod]
+        public void should_not_update_the_issue()
+        {
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_call_refresh_info()
+        {
+            MockV1.Verify(x => x.RefreshBasicInfo(It.IsAny<Story>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_create_a_comment()
+        {
+            MockJira.Verify(x => x.AddComment(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void does_not_try_to_add_weblink()
+        {
+            MockJira.Verify(x => x.AddWebLink(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+    }
+
+
     public abstract class update_jira_story_to_v1 : worker_bits
     {
         private const string IssueKey = "OPC-71";
         private const string StoryId = "Story:1000";
         protected Status Status;
         protected Story Story = new Story();
-        private Story _updateStory;
+        protected Story _updateStory;
         private StoryWorker _worker;
+        protected Epic _epic = new Epic();
 
         public async void Context()
         {
@@ -106,7 +179,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     Summary = "summary",
                     Priority = new Priority { Name = "Medium" }
                 }
-            }, Story, new List<Epic>(), data);
+            }, Story, new List<Epic>() { _epic }, data);
         }
 
         [TestMethod]
@@ -188,4 +261,43 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             MockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Once);
         }
     }
+
+    [TestClass]
+    [DefectNumber("D-09878")]
+    public class and_the_status_is_normal_but_the_parent_epic_is_closed : update_jira_story_to_v1
+    {
+        [TestInitialize]
+        public void Setup()
+        {
+            _epic.AssetState = "128";
+            _epic.ID = "1000";
+            _epic.Number = "E-1000";
+            Story.AssetState = "64";
+            Story.Super = "Epic:2000";
+            Story.SuperNumber = "E-2000";
+
+            Status = new Status() { Name = "In Progress" };
+            Context();
+        }
+
+        [TestMethod]
+        public void should_not_call_either_operations_to_close_or_reopen()
+        {
+            MockV1.Verify(x => x.CloseStory(It.IsAny<string>()), Times.Never);
+            MockV1.Verify(x => x.ReOpenStory(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void should_not_update_the_parent_epic() //null value means no update
+        {
+            _updateStory.Super.ShouldBeNull();
+        }
+
+        [TestMethod]
+        public void should_log_a_message_about_the_closed_epic()
+        {
+            MockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic"), Times.Once);
+        }
+    }
+
 }

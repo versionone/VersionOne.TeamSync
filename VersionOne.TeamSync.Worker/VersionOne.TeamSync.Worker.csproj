@@ -71,6 +71,7 @@
     <Compile Include="ApiCaching.cs" />
     <Compile Include="DefectWorker.cs" />
     <Compile Include="Domain\Actual.cs" />
+    <Compile Include="Domain\BasicAsset.cs" />
     <Compile Include="Domain\Epic.cs" />
     <Compile Include="Domain\IPrimaryWorkItem.cs" />
     <Compile Include="Domain\Jira.cs" />

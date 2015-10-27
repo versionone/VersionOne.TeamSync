@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Linq;
+using System.Xml.Linq;
 
 namespace VersionOne.TeamSync.V1Connector.Extensions
 {
@@ -23,6 +24,15 @@ namespace VersionOne.TeamSync.V1Connector.Extensions
                 return "";
 
             return xElement.Attribute("id").Value.Split(':')[1];
+        }
+
+
+        public static string GetToken(this XElement xElement)
+        {
+            if (xElement == null)
+                return "";
+
+           return xElement.Attribute("id").Value;
         }
 
         public static string GetAssetHref(this XElement xElement)
