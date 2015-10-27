@@ -174,7 +174,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             base.BuildContext();
 
             ExistingIssueKey = "OPC-10";
-            ExistingDefect = new Defect { Reference = ExistingIssueKey, Name = "Johnny", Number = DefectNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
+            ExistingDefect = new Defect { Reference = ExistingIssueKey, Name = "Johnny", Number = DefectNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "", Priority = "WorkitemPriority:139" };
             ExistingIssue = new Issue
             {
                 Key = ExistingIssueKey,
@@ -182,7 +182,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 Fields = new Fields
                 {
                     Labels = new List<string> { DefectNumber },
-                    Summary = "Johnny"
+                    Summary = "Johnny",
+                    Priority = new Priority { Name = "Medium" }
                 }
             };
 

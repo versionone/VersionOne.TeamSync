@@ -28,8 +28,10 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             MockV1 = new Mock<IV1>();
             MockJiraSettings = new Mock<IJiraSettings>();
-            MockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), It.IsAny<string>()))
+            MockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), "Medium"))
                 .Returns("3");
+            MockJiraSettings.Setup(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), "Medium"))
+                .Returns("WorkitemPriority:139");
 
             JiraSettings.Instance = MockJiraSettings.Object;
 
