@@ -38,7 +38,7 @@ namespace VersionOne.TeamSync.SystemTray
             var path = key.GetValue("ImagePath").ToString();
             key.Close();
 
-            return path;
+            return path.Replace("\"", "");
         }
 
         public static void StartService()

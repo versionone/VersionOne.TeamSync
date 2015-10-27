@@ -21,7 +21,7 @@ namespace VersionOne.TeamSync.SystemTray
             try
             {
                 string path = TeamSyncServiceController.GetServicePath().Replace(".Service.exe", ".SystemTray.exe.config");
-                RemotingConfiguration.Configure(path.Replace("\"", ""), false);
+                RemotingConfiguration.Configure(path, false);
                 
                 Log.Info("Loading config for systemtray from " + path);
                 
@@ -171,8 +171,6 @@ namespace VersionOne.TeamSync.SystemTray
             if (e.ToolStrip.Items.IndexOf(e.Item) == 0)
             {
                 string path = TeamSyncServiceController.GetServicePath().Replace("VersionOne.TeamSync.Service.exe", "");
-                path = path.Replace("\"", "");
-               
                 e.Graphics.DrawImage(new Bitmap(path + "versionone-logo-noTagline.png"),
                     new Rectangle(10, 0, 125, 25));
             }
