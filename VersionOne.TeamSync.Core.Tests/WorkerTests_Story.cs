@@ -171,7 +171,7 @@ namespace VersionOne.TeamSync.Core.Tests
             base.BuildContext();
 
             ExistingIssueKey = "OPC-10";
-            ExistingStory = new Story { Reference = ExistingIssueKey, Name = "Johnny", Number = StoryNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "" };
+            ExistingStory = new Story { Reference = ExistingIssueKey, Name = "Johnny", Number = StoryNumber, Description = "descript", ToDo = "", Estimate = "", SuperNumber = "", Priority = "WorkitemPriority:139" };
             ExistingIssue = new Issue
             {
                 Key = ExistingIssueKey,
@@ -179,7 +179,8 @@ namespace VersionOne.TeamSync.Core.Tests
                 Fields = new Fields
                 {
                     Labels = new List<string> { StoryNumber },
-                    Summary = "Johnny"
+                    Summary = "Johnny",
+                    Priority = new Priority { Name = "Medium" }
                 }
             };
 
