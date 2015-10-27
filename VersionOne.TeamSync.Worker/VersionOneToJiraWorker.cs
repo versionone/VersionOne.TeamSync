@@ -119,15 +119,15 @@ namespace VersionOne.TeamSync.Worker
             foreach (var jiraInstanceInfo in _jiraInstances.ToList())
             {
                 Log.InfoFormat("Verifying Jira connection...");
-                Log.DebugFormat("URL: {0}", jiraInstanceInfo.JiraInstance.InstanceUrl);
+                //Log.DebugFormat("URL: {0}", jiraInstanceInfo.JiraInstance.InstanceUrl);
                 Log.Info(jiraInstanceInfo.ValidateConnection() ? "Jira connection successful!" : "Jira connection failed!");
             }
                 {
                     Log.InfoFormat("Verifying Jira connection...");
-                    Log.DebugFormat("URL: {0}", jiraInstanceInfo.InstanceUrl);
-                    Log.Info(jiraInstanceInfo.ValidateConnection()
-                        ? "Jira connection successful!"
-                        : "Jira connection failed!");
+                  //  Log.DebugFormat("URL: {0}", jiraInstanceInfo.InstanceUrl);
+                    //Log.Info(jiraInstanceInfo.ValidateConnection()
+                    //    ? "Jira connection successful!"
+                    //    : "Jira connection failed!");
                 }
             }
             else

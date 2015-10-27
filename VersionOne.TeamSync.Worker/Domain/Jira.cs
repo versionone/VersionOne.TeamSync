@@ -163,10 +163,10 @@ namespace VersionOne.TeamSync.Worker.Domain
             return data.Where<dynamic>(i => i.name == name).Select(i => i.id).FirstOrDefault();
         }
 
-        public JiraVersionInfo VersionInfo
-        {
-            get { return _jiraVersionInfo ?? (_jiraVersionInfo = _connector.GetVersionInfo()); }
-        }
+        //public JiraVersionInfo VersionInfo
+        //{
+        //    get { return _jiraVersionInfo ?? (_jiraVersionInfo = _connector.GetVersionInfo()); }
+        //}
 
         public void AddComment(string issueKey, string comment)
         {

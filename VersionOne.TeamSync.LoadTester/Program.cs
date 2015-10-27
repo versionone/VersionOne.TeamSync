@@ -18,10 +18,7 @@ namespace VersionOne.TeamSync.LoadTester
     class Program
     {
         private const int NumberOfProjects = 2;
-        private const int NumberOfV1Epics = 0;
-        private const int NumberOfBugs = 0;
-        private const int NumberOfStories = 0;
-        private const int NumberOfWorlogs = 5;
+     
         static Epic[] v1Epics = new Epic[] { };
         private const int NumberOfRandomChars = 3;
 
@@ -32,7 +29,7 @@ namespace VersionOne.TeamSync.LoadTester
 
         static void Main(string[] args)
         {
-            var serviceConfigFilePath = args[0];
+            var serviceConfigFilePath = "C:\\dev\\repos\\VersionOne.TeamSync\\VersionOne.TeamSync.Service\\App.config";
             if (string.IsNullOrWhiteSpace(serviceConfigFilePath))
                 throw new ArgumentNullException("serviceConfigFilePath");
 
@@ -56,12 +53,8 @@ namespace VersionOne.TeamSync.LoadTester
                         projectName);
 
                     _projectMappings.Add(v1ProjectId, jiraProjectId);
-                    //createStory(jiraProjectId);
-                    //createBug(jiraProjectId);
-
+                 
                 }
-
-
 
                 foreach (var projectMapping in _projectMappings)
                 {
@@ -72,25 +65,18 @@ namespace VersionOne.TeamSync.LoadTester
                         JiraProject = projectMapping.Value,
                         EpicSyncType = "EpicCategory:208"
                     });
-
-               
                 }
             }
+
             config.Save(ConfigurationSaveMode.Full);
 
             Console.ReadKey();
-        }
 
-        private static void createBug(string jiraProjectId)
-        {
-
-            //createWorlog
-            throw new NotImplementedException();
-        }
-
-        private static void RunServiceOnce(string jiraProjectId)
-        {
-            throw new NotImplementedException();
+            //foreach (var projectMapping in _projectMappings)
+            //{
+            //    CreateStory(projectMapping.Key.ToString(),20);
+            //    CreateDefect(projectMapping.Key.ToString(), 20);
+            //}
         }
 
         private static void CreateV1Connector()
@@ -132,46 +118,42 @@ namespace VersionOne.TeamSync.LoadTester
             var v1ProjectId = _v1Connector.Post(scope, scope.CreatePayload()).Result.Root.Attribute("id").Value;
             v1ProjectId = v1ProjectId.Substring(0, v1ProjectId.LastIndexOf(':'));
 
-            CreateV1Epics(v1ProjectId);
+            CreateV1Epics(v1ProjectId, 20);
 
             return v1ProjectId;
         }
 
-        private static void CreateV1Epics(string v1ProjectId)
+        private static void CreateV1Epics(string v1ProjectId, int numberOfV1Epics)
         {
-          
-            for (int i = 1; i <= NumberOfV1Epics; i++)
+            for (int i = 1; i <= numberOfV1Epics; i++)
             {
                 var epicName = AddRandomCharsToName("Load Testing Epic ") + " on " + v1ProjectId;
                 Console.WriteLine("\tCreating V1 Epic " + epicName + "...");
                 var epic = new Epic() {Name = epicName, ScopeId = v1ProjectId};
                 _v1Connector.Post(epic, epic.CreatePayload());
-                createStory(epic);
-                createDefect(epic);
-            }
-        }
-
-        private static void createStory(Epic epic)
-        {
-            for (int i = 1; i <= NumberOfV1Epics; i++)
-            {
                 
+                //CreateStory(epic, 5);
+                //CreateDefect(epic, 5);
             }
         }
 
-        private static void createDefect(Epic epic)
+        private static void CreateStory(Epic epic, int numbersOfStories)
+        {
+            for (int i = 1; i <= numbersOfStories; i++)
+            {
+                var story = new Story() { Name = "LoadTestStory"+i.ToString()};
+                _v1Connector.Post(story,story.CreatePayload());
+            }
+        }
+
+        private static void CreateDefect(Epic epic, int numberOfDefects)
         {
 
-            for (int i = 1; i <= NumberOfV1Epics; i++)
+            for (int i = 1; i <= numberOfDefects; i++)
             {
-
+                var defect = new Defect { Name = "LoadTest-"+i.ToString(), Number = i.ToString(), Estimate = "", ToDo = "", Description = "Load TesT " };
             }
         }
-
-
-
-
-
 
 
         private static string AddRandomCharsToName(string name)
