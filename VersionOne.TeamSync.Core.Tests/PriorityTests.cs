@@ -1,37 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
+using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
-    [TestClass]
-    public class and_epic_has_no_priority_set : worker_bits
+    public abstract class When_trying_to_post_a_new_epic_on_jira_without_priority : worker_bits
     {
-        private Mock<IJiraConnector> _mockJiraConnector;
+        protected Mock<IJiraConnector> MockJiraConnector;
+        protected Epic Epic;
+        protected ItemBase ItemBase;
+        protected MetaProject ProjectMeta;
+        protected IJira Jira;
 
-        [TestInitialize]
-        public void Context()
+        protected virtual void BuildPriorityContext()
         {
             BuildContext();
 
-            var epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1" };
-            var itemBase = new ItemBase { Key = JiraKey };
+            Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1" };
+            ItemBase = new ItemBase { Key = JiraKey };
 
-            _mockJiraConnector = new Mock<IJiraConnector>();
-            _mockJiraConnector.Setup(
-                x => x.Post<ItemBase>(It.IsAny<string>(), It.IsAny<object>(), HttpStatusCode.Created, default(KeyValuePair<string, string>))).Returns(() => itemBase);
+            MockJiraConnector = new Mock<IJiraConnector>();
+            MockJiraConnector.Setup(
+                x => x.Post<ItemBase>(It.IsAny<string>(), It.IsAny<object>(), HttpStatusCode.Created, default(KeyValuePair<string, string>))).Returns(() => ItemBase);
 
-            var projectMeta = new MetaProject
+            ProjectMeta = new MetaProject
             {
                 IssueTypes = new List<MetaIssueType>
                 {
@@ -47,22 +46,200 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             };
 
-            epic.Priority.ShouldBeNull();
+            Jira = new Jira(MockJiraConnector.Object, ProjectMeta, null);
+        }
+    }
 
-            var jira = new Jira(_mockJiraConnector.Object, projectMeta, null);
-            jira.CreateEpic(epic, JiraKey);
+    [TestClass]
+    public class new_epic_has_no_priority_set : When_trying_to_post_a_new_epic_on_jira_without_priority
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildPriorityContext();
+
+            Epic.Priority.ShouldBeNull();
+
+            Jira.CreateEpic(Epic, JiraKey);
         }
 
         [TestMethod]
         public void null_v1_priority_returns_empty_string()
         {
-            _mockJiraConnector.Verify(x => x.Post<ItemBase>(It.IsAny<string>(), It.Is<ExpandoObject>(arg => !((Dictionary<string, object>)((IDictionary<string, object>)arg)["fields"]).ContainsKey("Priority")), HttpStatusCode.Created, default(KeyValuePair<string, string>)));
+            MockJiraConnector.Verify(
+                x =>
+                    x.Post<ItemBase>(It.IsAny<string>(),
+                        It.Is<ExpandoObject>(
+                            arg =>
+                                !((Dictionary<string, object>)((IDictionary<string, object>)arg)["fields"])
+                                    .ContainsKey("priority")), HttpStatusCode.Created,
+                        default(KeyValuePair<string, string>)));
         }
 
         [TestMethod]
         public void do_not_call_GetJiraPriorityIdFromMapping()
         {
             MockJiraSettings.Verify(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), null), Times.Never);
+        }
+    }
+
+    [TestClass]
+    public class new_epic_has_priority_set : When_trying_to_post_a_new_epic_on_jira_without_priority
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildPriorityContext();
+
+            Epic.Priority = "Medium";
+
+            Jira.CreateEpic(Epic, JiraKey);
+        }
+
+        [TestMethod]
+        public void null_v1_priority_returns_empty_string()
+        {
+            MockJiraConnector.Verify(
+                x =>
+                    x.Post<ItemBase>(It.IsAny<string>(),
+                        It.Is<ExpandoObject>(
+                            arg =>
+                                ((Dictionary<string, object>)((IDictionary<string, object>)arg)["fields"])
+                                    .ContainsKey("priority")), HttpStatusCode.Created,
+                        default(KeyValuePair<string, string>)));
+        }
+
+        [TestMethod]
+        public void do_not_call_GetJiraPriorityIdFromMapping()
+        {
+            MockJiraSettings.Verify(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), "Medium"), Times.Once);
+        }
+    }
+
+    public abstract class When_trying_to_update_an_epic_on_jira : worker_bits
+    {
+        protected Epic Epic;
+        protected SearchResult SearchResult;
+        protected EpicWorker Worker;
+
+        protected virtual void BuildPriorityContext()
+        {
+            BuildContext();
+
+            SearchResult = new SearchResult();
+            SearchResult.issues.Add(new Issue
+            {
+                Key = "OPC-10",
+                Fields = new Fields
+                {
+                    Status = new Status { Name = "ToDo" },
+                    Priority = new Priority
+                    {
+                        Id = "3",
+                        Name = "Medium"
+                    }
+                }
+            });
+
+            MockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(SearchResult);
+
+            SearchResult.issues[0].Key.ShouldNotBeNull("need a reference");
+
+            Worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+        }
+    }
+
+    [TestClass]
+    public class modified_epic_has_no_priority_set : When_trying_to_update_an_epic_on_jira
+    {
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildPriorityContext();
+
+            Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64" };
+
+            MockV1.Setup(x => x.GetEpicsWithReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
+            {
+                Epic
+            });
+
+            Epic.Reference.ShouldNotBeNull("need a reference");
+            Epic.IsClosed().ShouldBeFalse();
+
+            await Worker.UpdateEpics(MockJira.Object);
+        }
+
+        [TestMethod]
+        public void call_GetJiraPriorityIdFromMapping_with_null_priority()
+        {
+            MockJiraSettings.Verify(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), null), Times.Once);
+        }
+
+        [TestMethod]
+        public void null_v1_priority_returns_empty_string()
+        {
+            MockJira.Verify(
+                x =>
+                    x.UpdateIssue(
+                        It.Is<object>(
+                            arg => arg.GetHashCode() == (new
+                            {
+                                fields = new
+                                {
+                                    description = "descript",
+                                    summary = "Johnny",
+                                    priority = new { id = (string)null },
+                                    labels = SearchResult.issues[0].Fields.Labels
+                                }
+                            }).GetHashCode()), It.IsAny<string>()));
+        }
+    }
+
+    [TestClass]
+    public class modified_epic_has_priority_set : When_trying_to_update_an_epic_on_jira
+    {
+        [TestInitialize]
+        public async void Context()
+        {
+            BuildPriorityContext();
+
+            Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64", Priority = "Medium" };
+
+            MockV1.Setup(x => x.GetEpicsWithReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
+            {
+                Epic
+            });
+
+            Epic.Reference.ShouldNotBeNull("need a reference");
+            Epic.IsClosed().ShouldBeFalse();
+
+            await Worker.UpdateEpics(MockJira.Object);
+        }
+
+        [TestMethod]
+        public void call_GetJiraPriorityIdFromMapping_with_Medium_priority()
+        {
+            MockJiraSettings.Verify(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), "Medium"), Times.Once);
+        }
+
+        [TestMethod]
+        public void null_v1_priority_returns_empty_string()
+        {
+            MockJira.Verify(
+                x =>
+                    x.UpdateIssue(
+                        It.Is<object>(
+                            arg => arg.GetHashCode() == (new
+                            {
+                                fields = new
+                                {
+                                    description = "descript",
+                                    summary = "Johnny",
+                                    priority = new { id = "3" },
+                                    labels = SearchResult.issues[0].Fields.Labels
+                                }
+                            }).GetHashCode()), It.IsAny<string>()));
         }
     }
 }
