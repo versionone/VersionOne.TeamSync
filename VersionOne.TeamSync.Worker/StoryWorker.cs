@@ -105,8 +105,7 @@ namespace VersionOne.TeamSync.Worker
             if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
                 _log.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic");
 
-            if (!issue.ItMatchesStory(story) ||
-                    (JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name) != story.Priority))
+            if (!issue.ItMatchesStory(story) || update.Priority != story.Priority)
             {
                 if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
                     update.Super = v1EpicId;
