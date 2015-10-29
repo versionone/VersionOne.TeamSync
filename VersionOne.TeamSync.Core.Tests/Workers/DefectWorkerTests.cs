@@ -15,8 +15,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
     [TestClass]
     public class defect_update : defect_bits
     {
+        protected Defect DefectSentToUpdate;
         private Defect _updatedDefect;
-        private Defect _defectSentToUpdate;
         private string _johnnyIsAlive;
 
         [TestInitialize]
@@ -47,7 +47,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>())).Callback(
                 (IV1Asset asset, XDocument xDocument) =>
                 {
-                    _defectSentToUpdate = (Defect)asset;
+                    DefectSentToUpdate = (Defect)asset;
                 }).ReturnsAsync(new XDocument());
             Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
 
@@ -64,7 +64,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_send_the_right_defect_to_be_updated()
         {
-            _defectSentToUpdate.Name.ShouldEqual(_johnnyIsAlive);
+            DefectSentToUpdate.Name.ShouldEqual(_johnnyIsAlive);
         }
 
     }
@@ -382,7 +382,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 .ReturnsAsync(_createdDefect);
 
             MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
-                .ReturnsAsync(new BasicAsset(){AssetState = "128"});
+                .ReturnsAsync(new BasicAsset() { AssetState = "128" });
             _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
             await _worker.CreateDefectFromJira(MockJira.Object, new Issue()
             {
@@ -391,7 +391,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 Fields = new Fields()
                 {
                     EpicLink = "E-1000",
-                    Priority = new Priority() { Name = "Low"}
+                    Priority = new Priority() { Name = "Low" }
                 }
             });
         }
@@ -466,7 +466,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 {
                     Status = _status,
                     Summary = "summary",
-                    Priority = new Priority() { Name = "Low"}
+                    Priority = new Priority() { Name = "Low" }
                 }
             }, _defect, new List<Epic>() { _epic }, new Dictionary<string, int>());
         }

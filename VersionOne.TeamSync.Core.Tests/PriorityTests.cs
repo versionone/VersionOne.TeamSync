@@ -4,6 +4,7 @@ using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
+using VersionOne.TeamSync.Core.Tests.Workers;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.Worker;
@@ -240,6 +241,88 @@ namespace VersionOne.TeamSync.Core.Tests
                                     labels = SearchResult.issues[0].Fields.Labels
                                 }
                             }).GetHashCode()), It.IsAny<string>()));
+        }
+    }
+
+    [TestClass]
+    public class new_story_has_priority_set : story_bits
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildContext();
+            NewIssue.Fields.EpicLink = null;
+
+            Worker.CreateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Story> { ExistingStory });
+        }
+
+        [TestMethod]
+        public void should_sync_member_at_least_once()
+        {
+            MockJiraSettings.Verify(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), "Medium"), Times.Once);
+        }
+    }
+
+    [TestClass]
+    public class modified_story_has_priority_set : story_update
+    {
+        [TestInitialize]
+        public new void Context()
+        {
+            base.Context();
+        }
+
+        [TestMethod]
+        public void should_sync_member_at_least_once()
+        {
+            MockJiraSettings.Verify(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), "Medium"), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public void should_send_the_right_priority_to_be_updated()
+        {
+            StorySentToUpdate.Priority.ShouldEqual("WorkitemPriority:139");
+        }
+    }
+
+    [TestClass]
+    public class new_defect_has_priority_set : defect_bits
+    {
+        [TestInitialize]
+        public void Context()
+        {
+            BuildContext();
+            NewIssue.Fields.EpicLink = null;
+
+            Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
+        }
+
+        [TestMethod]
+        public void should_sync_member_at_least_once()
+        {
+            MockJiraSettings.Verify(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), "Medium"), Times.Once);
+        }
+    }
+
+    [TestClass]
+    public class modified_defect_has_priority_set : defect_update
+    {
+        [TestInitialize]
+        public new void Context()
+        {
+            base.Context();
+        }
+
+        [TestMethod]
+        public void should_sync_member_at_least_once()
+        {
+            MockJiraSettings.Verify(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), "Medium"), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public void should_send_the_right_priority_to_be_updated()
+        {
+            DefectSentToUpdate.Priority.ShouldEqual("WorkitemPriority:139");
         }
     }
 }
