@@ -15,8 +15,8 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class story_update : story_bits
     {
+        protected Story StorySentToUpdate;
         private Story _updatedStory;
-        private Story _storySentToUpdate;
         private string _johnnyIsAlive;
 
         [TestInitialize]
@@ -47,7 +47,7 @@ namespace VersionOne.TeamSync.Core.Tests
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>())).Callback(
                 (IV1Asset asset, XDocument xDocument) =>
                 {
-                    _storySentToUpdate = (Story)asset;
+                    StorySentToUpdate = (Story)asset;
                 }).ReturnsAsync(new XDocument());
             Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
 
@@ -63,7 +63,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_send_the_right_story_to_be_updated()
         {
-            _storySentToUpdate.Name.ShouldEqual(_johnnyIsAlive);
+            StorySentToUpdate.Name.ShouldEqual(_johnnyIsAlive);
         }
     }
 
@@ -209,15 +209,12 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             NewIssue.Fields.EpicLink = null;
 
-            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
-
             Worker.CreateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Story> { ExistingStory });
         }
 
         [TestMethod]
         public void should_call_create_asset_just_one_time()
         {
-
             MockV1.Verify(x => x.CreateStory(It.IsAny<Story>()), Times.Once);
         }
 
@@ -263,7 +260,7 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             NewIssue.Fields.EpicLink = EpicLink;
             MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber(It.IsAny<string>(), EpicLink))
-                .ReturnsAsync(new BasicAsset(){AssetState = "64", ID = "Epic:1000"});
+                .ReturnsAsync(new BasicAsset() { AssetState = "64", ID = "Epic:1000" });
             Worker.CreateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Story> { ExistingStory });
         }
 
@@ -316,8 +313,6 @@ namespace VersionOne.TeamSync.Core.Tests
 
             MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
             MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
-
-            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
 
             Worker.CreateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Story> { ExistingStory });
         }
