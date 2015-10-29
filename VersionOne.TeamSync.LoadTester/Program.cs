@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using JiraSoapProxy;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
-using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -17,19 +17,22 @@ namespace VersionOne.TeamSync.LoadTester
 {
     class Program
     {
-        private const int NumberOfProjects = 2;
-     
-        static Epic[] v1Epics = new Epic[] { };
+        private const int NumberOfProjects = 1;
+        private const int NumberOfEpics = 0;
+        private const int NumberOfStoriesPerEpic = 5;
+        private const int NumberOfStories = 0;
+
         private const int NumberOfRandomChars = 3;
 
         private static Random _random = new Random((int)DateTime.Now.Ticks);
         private static IV1Connector _v1Connector;
         private static JiraSoapService _jiraProxy;
-        private static Dictionary<string, string> _projectMappings = new  Dictionary<string, string>();
+        private static JiraRestService _jiraRestService;
+        private static Dictionary<string, string> _projectMappings = new Dictionary<string, string>();
 
         static void Main(string[] args)
         {
-            var serviceConfigFilePath = "C:\\dev\\repos\\VersionOne.TeamSync\\VersionOne.TeamSync.Service\\App.config";
+            var serviceConfigFilePath = args[0];
             if (string.IsNullOrWhiteSpace(serviceConfigFilePath))
                 throw new ArgumentNullException("serviceConfigFilePath");
 
@@ -46,14 +49,14 @@ namespace VersionOne.TeamSync.LoadTester
                 {
                     var projectName = AddRandomCharsToName("Load Testing project ");
                     Console.WriteLine("Creating V1 Project: " + projectName + "...");
-                
+
                     var v1ProjectId = CreateV1Project(projectName);
 
+                    _jiraRestService = new JiraRestService(jiraServerSettings);
                     var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
                         projectName);
 
                     _projectMappings.Add(v1ProjectId, jiraProjectId);
-                 
                 }
 
                 foreach (var projectMapping in _projectMappings)
@@ -71,12 +74,6 @@ namespace VersionOne.TeamSync.LoadTester
             config.Save(ConfigurationSaveMode.Full);
 
             Console.ReadKey();
-
-            //foreach (var projectMapping in _projectMappings)
-            //{
-            //    CreateStory(projectMapping.Key.ToString(),20);
-            //    CreateDefect(projectMapping.Key.ToString(), 20);
-            //}
         }
 
         private static void CreateV1Connector()
@@ -104,54 +101,59 @@ namespace VersionOne.TeamSync.LoadTester
         {
             Console.WriteLine("Creating Jira Project: " + projectName + "...");
             var lastNchars = projectName.Substring(projectName.Length - NumberOfRandomChars);
-            var project = _jiraProxy.createProject(jiraToken, "LTP" + lastNchars, projectName, "", "", "admin", null, null,
-                null);
+            var project = _jiraProxy.createProject(jiraToken, "LTP" + lastNchars, projectName, "", "", "admin", null,
+                null, null);
+
+            CreateStoriesInProject(project.id);
 
             return project.key;
         }
 
-
         private static string CreateV1Project(string projectName)
         {
-            var scope = new Scope(){Name = projectName, Parent = "Scope:0", Scheme = "Scheme:1001"};
+            var scope = new Scope() { Name = projectName, Parent = "Scope:0", Scheme = "Scheme:1001" };
 
             var v1ProjectId = _v1Connector.Post(scope, scope.CreatePayload()).Result.Root.Attribute("id").Value;
             v1ProjectId = v1ProjectId.Substring(0, v1ProjectId.LastIndexOf(':'));
 
-            CreateV1Epics(v1ProjectId, 20);
+            CreateEpicsInProject(v1ProjectId);
 
             return v1ProjectId;
         }
 
-        private static void CreateV1Epics(string v1ProjectId, int numberOfV1Epics)
+        private static void CreateEpicsInProject(string v1ProjectId)
         {
-            for (int i = 1; i <= numberOfV1Epics; i++)
+            for (int i = 1; i <= NumberOfEpics; i++)
             {
-                var epicName = AddRandomCharsToName("Load Testing Epic ") + " on " + v1ProjectId;
+                var epicName = string.Format("Epic {0}", i);
                 Console.WriteLine("\tCreating V1 Epic " + epicName + "...");
-                var epic = new Epic() {Name = epicName, ScopeId = v1ProjectId};
+                var epic = new Epic { Name = epicName, ScopeId = v1ProjectId };
                 _v1Connector.Post(epic, epic.CreatePayload());
-                
-                //CreateStory(epic, 5);
-                //CreateDefect(epic, 5);
             }
         }
 
-        private static void CreateStory(Epic epic, int numbersOfStories)
+        private static void CreateStoriesInProject(string jiraProjectId)
         {
-            for (int i = 1; i <= numbersOfStories; i++)
+            for (int i = 1; i <= NumberOfStories; i++)
             {
-                var story = new Story() { Name = "LoadTestStory"+i.ToString()};
-                _v1Connector.Post(story,story.CreatePayload());
+                //var newIssue = new RemoteIssue {summary = string.Format("Story {0}", i), project = jiraProjectKey, type = "10001"};
+                var newStory = new
+                {
+                    Fields = new {Project = new {Id = jiraProjectId}},
+                    Summary = string.Format("Story {0}", i),
+                    IssueType = new {Name = "Story"},
+                    Reporter = new {Name = "LoadTester"}
+                };
+
+                _jiraRestService.Post("api/2/issue", newStory);
             }
         }
 
-        private static void CreateDefect(Epic epic, int numberOfDefects)
+        private static void CreateDefect(int numberOfDefects, Epic epic = null)
         {
-
             for (int i = 1; i <= numberOfDefects; i++)
             {
-                var defect = new Defect { Name = "LoadTest-"+i.ToString(), Number = i.ToString(), Estimate = "", ToDo = "", Description = "Load TesT " };
+                var defect = new Defect { Name = "LoadTest-" + i.ToString(), Number = i.ToString(), Estimate = "", ToDo = "", Description = "Load TesT " };
             }
         }
 
@@ -203,7 +205,7 @@ namespace VersionOne.TeamSync.LoadTester
     public static class EpicExtensions
     {
         public static XDocument CreatePayload(this Epic epic)
-        {   
+        {
             var doc = XDocument.Parse("<Asset></Asset>");
             doc.AddSetNode("Name", epic.Name)
                 .AddSetRelationNode("Scope", epic.ScopeId);
