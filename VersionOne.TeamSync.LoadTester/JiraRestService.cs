@@ -56,9 +56,7 @@ namespace VersionOne.TeamSync.LoadTester
             };
             request.AddBody(data);
 
-            var resp = _client.Execute(request);
-
-            Console.WriteLine(resp.StatusCode);
+            _client.Execute(request);
         }
     }
 }
