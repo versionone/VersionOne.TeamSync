@@ -44,6 +44,18 @@ function Clean-ConfigFile {
                     $_.v1Project = "Scope:XXXX"
                     $_.jiraProject = "JIRA Project Key"
                     $_.epicSyncType = "EpicCategory:XXX"
+                    $scrubStatusMapping = "true"
+                    $firstStatusMapping = $_.statusMappings.status[0]
+                    $_.statusMappings.status | % {
+                        if ($scrubStatusMapping -eq "true") {
+                            $_.enabled = "false"
+                            $_.v1Status = ""
+                            $_.jiraStatus = ""
+                            $scrubStatusMapping = "false"
+                        } else {
+                            $firstStatusMapping.ParentNode.RemoveChild($_)
+                        }
+                    }
                     $scrubProjectMapping = "false"
                 } else {
                     $firstProjectMapping.ParentNode.RemoveChild($_)
