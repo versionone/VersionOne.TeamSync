@@ -31,7 +31,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             return _instance;
         }
 
-        [ConfigurationProperty("runFromThisDateOn", IsRequired = false, DefaultValue = "1/1/1980")]
+        [ConfigurationProperty("runFromThisDateOn", IsRequired = false)]
         public string RunFromThisDateOn
         {
             get { return (string)this["runFromThisDateOn"]; }

@@ -24,13 +24,7 @@ namespace VersionOne.TeamSync.Worker
 
             _jiraInstances = new List<IJira>();
 
-            var runDate = JiraSettings.GetInstance().RunFromThisDateOn;
-
-            DateTime parsedRunFromDate;
-            if (!DateTime.TryParse(runDate, out parsedRunFromDate))
-                throw new ConfigurationErrorsException("RunFromThisDateOn contains an invalid entry");
-
-            var jiraDate = parsedRunFromDate.ToString("yyyy-MM-dd");
+            var jiraDate = GetRunFrom();
 
             foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
@@ -50,6 +44,26 @@ namespace VersionOne.TeamSync.Worker
                 new DefectWorker(_v1, Log),
                 new ActualsWorker(_v1, Log)
             };
+        }
+
+        private string GetRunFrom()
+        {
+            var runDate = JiraSettings.GetInstance().RunFromThisDateOn;
+
+            DateTime parsedRunFromDate;
+
+            if (string.IsNullOrEmpty(runDate))
+            {
+                parsedRunFromDate = new DateTime(1980, 1, 1);
+                Log.Info("No date found, defaulting to " + parsedRunFromDate.ToString("yyyy-MM-dd"));
+            }
+            else if (!DateTime.TryParse(runDate, out parsedRunFromDate))
+            {
+                Log.Error("Invalid date : " + runDate);
+                throw new ConfigurationErrorsException("RunFromThisDateOn contains an invalid entry");
+            }
+
+            return parsedRunFromDate.ToString("yyyy-MM-dd");
         }
 
         public void DoFirstRun()
