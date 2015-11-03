@@ -69,7 +69,7 @@ namespace VersionOne.TeamSync.LoadTester
                     var projectName = string.Format("Load Testing project {0}", jiraProjectKey);
                     Console.WriteLine("Creating V1 Project: " + projectName + "...");
 
-                    var v1ProjectId = CreateV1Project(projectName, numberOfEpics);
+                    //var v1ProjectId = CreateV1Project(projectName, numberOfEpics);
 
                     _jiraRestService = new JiraRestService(jiraServerSettings);
                     //var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
@@ -78,7 +78,7 @@ namespace VersionOne.TeamSync.LoadTester
                     CreateStoriesInProject(jiraProjectKey, numberOfStories);
                     CreateBugsInProject(jiraProjectKey, numberOfStories);
 
-                    _projectMappings.Add(v1ProjectId, jiraProjectKey);
+                    //_projectMappings.Add(v1ProjectId, jiraProjectKey);
                 }
 
                 foreach (var projectMapping in _projectMappings)
@@ -169,7 +169,7 @@ namespace VersionOne.TeamSync.LoadTester
                     }
                 };
 
-                _jiraRestService.Post("api/2/issue", newStory);
+                var storyKey = _jiraRestService.Post("api/2/issue", newStory);
             }
         }
 
@@ -177,7 +177,7 @@ namespace VersionOne.TeamSync.LoadTester
         {
             for (int i = 1; i <= numberOfBugs; i++)
             {
-                var newStory = new
+                var newBug = new
                 {
                     fields = new
                     {
@@ -188,7 +188,7 @@ namespace VersionOne.TeamSync.LoadTester
                     }
                 };
 
-                _jiraRestService.Post("api/2/issue", newStory);
+                var bugKey = _jiraRestService.Post("api/2/issue", newBug);
             }
         }
 

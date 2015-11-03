@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
+using Newtonsoft.Json.Linq;
 using RestSharp;
+using RestSharp.Deserializers;
 using VersionOne.TeamSync.JiraConnector.Config;
 
 namespace VersionOne.TeamSync.LoadTester
@@ -46,7 +48,7 @@ namespace VersionOne.TeamSync.LoadTester
                     (sender, certificate, chain, errors) => true;
         }
 
-        public void Post(string path, object data)
+        public string Post(string path, object data)
         {
             var request = new RestRequest
             {
@@ -56,7 +58,9 @@ namespace VersionOne.TeamSync.LoadTester
             };
             request.AddBody(data);
 
-            _client.Execute(request);
+            dynamic resp = JObject.Parse(_client.Execute(request).Content);
+            
+            return resp.key;
         }
     }
 }
