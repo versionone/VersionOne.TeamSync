@@ -17,7 +17,7 @@ function Clean-ConfigFile {
      }
 
     ## serviceSettings
-    $xml.configuration.serviceSettings.syncIntervalInSeconds = "1800"
+    $xml.configuration.serviceSettings.syncIntervalInSeconds = "900"
 
 	## v1Settings
     $xml.configuration.v1Settings.authenticationType = "0"
@@ -28,7 +28,6 @@ function Clean-ConfigFile {
 
     ## jiraSettings
     $scrubServer = "true"
-    
     $xml.configuration.jiraSettings.servers.server | % {
         if ($scrubServer -eq "true") {
             $_.enabled = "false"
@@ -37,16 +36,30 @@ function Clean-ConfigFile {
             $_.username = ""
             $_.password = ""
             $scrubServer = "false"
-            $scrubMapping = "true"
+            $scrubProjectMapping = "true"
+            $firstProjectMapping = $_.projectMappings.project[0]
             $_.projectMappings.project | % {
-                if ($scrubMapping -eq "true") {
+                if ($scrubProjectMapping -eq "true") {
                     $_.enabled = "false"
-                    $_.v1Project = ""
-                    $_.jiraProject = ""
-                    $_.epicSyncType = "EpicCategory:208"
-                    $scrubMapping = "false"
+                    $_.v1Project = "Scope:XXXX"
+                    $_.jiraProject = "JIRA Project Key"
+                    $_.epicSyncType = "EpicCategory:XXX"
+                    $scrubProjectMapping = "false"
                 } else {
-                    $firstMapping.ParentNode.RemoveChild($_)
+                    $firstProjectMapping.ParentNode.RemoveChild($_)
+                }
+            }
+            $scrubPriorityMapping = "true"
+            $firstPriorityMapping = $_.priorityMappings.priority[0]
+            $_.priorityMappings.defaultJiraPriority = ""
+            $_.priorityMappings.priority | % {
+                if ($scrubPriorityMapping -eq "true") {
+                    $_.enabled = "false"
+                    $_.v1Priority = ""
+                    $_.jiraPriority = ""
+                    $scrubPriorityMapping = "false"
+                } else {
+                    $firstPriorityMapping.ParentNode.RemoveChild($_)
                 }
             }
         } else {
