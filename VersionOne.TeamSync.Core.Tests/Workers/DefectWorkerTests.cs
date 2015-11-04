@@ -402,7 +402,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 Fields = new Fields()
                 {
                     EpicLink = "E-1000",
-                    Priority = new Priority() { Name = "Low" }
+                    Priority = new Priority() { Name = "Low" },
+                    Status = new Status() { Name = "Done" }
                 }
             });
         }
