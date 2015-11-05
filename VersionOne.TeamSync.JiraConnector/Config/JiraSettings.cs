@@ -88,7 +88,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             if (projectMapping != null)
             {
                 var statusMapping =
-                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.V1Status.Equals(v1Status));
+                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.Enabled && sm.V1Status.Equals(v1Status));
 
                 if (statusMapping != null)
                     return statusMapping.JiraStatus;
@@ -104,7 +104,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             if (projectMapping != null)
             {
                 var statusMapping =
-                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.JiraStatus.Equals(jiraStatus));
+                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.Enabled && sm.JiraStatus.Equals(jiraStatus));
 
                 if (statusMapping != null)
                     return statusMapping.V1Status;

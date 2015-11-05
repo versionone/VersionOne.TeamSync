@@ -77,9 +77,12 @@ namespace VersionOne.TeamSync.Worker
                     if (!string.IsNullOrEmpty(v1Epic.Status))
                     {
                         var jiraStatusFromMapping = JiraSettings.GetInstance().GetJiraStatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, v1Epic.Status);
-                        string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraData.Key, jiraStatusFromMapping);
-                        if (transitionIdToRun != null)
-                            jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraData.Key);
+                        if (jiraStatusFromMapping != null)
+                        {
+                            string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraData.Key, jiraStatusFromMapping);
+                            if (transitionIdToRun != null)
+                                jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraData.Key);
+                        }
                     }
 
                     jiraInstance.AddComment(jiraData.Key, string.Format(CreatedFromV1Comment, v1Epic.Number, v1Epic.ScopeName));
