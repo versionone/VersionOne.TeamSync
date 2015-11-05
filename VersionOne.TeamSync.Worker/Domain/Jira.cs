@@ -168,8 +168,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void AddComment(string issueKey, string comment)
         {
-            var path = string.Format("{0}/issue/{{issueIdOrKey}}", Connector.JiraConnector.JiraRestApiUrl);
-            _connector.Put(path, AddComment(comment), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
+            var path = string.Format("{0}/issue/{{issueIdOrKey}}/comment", Connector.JiraConnector.JiraRestApiUrl);
+            _connector.Post(path, AddComment(comment), HttpStatusCode.Created, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
         }
 
         public void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle)
@@ -429,16 +429,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             return new
             {
-                update = new
-                {
-                    comment = new[]
-                    {
-                        new
-                        {
-                            add = new { body }
-                        }
-                    }
-                }
+                body
             };
         }
 
