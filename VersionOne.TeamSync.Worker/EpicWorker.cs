@@ -76,9 +76,10 @@ namespace VersionOne.TeamSync.Worker
                 {
                     if (!string.IsNullOrEmpty(v1Epic.Status))
                     {
-                        string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraData.Key,
-                            JiraSettings.GetInstance().GetJiraStatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, v1Epic.Status));
-                        jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraData.Key);
+                        var jiraStatusFromMapping = JiraSettings.GetInstance().GetJiraStatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, v1Epic.Status);
+                        string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraData.Key, jiraStatusFromMapping);
+                        if (transitionIdToRun != null)
+                            jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraData.Key);
                     }
 
                     jiraInstance.AddComment(jiraData.Key, string.Format(CreatedFromV1Comment, v1Epic.Number, v1Epic.ScopeName));
@@ -149,7 +150,8 @@ namespace VersionOne.TeamSync.Worker
                 if (jiraStatusFromMapping != null && !relatedJiraEpic.Fields.Status.Name.Equals(jiraStatusFromMapping))
                 {
                     var transitionIdToRun = jiraInstance.GetIssueTransitionId(relatedJiraEpic.Key, jiraStatusFromMapping);
-                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, relatedJiraEpic.Key);
+                    if (transitionIdToRun != null)
+                        jiraInstance.RunTransitionOnIssue(transitionIdToRun, relatedJiraEpic.Key);
                 }
 
                 var jiraPriorityIdFromMapping = jiraInstance.JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, v1Epic.Priority);
