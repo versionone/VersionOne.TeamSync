@@ -210,6 +210,15 @@ namespace VersionOne.TeamSync.Worker
 
             await _v1.RefreshBasicInfo(newStory);
 
+            // If story is closed we have to reopen it
+            var status = jiraInstance.DoneWords.FirstOrDefault(dw => dw.Equals(jiraStory.Fields.Status.Name));
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraStory.Key, Jira.ReopenedStatus);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraStory.Key);
+            }
+
             jiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
             _log.TraceFormat("Updated labels on Jira story {0}", jiraStory.Key);
 
@@ -220,6 +229,14 @@ namespace VersionOne.TeamSync.Worker
                         string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newStory.Number),
                         string.Format(V1AssetDetailWebLinkTitle, newStory.Number));
             _log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
+
+            // If story is reopened we have to close it
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraStory.Key, status);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraStory.Key);
+            }
 
             var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraStory.Key)).ToString();
             _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);

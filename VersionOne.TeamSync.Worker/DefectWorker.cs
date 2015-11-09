@@ -206,6 +206,15 @@ namespace VersionOne.TeamSync.Worker
 
             await _v1.RefreshBasicInfo(newDefect);
 
+            // If story is closed we have to reopen it
+            var status = jiraInstance.DoneWords.FirstOrDefault(dw => dw.Equals(jiraBug.Fields.Status.Name));
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraBug.Key, Jira.ReopenedStatus);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraBug.Key);
+            }
+
             jiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraBug.Fields.Labels), jiraBug.Key);
             _log.TraceFormat("Updated labels on Jira defect {0}", jiraBug.Key);
 
@@ -213,9 +222,17 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceFormat("Added comment to Jira defect {0}", jiraBug.Key);
 
             jiraInstance.AddWebLink(jiraBug.Key,
-                        string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newDefect.Number),
-                        string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
+                       string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newDefect.Number),
+                       string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
             _log.TraceFormat("Added web link to V1 defect {0} on Jira bug {1}", newDefect.Number, jiraBug.Key);
+
+            // If story is reopened we have to close it
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraBug.Key, status);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraBug.Key);
+            }
 
             var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraBug.Key)).ToString();
             _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraBug.Key), link);

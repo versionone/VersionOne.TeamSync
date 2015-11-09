@@ -62,6 +62,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
     public class Jira : IJira
     {
+        public const string ReopenedStatus = "Reopened";
         private const int ConnectionAttempts = 3;
 
         private readonly ILog _log;
