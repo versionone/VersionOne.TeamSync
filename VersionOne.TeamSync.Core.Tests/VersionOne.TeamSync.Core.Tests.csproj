@@ -69,7 +69,7 @@
   <ItemGroup>
     <Compile Include="AssetAttribute.cs" />
     <Compile Include="EpicExtensionTests.cs" />
-    <Compile Include="Jira\SettingProjectToResoved_Tests.cs" />
+    <Compile Include="Jira\SettingProjectToResolved_Tests.cs" />
     <Compile Include="PriorityTests.cs" />
     <Compile Include="Workers\DefectWorkerTests.cs" />
     <Compile Include="Workers\EpicWorkerTests.cs" />
