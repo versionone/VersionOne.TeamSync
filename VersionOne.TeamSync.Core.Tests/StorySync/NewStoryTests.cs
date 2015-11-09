@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
-using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.V1Connector.Interfaces;
 using VersionOne.TeamSync.Worker;
@@ -16,7 +14,6 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
     public class take_jira_story_to_v1_story : worker_bits
     {
         private const string IssueKey = "OPC-71";
-
         private StoryWorker _worker;
 
         [TestInitialize]
@@ -71,9 +68,9 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
     [DefectNumber("D-09878")]
     public class take_jira_story_to_v1_story_and_epic_is_closed : worker_bits
     {
+        private const string IssueKey = "OPC-71";
         private StoryWorker _worker;
         private Story _createdStory;
-        private string _issueKey = "OPC-71";
 
         [TestInitialize]
         public async void Context()
@@ -87,16 +84,16 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                 .ReturnsAsync(_createdStory);
 
             MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
-                .ReturnsAsync(new BasicAsset(){AssetState = "128"});
+                .ReturnsAsync(new BasicAsset { AssetState = "128" });
             _worker = new StoryWorker(MockV1.Object, MockLogger.Object);
-            await _worker.CreateStoryFromJira(MockJira.Object, new Issue()
+            await _worker.CreateStoryFromJira(MockJira.Object, new Issue
             {
-                Key = _issueKey,
-                RenderedFields = new RenderedFields() { Description = "descript" },
-                Fields = new Fields()
+                Key = IssueKey,
+                RenderedFields = new RenderedFields { Description = "descript" },
+                Fields = new Fields
                 {
                     EpicLink = "E-1000",
-                    Priority = new Priority() { Name = "Low"}
+                    Priority = new Priority { Name = "Low" }
                 }
             });
         }
@@ -116,7 +113,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_not_update_the_issue()
         {
-            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), IssueKey), Times.Never);
         }
 
         [TestMethod]
@@ -138,16 +135,15 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         }
     }
 
-
     public abstract class update_jira_story_to_v1 : worker_bits
     {
-        private const string IssueKey = "OPC-71";
-        private const string StoryId = "Story:1000";
+        protected const string IssueKey = "OPC-71";
+        protected const string StoryId = "Story:1000";
         protected Status Status;
+        protected Epic Epic = new Epic();
         protected Story Story = new Story();
-        protected Story _updateStory;
+        protected Story UpdateStory;
         private StoryWorker _worker;
-        protected Epic _epic = new Epic();
 
         public async void Context()
         {
@@ -155,7 +151,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>()))
                 .Callback<IV1Asset, XDocument>((story, doc) =>
                 {
-                    _updateStory = (Story)story;
+                    UpdateStory = (Story)story;
                 })
                 .ReturnsAsync(new XDocument());
 
@@ -179,20 +175,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     Summary = "summary",
                     Priority = new Priority { Name = "Medium" }
                 }
-            }, Story, new List<Epic>() { _epic }, data);
-        }
-
-        [TestMethod]
-        public void should_not_add_it_to_the_v1_project()
-        {
-            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>()), Times.Once);
-        }
-
-        [TestMethod]
-        public void should_pass_along_data_to_update_story()
-        {
-            _updateStory.ID.ShouldEqual(StoryId);
-            _updateStory.Reference.ShouldEqual(IssueKey);
+            }, Story, new List<Epic> { Epic }, data);
         }
     }
 
@@ -205,6 +188,19 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             Story.AssetState = "64";
             Status = new Status { Name = "In Progress" };
             Context();
+        }
+
+        [TestMethod]
+        public void should_not_add_it_to_the_v1_project()
+        {
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_pass_along_data_to_update_story()
+        {
+            UpdateStory.ID.ShouldEqual(StoryId);
+            UpdateStory.Reference.ShouldEqual(IssueKey);
         }
 
         [TestMethod]
@@ -269,9 +265,9 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestInitialize]
         public void Setup()
         {
-            _epic.AssetState = "128";
-            _epic.ID = "1000";
-            _epic.Number = "E-1000";
+            Epic.AssetState = "128";
+            Epic.ID = "1000";
+            Epic.Number = "E-1000";
             Story.AssetState = "64";
             Story.Super = "Epic:2000";
             Story.SuperNumber = "E-2000";
@@ -290,7 +286,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_not_update_the_parent_epic() //null value means no update
         {
-            _updateStory.Super.ShouldBeNull();
+            UpdateStory.Super.ShouldBeNull();
         }
 
         [TestMethod]
@@ -299,5 +295,4 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             MockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic"), Times.Once);
         }
     }
-
 }
