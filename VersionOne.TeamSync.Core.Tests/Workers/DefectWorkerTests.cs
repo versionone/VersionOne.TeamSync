@@ -54,7 +54,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             Worker.UpdateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue, updatedIssue }, new List<Defect> { ExistingDefect, _updatedDefect });
         }
 
-
         [TestMethod]
         public void should_call_update_asset_just_one_time()
         {
@@ -66,7 +65,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             DefectSentToUpdate.Name.ShouldEqual(_johnnyIsAlive);
         }
-
     }
 
     [TestClass]
@@ -126,7 +124,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 };
 
             Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
-
         }
 
         [TestMethod]
@@ -205,7 +202,6 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
     [TestClass]
     public class orphan_defect : defect_bits
     {
-
         [TestInitialize]
         public void Context()
         {
@@ -216,6 +212,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
             Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
         }
+
         [TestMethod]
         public void should_tell_us_about_creating_a_defect()
         {
@@ -330,15 +327,28 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestInitialize]
         public void Setup()
         {
-            _epic.AssetState = "128";
-            _epic.ID = "1000";
-            _epic.Number = "E-1000";
-            _defect.AssetState = "64";
-            _defect.Super = "Epic:2000";
-            _defect.SuperNumber = "E-2000";
+            Epic.AssetState = "128";
+            Epic.ID = "1000";
+            Epic.Number = "E-1000";
+            Defect.AssetState = "64";
+            Defect.Super = "Epic:2000";
+            Defect.SuperNumber = "E-2000";
 
-            _status = new Status() { Name = "In Progress" };
+            Status = new Status { Name = "In Progress" };
             Context();
+        }
+
+        [TestMethod]
+        public void should_update_the_asset_once()
+        {
+            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void should_pass_along_data_to_update_story()
+        {
+            UpdateDefect.ID.ShouldEqual(DefectId);
+            UpdateDefect.Reference.ShouldEqual(IssueKey);
         }
 
         [TestMethod]
@@ -351,7 +361,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_not_update_the_parent_epic() //null value means no update
         {
-            _updateDefect.Super.ShouldBeNull();
+            UpdateDefect.Super.ShouldBeNull();
         }
 
         [TestMethod]
@@ -359,16 +369,16 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         {
             MockLogger.Verify(x => x.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic"), Times.Once);
         }
-
     }
 
     [TestClass]
     [DefectNumber("D-09878")]
     public class take_jira_bug_to_v1_defect_and_epic_is_closed : worker_bits
     {
+        private const string IssueKey = "OPC-71";
+
         private DefectWorker _worker;
         private Defect _createdDefect;
-        private string _issueKey = "OPC-71";
 
         [TestInitialize]
         public async void Context()
@@ -386,7 +396,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
             await _worker.CreateDefectFromJira(MockJira.Object, new Issue()
             {
-                Key = _issueKey,
+                Key = IssueKey,
                 RenderedFields = new RenderedFields() { Description = "descript" },
                 Fields = new Fields()
                 {
@@ -411,7 +421,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_not_update_the_issue()
         {
-            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), _issueKey), Times.Never);
+            MockJira.Verify(x => x.UpdateIssue(It.IsAny<Issue>(), IssueKey), Times.Never);
         }
 
         [TestMethod]
@@ -435,12 +445,12 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
     public abstract class update_jira_bug_to_v1 : worker_bits
     {
-        private string _issueKey = "OPC-71";
-        protected Defect _updateDefect;
-        private string _defectId = "Defect:1000";
-        protected Status _status = new Status();
-        protected Defect _defect = new Defect();
-        protected Epic _epic = new Epic() { AssetState = "64" };
+        protected const string IssueKey = "OPC-71";
+        protected const string DefectId = "Defect:1000";
+        protected Defect UpdateDefect;
+        protected Status Status = new Status();
+        protected Defect Defect = new Defect();
+        protected Epic Epic = new Epic { AssetState = "64" };
         private DefectWorker _worker;
 
         public async void Context()
@@ -449,43 +459,30 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()))
                 .Callback<IV1Asset, XDocument>((defect, doc) =>
                 {
-                    _updateDefect = (Defect)defect;
+                    UpdateDefect = (Defect)defect;
                 })
                 .ReturnsAsync(new XDocument());
 
-            _defect.ID = _defectId;
+            Defect.ID = DefectId;
             _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
             var data = new Dictionary<string, int>();
             data["reopened"] = 0;
             data["updated"] = 0;
             data["closed"] = 0;
-            await _worker.UpdateDefectFromJiraToV1(MockJira.Object, new Issue()
+            await _worker.UpdateDefectFromJiraToV1(MockJira.Object, new Issue
             {
-                Key = _issueKey,
-                RenderedFields = new RenderedFields()
+                Key = IssueKey,
+                RenderedFields = new RenderedFields
                 {
                     Description = "descript"
                 },
-                Fields = new Fields()
+                Fields = new Fields
                 {
-                    Status = _status,
+                    Status = Status,
                     Summary = "summary",
-                    Priority = new Priority() { Name = "Low" }
+                    Priority = new Priority { Name = "Low" }
                 }
-            }, _defect, new List<Epic>() { _epic }, data);
-        }
-
-        [TestMethod]
-        public void should_update_the_asset_once()
-        {
-            MockV1.Verify(x => x.UpdateAsset(It.IsAny<Defect>(), It.IsAny<XDocument>()), Times.Once);
-        }
-
-        [TestMethod]
-        public void should_pass_along_data_to_update_story()
-        {
-            _updateDefect.ID.ShouldEqual(_defectId);
-            _updateDefect.Reference.ShouldEqual(_issueKey);
+            }, Defect, new List<Epic> { Epic }, data);
         }
     }
 
@@ -513,5 +510,4 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
         }
     }
-
 }
