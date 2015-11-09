@@ -47,7 +47,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             };
 
-            Jira = new Jira(MockJiraConnector.Object, ProjectMeta, null);
+            Jira = new Worker.Domain.Jira(MockJiraConnector.Object, ProjectMeta, null);
         }
     }
 
