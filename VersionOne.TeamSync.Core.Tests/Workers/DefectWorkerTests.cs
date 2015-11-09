@@ -455,6 +455,10 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
             _defect.ID = _defectId;
             _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            var data = new Dictionary<string, int>();
+            data["reopened"] = 0;
+            data["updated"] = 0;
+            data["closed"] = 0;
             await _worker.UpdateDefectFromJiraToV1(MockJira.Object, new Issue()
             {
                 Key = _issueKey,
@@ -468,7 +472,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                     Summary = "summary",
                     Priority = new Priority() { Name = "Low" }
                 }
-            }, _defect, new List<Epic>() { _epic }, new Dictionary<string, int>());
+            }, _defect, new List<Epic>() { _epic }, data);
         }
 
         [TestMethod]
