@@ -38,7 +38,7 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Epic sync started...");
             await CreateEpics(jiraInstance);
             await UpdateEpics(jiraInstance);
-            //await ClosedV1EpicsSetJiraEpicsToResolved(jiraInstance);
+            await ClosedV1EpicsSetJiraEpicsToResolved(jiraInstance);
             await DeleteEpics(jiraInstance);
             _log.Trace("Epic sync stopped...");
         }
@@ -203,39 +203,39 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Delete epics stopped");
         }
 
-        //public async Task ClosedV1EpicsSetJiraEpicsToResolved(IJira jiraInstance)
-        //{
-        //    _log.Trace("Resolving epics started");
-        //    var processedEpics = 0;
+        public async Task ClosedV1EpicsSetJiraEpicsToResolved(IJira jiraInstance)
+        {
+            _log.Trace("Resolving epics started");
+            var processedEpics = 0;
 
-        //    var closedV1Epics = await _v1.GetClosedTrackedEpics(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var closedV1Epics = await _v1.GetClosedTrackedEpics(jiraInstance.V1Project, jiraInstance.EpicCategory);
 
-        //    if (closedV1Epics.Any())
-        //        _log.DebugFormat("Found {0} epics to check for resolve", closedV1Epics.Count);
+            if (closedV1Epics.Any())
+                _log.DebugFormat("Found {0} epics to check for resolve", closedV1Epics.Count);
 
-        //    closedV1Epics.ForEach(v1Epic =>
-        //    {
-        //        var jiraEpic = jiraInstance.GetEpicByKey(v1Epic.Reference);
+            closedV1Epics.ForEach(v1Epic =>
+            {
+                var jiraEpic = jiraInstance.GetEpicByKey(v1Epic.Reference);
 
-        //        if (jiraEpic.HasErrors)
-        //        {
-        //            _log.ErrorFormat("Jira epic {0} has errors", v1Epic.Reference);
-        //            return;
-        //        }
+                if (jiraEpic.HasErrors)
+                {
+                    _log.ErrorFormat("Jira epic {0} has errors", v1Epic.Reference);
+                    return;
+                }
 
-        //        if (jiraInstance.DoneWords.Contains(jiraEpic.issues.Single().Fields.Status.Name))
-        //            return;
+                if (jiraInstance.DoneWords.Contains(jiraEpic.issues.Single().Fields.Status.Name))
+                    return;
 
-        //        _log.TraceFormat("Attempting to resolve Jira epic {0}", v1Epic.Reference);
+                _log.TraceFormat("Attempting to resolve Jira epic {0}", v1Epic.Reference);
 
-        //        jiraInstance.SetIssueToResolved(v1Epic.Reference, jiraInstance.DoneWords);
-        //        _log.DebugFormat("Resolved Jira epic {0}", v1Epic.Reference);
-        //        processedEpics++;
-        //    });
+                jiraInstance.SetIssueToResolved(v1Epic.Reference, jiraInstance.DoneWords);
+                _log.DebugFormat("Resolved Jira epic {0}", v1Epic.Reference);
+                processedEpics++;
+            });
 
-        //    if (processedEpics > 0)
-        //        _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
-        //    _log.Trace("Resolve epics stopped");
-        //}
+            if (processedEpics > 0)
+                _log.InfoFormat("Resolved {0} Jira epics", processedEpics);
+            _log.Trace("Resolve epics stopped");
+        }
     }
 }

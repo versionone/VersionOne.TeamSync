@@ -419,7 +419,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
     //        _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
 
-    //        await _worker.ClosedV1EpicsSetJiraEpicsToResolved(MockJira.Object);
+    //        await _worker.ClosedV1EpicsSetJiraEpicsToClosed(MockJira.Object);
     //    }
 
     //    [TestMethod]
@@ -466,7 +466,7 @@ namespace VersionOne.TeamSync.Core.Tests
     //        MockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
     //        _epicWorker = new EpicWorker(MockV1.Object, MockLogger.Object);
-    //        await _epicWorker.ClosedV1EpicsSetJiraEpicsToResolved(MockJira.Object);
+    //        await _epicWorker.ClosedV1EpicsSetJiraEpicsToClosed(MockJira.Object);
     //    }
 
     //    [TestMethod]
