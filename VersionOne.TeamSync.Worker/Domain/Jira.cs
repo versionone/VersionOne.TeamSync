@@ -29,6 +29,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateMemberPermissions();
 
         string GetPriorityId(string name);
+        string GetStatusId(string name)
 
         void AddComment(string issueKey, string comment);
         void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle);
@@ -157,6 +158,14 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string GetPriorityId(string name)
         {
             var path = string.Format("{0}/priority", Connector.JiraConnector.JiraRestApiUrl);
+            var content = _connector.Get(path);
+            var data = JArray.Parse(content);
+            return data.Where<dynamic>(i => i.name == name).Select(i => i.id).FirstOrDefault();
+        }
+
+        public string GetStatusId(string name)
+        {
+            var path = string.Format("{0}/status", Connector.JiraConnector.JiraRestApiUrl);
             var content = _connector.Get(path);
             var data = JArray.Parse(content);
             return data.Where<dynamic>(i => i.name == name).Select(i => i.id).FirstOrDefault();
