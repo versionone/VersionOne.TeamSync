@@ -297,11 +297,11 @@ namespace VersionOne.TeamSync.Worker
                         {
                             var jiraStatusId = jira.GetStatusId(statusMapping.JiraStatus);
                             if (jiraStatusId == null)
-                                Log.DebugFormat("Jira status '{0}' not found.", statusMapping.JiraStatus);
+                                Log.DebugFormat("Jira status '{0}' not found. No status will be set", statusMapping.JiraStatus);
 
                             var v1StatusId = _v1.GetStatusIdFromName(statusMapping.V1Status);
                             if (v1StatusId == null)
-                                Log.DebugFormat("Version One status '{0}' not found.", statusMapping.V1Status);
+                                Log.DebugFormat("Version One status '{0}' not found. No status will be set", statusMapping.V1Status);
                         }
                     }
                 }
