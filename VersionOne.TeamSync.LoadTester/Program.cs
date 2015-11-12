@@ -52,6 +52,10 @@ namespace VersionOne.TeamSync.LoadTester
             var n5 = Console.ReadLine();
             var numberOfBugs = Convert.ToInt32(n5);
 
+            Console.WriteLine("Number of Worlogs for bug");
+            var n6 = Console.ReadLine();
+            var numberOfWorklogs = Convert.ToInt32(n6);
+
             Console.WriteLine("Jira project keys:");
             var jiraProjectKeys = Console.ReadLine().Split(',').Select(x => x.ToUpper());
 
@@ -69,14 +73,17 @@ namespace VersionOne.TeamSync.LoadTester
                     var projectName = string.Format("Load Testing project {0}", jiraProjectKey);
                     Console.WriteLine("Creating V1 Project: " + projectName + "...");
 
-                    //var v1ProjectId = CreateV1Project(projectName, numberOfEpics);
+                    var v1ProjectId = CreateV1Project(projectName, numberOfEpics);
 
                     _jiraRestService = new JiraRestService(jiraServerSettings);
-                    //var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
-                    //    projectName);
+                    var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
+                        projectName);
 
                     CreateStoriesInProject(jiraProjectKey, numberOfStories);
                     CreateBugsInProject(jiraProjectKey, numberOfStories);
+
+                    _projectMappings.Add(v1ProjectId, jiraProjectKey);
+                    //CreateBugsInProject(jiraProjectKey, numberOfBugs, numberOfWorklogs);
 
                     //_projectMappings.Add(v1ProjectId, jiraProjectKey);
                 }
@@ -119,17 +126,17 @@ namespace VersionOne.TeamSync.LoadTester
             }
         }
 
-        //private static string CreateJiraProject(string jiraToken, string projectName)
-        //{
-        //    Console.WriteLine("Creating Jira Project: " + projectName + "...");
-        //    var lastNchars = projectName.Substring(projectName.Length - NumberOfRandomChars);
-        //    var project = _jiraProxy.createProject(jiraToken, "LTP" + lastNchars, projectName, "", "", "admin", null,
-        //        null, null);
+        private static string CreateJiraProject(string jiraToken, string projectName)
+        {
+            Console.WriteLine("Creating Jira Project: " + projectName + "...");
+            var lastNchars = projectName.Substring(projectName.Length - NumberOfRandomChars);
+            var project = _jiraProxy.createProject(jiraToken, "LTP" + lastNchars, projectName, "", "", "admin", null,
+                null, null);
 
-        //    CreateStoriesInProject(project.id);
+            //CreateStoriesInProject(project.id, numberOfStories);
 
-        //    return project.key;
-        //}
+            return project.key;
+        }
 
         private static string CreateV1Project(string projectName, int numberOfEpicsInProject)
         {
@@ -173,7 +180,7 @@ namespace VersionOne.TeamSync.LoadTester
             }
         }
 
-        private static void CreateBugsInProject(string jiraProjectKey, int numberOfBugs)
+        private static void CreateBugsInProject(string jiraProjectKey, int numberOfBugs, int numberOfWorklogs = 0)
         {
             for (int i = 1; i <= numberOfBugs; i++)
             {
@@ -189,12 +196,32 @@ namespace VersionOne.TeamSync.LoadTester
                 };
 
                 var bugKey = _jiraRestService.Post("api/2/issue", newBug);
+                CreateWorkLogs(jiraProjectKey, bugKey, numberOfWorklogs);
             }
         }
 
 
+        private static void CreateWorkLogs(string jiraProjectKey, string bugKey, int numberOfWorklogs = 0)
+        {
+            if (numberOfWorklogs>0)
+            {
+                for (int i = 1; i <= numberOfWorklogs; i++)
+                {
+                    var newWorklog = new
+                            {
+                                comment = "I did some work here.",
+                                started = "2012-02-15T17:34:37.937-0600",
+                                timeSpent =  "3h 20m"
+                            };
+                    _jiraRestService.Post("/api/2/issue/" + bugKey + "/worklog", newWorklog);
+                }
+             }
+        }
+
         private static string AddRandomCharsToName(string name)
         {
+            
+            
             StringBuilder builder = new StringBuilder(name);
             char ch;
             for (int i = 0; i < NumberOfRandomChars; i++)
