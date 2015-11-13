@@ -1,7 +1,9 @@
 ﻿using log4net;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
@@ -21,15 +23,16 @@ namespace VersionOne.TeamSync.Worker
             _v1 = new V1();
 
             _jiraInstances = new List<IJira>();
+
+            var jiraDate = GetRunFrom();
+
             foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
                 var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
-
+                
                 var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())
-                {
-                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
-                }
+                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm, jiraDate)));
                 else
                     Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
             }
@@ -43,6 +46,42 @@ namespace VersionOne.TeamSync.Worker
             };
         }
 
+        private string GetRunFrom()
+        {
+            var runDate = JiraSettings.GetInstance().RunFromThisDateOn;
+
+            DateTime parsedRunFromDate;
+
+            if (string.IsNullOrEmpty(runDate))
+            {
+                parsedRunFromDate = new DateTime(1980, 1, 1);
+                Log.Info("No date found, defaulting to " + parsedRunFromDate.ToString("yyyy-MM-dd"));
+            }
+            else if (!DateTime.TryParse(runDate, out parsedRunFromDate))
+            {
+                Log.Error("Invalid date : " + runDate);
+                throw new ConfigurationErrorsException("RunFromThisDateOn contains an invalid entry");
+            }
+
+            return parsedRunFromDate.ToString("yyyy-MM-dd");
+        }
+
+        public void DoFirstRun()
+        {
+            var syncTime = DateTime.Now;
+            Log.Info("Beginning first run...");
+
+            _jiraInstances.ToList().ForEach(jiraInstance => 
+            {
+                Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
+                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoFirstRun(jiraInstance)).ToArray());
+                jiraInstance.CleanUpAfterRun(Log);
+            });
+
+            Log.Info("Ending first run...");
+            Log.DebugFormat("Total time: {0}", DateTime.Now - syncTime);
+        }
+
         public void DoWork()
         {
             var syncTime = DateTime.Now;
@@ -52,7 +91,8 @@ namespace VersionOne.TeamSync.Worker
             {
                 Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
-                _asyncWorkers.ForEach(worker => worker.DoWork(jiraInstance));
+                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoWork(jiraInstance)).ToArray());
+
                 jiraInstance.CleanUpAfterRun(Log);
             });
 

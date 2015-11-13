@@ -26,11 +26,25 @@ namespace VersionOne.TeamSync.Worker
             _log = log;
         }
 
+
+        public async Task DoFirstRun(IJira jiraInstance)
+        {
+            ValidateRequiredV1Fields();
+            if (!_isActualWorkEnabled)
+                return;
+
+            var allJiraDefects = jiraInstance.GetAllBugsInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
+            var allV1Defects = await _v1.GetDefectsWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
+            DoActualWork(jiraInstance, allJiraDefects, allV1Defects);
+
+            var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
+            var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
+            DoActualWork(jiraInstance, allJiraStories, allV1Stories);
+
+        }
+
         public async Task DoWork(IJira jiraInstance)
         {
-            // TODO: check if we can do this validation only on startup
-            ValidateRequiredV1Fields();
-
             if (!_isActualWorkEnabled)
                 return;
 
@@ -164,5 +178,7 @@ namespace VersionOne.TeamSync.Worker
             var member = _v1.GetMember(worklog.updateAuthor.name).Result;
             return member != null && member.Oid().Equals(actual.MemberId) && worklog.updateAuthor.ItMatchesMember(member);
         }
+
+
     }
 }

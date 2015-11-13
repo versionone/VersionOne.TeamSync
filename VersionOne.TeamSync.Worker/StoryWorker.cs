@@ -21,14 +21,30 @@ namespace VersionOne.TeamSync.Worker
         private readonly IV1 _v1;
         private readonly ILog _log;
 
+        public bool FirstRunCompleted { get; private set; }
+
         public StoryWorker(IV1 v1, ILog log)
         {
             _v1 = v1;
             _log = log;
         }
 
+        public async Task DoFirstRun(IJira jiraInstance)
+        {
+            _log.Trace("Story First Run started...");
+            var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
+            var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
+
+            UpdateStories(jiraInstance, allJiraStories, allV1Stories);
+            CreateStories(jiraInstance, allJiraStories, allV1Stories);
+            DeleteV1Stories(jiraInstance, allJiraStories, allV1Stories);
+
+            _log.Trace("Story First Run stopped...");
+        } 
+
         public async Task DoWork(IJira jiraInstance)
         {
+
             _log.Trace("Story sync started...");
             var allJiraStories = jiraInstance.GetStoriesInProject(jiraInstance.JiraProject).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project);
@@ -40,14 +56,13 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Story sync stopped...");
         }
 
-        public async void UpdateStories(IJira jiraInstance, List<Issue> allJiraStories, List<Story> allV1Stories)
+        public void UpdateStories(IJira jiraInstance, List<Issue> allJiraStories, List<Story> allV1Stories)
         {
             _log.Trace("Updating stories started");
             var data = new Dictionary<string, int>();
             data["reopened"] = 0;
             data["updated"] = 0;
             data["closed"] = 0;
-
             var existingStories =
                 allJiraStories.Where(jiraStory =>
                 {
@@ -57,15 +72,14 @@ namespace VersionOne.TeamSync.Worker
             if (existingStories.Any())
                 _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
-            var assignedEpics = await _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var assignedEpics = _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory).Result;
 
             existingStories.ForEach(existingJStory =>
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
+				var result = UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Result;
+			});
 
-                UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Wait();
-
-            });
             if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
 
             if (data["closed"] > 0) _log.InfoClosed(data["closed"], PluralAsset);

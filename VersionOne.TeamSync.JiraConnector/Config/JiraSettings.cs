@@ -9,6 +9,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
     public interface IJiraSettings
     {
         JiraServerCollection Servers { get; set; }
+        string RunFromThisDateOn { get; }
         string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority);
         string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority);
     }
@@ -28,6 +29,12 @@ namespace VersionOne.TeamSync.JiraConnector.Config
                 _instance = ConfigurationManager.GetSection("jiraSettings") as JiraSettings;
 
             return _instance;
+        }
+
+        [ConfigurationProperty("runFromThisDateOn", IsRequired = false)]
+        public string RunFromThisDateOn
+        {
+            get { return (string)this["runFromThisDateOn"]; }
         }
 
         [ConfigurationProperty("servers", IsDefaultCollection = true)]

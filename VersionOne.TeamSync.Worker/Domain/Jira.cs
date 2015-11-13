@@ -52,6 +52,10 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         void CleanUpAfterRun(ILog log);
         IJiraSettings JiraSettings { get; }
+        SearchResult GetAllStoriesInProjectSince(string jiraProject, string date);
+
+        string RunFromThisDateOn { get; }
+        SearchResult GetAllBugsInProjectSince(string jiraProject, string createdDate);
     }
 
     public class Jira : IJira
@@ -78,13 +82,11 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public string EpicCategory { get; private set; }
 
+        public string RunFromThisDateOn { get; private set; }
+
         public string[] DoneWords
         {
-            get
-            {
-                return _doneWords ??
-                       (_doneWords = JiraVersionItems.VersionDoneWords[VersionInfo.VersionNumbers[0]]);
-            }
+            get { return _doneWords ?? (_doneWords = JiraVersionItems.VersionDoneWords[VersionInfo.VersionNumbers[0]]); }
         }
 
         public IJiraSettings JiraSettings
@@ -104,12 +106,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public Jira(IJiraConnector connector, ProjectMapping projectMapping)
-            : this(connector)
+        public Jira(IJiraConnector connector, ProjectMapping projectMapping, string runFromThisDateOn) : this(connector)
         {
             JiraProject = projectMapping.JiraProject;
             V1Project = projectMapping.V1Project;
             EpicCategory = projectMapping.EpicSyncType;
+            RunFromThisDateOn = runFromThisDateOn;
             _log = LogManager.GetLogger(typeof(Jira));
         }
 
@@ -306,7 +308,12 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public SearchResult GetStoriesInProject(string jiraProject)
         {
-            return GetIssuesInProject(jiraProject, "Story");
+            return GetAllIssuesInProject(jiraProject, "Story");
+        }
+
+        public SearchResult GetAllStoriesInProjectSince(string jiraProject, string date)
+        {
+            return GetAllIssuesInProjectSince(jiraProject, "Story", date);
         }
 
         public SearchResult GetStoriesWithNoEpicInProject(string projectKey) // TODO: Remove??? This method is only used on a unit test
@@ -326,7 +333,20 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public SearchResult GetBugsInProject(string jiraProject)
         {
-            return GetIssuesInProject(jiraProject, "Bug");
+            return GetAllIssuesInProject(jiraProject, "Bug");
+        }
+
+
+        public SearchResult GetAllBugsInProjectSince(string jiraProject, string createdDate)
+        {
+            var operators = new List<JqOperator>
+            {
+                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
+                JqOperator.Equals("issuetype", "Bug"),
+                JqOperator.CreatedOnOrBefore(createdDate)
+            };
+
+            return GetIssuesInProject(operators);
         }
 
         public IEnumerable<Worklog> GetIssueWorkLogs(string issueKey)
@@ -402,13 +422,19 @@ namespace VersionOne.TeamSync.Worker.Domain
             };
         }
 
-        private SearchResult GetIssuesInProject(string jiraProject, string issueType)
+        private SearchResult GetAllIssuesInProjectSince(string jiraProject, string issueType, string dateSince)
         {
-            return _connector.GetSearchResults(new List<JqOperator>
+            return GetIssuesInProject(new List<JqOperator>()
             {
                 JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
-                JqOperator.Equals("issuetype", issueType)
-            },
+                JqOperator.Equals("issuetype", issueType),
+                JqOperator.CreatedOnOrBefore(dateSince)
+            });
+        }
+
+        private SearchResult GetIssuesInProject(IList<JqOperator> operators)
+        {
+            return _connector.GetSearchResults(operators,
                 new[]
                 {
                     "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee",
@@ -422,6 +448,15 @@ namespace VersionOne.TeamSync.Worker.Domain
                     //if (GetProjectMeta().Sprint != null)
                     //    properties.EvalLateBinding(issueKey, GetProjectMeta().Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
                 });
+        }
+
+        private SearchResult GetAllIssuesInProject(string jiraProject, string issueType)
+        {
+            return GetIssuesInProject(new List<JqOperator>
+            {
+                JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
+                JqOperator.Equals("issuetype", issueType),
+            });
         }
 
         // D-09877
