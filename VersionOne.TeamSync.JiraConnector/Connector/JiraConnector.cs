@@ -7,6 +7,7 @@ using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using RestSharp.Authenticators;
 using RestSharp.Serializers;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector.Config;
