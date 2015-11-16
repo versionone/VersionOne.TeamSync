@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -40,10 +41,10 @@ namespace VersionOne.TeamSync.Core.Tests
 
             var api = SetApiQuery("Epic", mockConnector,
                 new[] { "Name", "AssetState", "Reference" },
-                new[] { "Reference!=\"\"", "AssetState='Closed'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
+                new[] { "Reference!=\"\"", "AssetState='Closed'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"", "ChangeDateUTC>='01/01/0001 00:00:00'" },
                              new List<Epic>());
 
-            await api.GetClosedTrackedEpics("Scope:1000", "EpicCategory:1000");
+            await api.GetClosedTrackedEpicsUpdatedSince("Scope:1000", "EpicCategory:1000", DateTime.MinValue);
 
             mockConnector.VerifyAll();
         }
@@ -54,11 +55,16 @@ namespace VersionOne.TeamSync.Core.Tests
             var mockConnector = new Mock<IV1Connector>();
 
             var api = SetApiQuery("Epic", mockConnector,
+<<<<<<< HEAD
                 new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name", "Status.Name" },
                 new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
+=======
+                new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name" },
+                new[] { "Reference!=\"\"", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"", "ChangeDateUTC>='01/01/0001 00:00:00'" },
+>>>>>>> S-55487: Only sync epics since last sync event.
                              new List<Epic>());
 
-            await api.GetEpicsWithReference("Scope:1000", "EpicCategory:1000");
+            await api.GetEpicsWithReferenceUpdatedSince("Scope:1000", "EpicCategory:1000", DateTime.MinValue);
 
             mockConnector.VerifyAll();
         }
@@ -70,10 +76,10 @@ namespace VersionOne.TeamSync.Core.Tests
 
             var api = SetApiQuery("Epic", mockConnector,
                 new[] { "ID.Number", "Name", "Description", "Reference" },
-                new[] { "Reference!=\"\"", "IsDeleted='True'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"" },
+                new[] { "Reference!=\"\"", "IsDeleted='True'", "Scope=\"Scope:1000\"", "Category=\"EpicCategory:1000\"", "ChangeDateUTC>='01/01/0001 00:00:00'" },
                              new List<Epic>());
 
-            await api.GetDeletedEpics("Scope:1000", "EpicCategory:1000");
+            await api.GetDeletedEpicsUpdatedSince("Scope:1000", "EpicCategory:1000", DateTime.MinValue);
 
             mockConnector.VerifyAll();
         }

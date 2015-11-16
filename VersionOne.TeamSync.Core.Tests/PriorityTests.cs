@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -160,7 +161,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64" };
 
-            MockV1.Setup(x => x.GetEpicsWithReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
+            MockV1.Setup(x => x.GetEpicsWithReferenceUpdatedSince(ProjectId, EpicCategory, It.IsAny<DateTime>())).ReturnsAsync(new List<Epic>
             {
                 Epic
             });
@@ -207,7 +208,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", Reference = "OPC-10", ScopeName = "v1", AssetState = "64", Priority = "Medium" };
 
-            MockV1.Setup(x => x.GetEpicsWithReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
+            MockV1.Setup(x => x.GetEpicsWithReferenceUpdatedSince(ProjectId, EpicCategory, It.IsAny<DateTime>())).ReturnsAsync(new List<Epic>
             {
                 Epic
             });

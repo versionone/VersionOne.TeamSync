@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using VersionOne.TeamSync.Worker;
@@ -14,7 +15,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public async void Context()
         {
             BuildContext();
-            MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
+            //MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
+            MockV1.Setup(x => x.GetEpicsWithoutReferenceUpdatedSince(ProjectId, EpicCategory, It.IsAny<DateTime>())).ReturnsAsync(new List<Epic>());
 
             _epicWorker = new EpicWorker(MockV1.Object, MockLogger.Object);
 
@@ -24,7 +26,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void calls_the_GetEpicsWithoutReference_once()
         {
-            MockV1.Verify(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory), Times.Once);
+            MockV1.Verify(x => x.GetEpicsWithoutReferenceUpdatedSince(ProjectId, EpicCategory, It.IsAny<DateTime>()), Times.Once);
         }
 
         [TestMethod]

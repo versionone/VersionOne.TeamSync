@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
@@ -20,6 +21,7 @@ namespace VersionOne.TeamSync.Worker
 
         private readonly IV1 _v1;
         private readonly ILog _log;
+        private DateTime _lastSyncDate;
 
         public bool FirstRunCompleted { get; private set; }
 
@@ -43,6 +45,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoWork(IJira jiraInstance)
         {
+            _lastSyncDate = DateTime.UtcNow.AddSeconds(-ServiceSettings.Settings.SyncIntervalInSeconds);
 
             _log.Trace("Story sync started...");
             var allJiraStories = jiraInstance.GetStoriesInProject(jiraInstance.JiraProject).issues;
@@ -69,7 +72,7 @@ namespace VersionOne.TeamSync.Worker
             if (existingStories.Any())
                 _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
-            var assignedEpics = _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory).Result;
+            var assignedEpics = _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate).Result;
 
             existingStories.ForEach(existingJStory =>
             {

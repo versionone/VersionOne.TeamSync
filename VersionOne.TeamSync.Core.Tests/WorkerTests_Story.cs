@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -41,7 +42,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             };
 
-            MockV1.Setup(x => x.GetEpicsWithReference(It.IsAny<string>(), It.IsAny<string>()))
+            MockV1.Setup(x => x.GetEpicsWithReferenceUpdatedSince(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>()))
                 .ReturnsAsync(new List<Epic>());
 
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>())).Callback(

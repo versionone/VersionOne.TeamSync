@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
@@ -20,6 +21,7 @@ namespace VersionOne.TeamSync.Worker
 
         private readonly IV1 _v1;
         private readonly ILog _log;
+        private DateTime _lastSyncDate;
 
         public DefectWorker(IV1 v1, ILog log)
         {
@@ -41,6 +43,8 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoWork(IJira jiraInstance)
         {
+            _lastSyncDate = DateTime.UtcNow.AddSeconds(-ServiceSettings.Settings.SyncIntervalInSeconds);
+
             _log.Trace("Defect sync started...");
             var allJiraBugs = jiraInstance.GetBugsInProject(jiraInstance.JiraProject).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
@@ -65,7 +69,7 @@ namespace VersionOne.TeamSync.Worker
             if (existingBugs.Any())
                 _log.DebugFormat("Found {0} defects to check for update", existingBugs.Count);
 
-            var assignedEpics = await _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var assignedEpics = await _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate);
 
             existingBugs.ForEach(existingJDefect =>
             {

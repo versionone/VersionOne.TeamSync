@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -31,9 +32,9 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
 
         Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category);
-        Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category);
-        Task<List<Epic>> GetEpicsWithReference(string projectId, string category);
-        Task<List<Epic>> GetDeletedEpics(string projectId, string category);
+        Task<List<Epic>> GetClosedTrackedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate);
+        Task<List<Epic>> GetEpicsWithReferenceUpdatedSince(string projectId, string category, DateTime updatedDate);
+        Task<List<Epic>> GetDeletedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate);
         void UpdateEpicReference(Epic epic);
         void RemoveReferenceOnDeletedEpic(Epic epic);
 
@@ -65,7 +66,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<string> GetStatusIdFromName(string name);
         Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate);
         Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate);
-        Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate);
+        Task<List<Epic>> GetEpicsWithoutReferenceCreatedSince(string v1Project, string epicCategory, string createdDate);
+        Task<List<Epic>> GetEpicsWithoutReferenceUpdatedSince(string v1Project, string epicCategory, DateTime updatedDate);
     }
 
     public class V1 : IV1
@@ -74,7 +76,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const int ConnectionAttempts = 3;
         private const string WhereProject = "Scope=\"{0}\"";
         private const string WhereEpicCategory = "Category=\"{0}\"";
-        private const string CreateOnUTC_before = "CreateDateUTC>={0}";
+        private const string CreateOnUTC_before = "CreateDateUTC>='{0}'";
+        private const string UpdateOnUTC_before = "ChangeDateUTC>='{0}'";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
@@ -111,7 +114,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }, Epic.FromQuery);
         }
 
-        public async Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate)
+        public async Task<List<Epic>> GetEpicsWithoutReferenceCreatedSince(string v1Project, string epicCategory, string createdDate)
         {
             return await _connector.Query("Epic",
                 new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
@@ -125,40 +128,57 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }, Epic.FromQuery);
         }
 
+        public async Task<List<Epic>> GetEpicsWithoutReferenceUpdatedSince(string v1Project, string epicCategory, DateTime updatedDate)
+        {
+            return await _connector.Query("Epic",
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
+                new[]
+                {
+                    "Reference=\"\"",
+                    "AssetState='Active'",
+                    string.Format(WhereProject, v1Project),
+                    string.Format(WhereEpicCategory, epicCategory),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
+                }, Epic.FromQuery);
+        }
+
         public async void UpdateEpicReference(Epic epic)
         {
             await _connector.Post(epic, epic.UpdateReferenceXml());
         }
 
-        public async Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category)
+        public async Task<List<Epic>> GetClosedTrackedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate)
         {
             return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" },
                 new[] { 
                     "Reference!=\"\"",
                     "AssetState='Closed'", 
                     string.Format(WhereProject, projectId),
-                    string.Format(WhereEpicCategory, category)
+                    string.Format(WhereEpicCategory, category),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
         }
 
-        public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
+        public async Task<List<Epic>> GetEpicsWithReferenceUpdatedSince(string projectId, string category, DateTime updatedDate)
         {
             return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name", "Status.Name" },
                 new[] { 
                     "Reference!=\"\"", 
                     string.Format(WhereProject, projectId), 
-                    string.Format(WhereEpicCategory, category)
+                    string.Format(WhereEpicCategory, category),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
         }
 
-        public async Task<List<Epic>> GetDeletedEpics(string projectId, string category)
+        public async Task<List<Epic>> GetDeletedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate)
         {
             return await _connector.Query("Epic", _numberNameDescriptRef,
                 new[] { 
                     "Reference!=\"\"", 
                     "IsDeleted='True'",
                     string.Format(WhereProject, projectId), 
-                    string.Format(WhereEpicCategory, category) 
+                    string.Format(WhereEpicCategory, category),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
         }
 
