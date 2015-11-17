@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using RestSharp.Authenticators;
 using RestSharp.Deserializers;
 using VersionOne.TeamSync.JiraConnector.Config;
 
@@ -61,6 +63,22 @@ namespace VersionOne.TeamSync.LoadTester
             dynamic resp = JObject.Parse(_client.Execute(request).Content);
             
             return resp.key;
+        }
+
+        public string Get(string path, Dictionary<string, string> queryParameters = null)
+        {
+            var request = new RestRequest
+            {
+                Method = Method.GET,
+                Resource = path,
+                RequestFormat = DataFormat.Json,
+            };
+
+            if (queryParameters != null)
+                foreach (var param in queryParameters)
+                    request.AddQueryParameter(param.Key, param.Value);
+
+            return _client.Execute(request).Content;
         }
     }
 }

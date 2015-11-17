@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using JiraSoapProxy;
 using log4net;
 using log4net.Core;
+using Newtonsoft.Json.Linq;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.V1Connector.Interfaces;
@@ -27,18 +30,18 @@ namespace VersionOne.TeamSync.LoadTester
         private static JiraSoapService _jiraProxy;
         private static JiraRestService _jiraRestService;
         private static Dictionary<string, string> _projectMappings = new Dictionary<string, string>();
-       
+
         private static String _serviceConfigFilePath;
-        
+
         private static V1 _v1 = new V1();
         private static ILog Log = LogManager.GetLogger(typeof(Program));
 
         static void Main(string[] args)
         {
             //TODO: validate args
-             _serviceConfigFilePath = args[0];
-             if (string.IsNullOrWhiteSpace(_serviceConfigFilePath))
-                 throw new ArgumentNullException("_serviceConfigFilePath");
+            _serviceConfigFilePath = args[0];
+            if (string.IsNullOrWhiteSpace(_serviceConfigFilePath))
+                throw new ArgumentNullException("_serviceConfigFilePath");
 
             Console.WriteLine("Number of Epics:");
             var n1 = Console.ReadLine();
@@ -60,7 +63,7 @@ namespace VersionOne.TeamSync.LoadTester
             var n5 = Console.ReadLine();
             var numberOfBugs = Convert.ToInt32(n5);
 
-            Console.WriteLine("Number of Worlogs for bug");
+            Console.WriteLine("Number of Worlogs:");
             var n6 = Console.ReadLine();
             var numberOfWorklogs = Convert.ToInt32(n6);
 
@@ -81,19 +84,19 @@ namespace VersionOne.TeamSync.LoadTester
                     var projectName = string.Format("Load Testing project {0}", jiraProjectKey);
                     Console.WriteLine("Creating V1 Project: " + projectName + "...");
 
-                    var v1ProjectId = CreateV1Project(projectName, numberOfEpics);
+                    var v1ProjectId = CreateV1Project(projectName, numberOfEpics, jiraProjectKey);
 
                     _jiraRestService = new JiraRestService(jiraServerSettings);
-                    var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
-                        projectName);
 
-                    CreateStoriesInProject(jiraProjectKey, numberOfStories);
-                    CreateBugsInProject(jiraProjectKey, numberOfStories);
+                    //var jiraProjectId = CreateJiraProject(_jiraProxy.login(jiraServerSettings.Username, jiraServerSettings.Password),
+                    //    projectName);
+
+                    SyncEpics(v1ProjectId, jiraProjectKey, numberOfStoriesPerEpic, numberOfBugsPerEpic);
+
+                    CreateStoriesInProject(jiraProjectKey, numberOfStories, numberOfWorklogs);
+                    CreateBugsInProject(jiraProjectKey, numberOfBugs, numberOfWorklogs);
 
                     _projectMappings.Add(v1ProjectId, jiraProjectKey);
-                    //CreateBugsInProject(jiraProjectKey, numberOfBugs, numberOfWorklogs);
-
-                    //_projectMappings.Add(v1ProjectId, jiraProjectKey);
                 }
 
                 foreach (var projectMapping in _projectMappings)
@@ -134,19 +137,19 @@ namespace VersionOne.TeamSync.LoadTester
             }
         }
 
-        private static string CreateJiraProject(string jiraToken, string projectName)
-        {
-            Console.WriteLine("Creating Jira Project: " + projectName + "...");
-            var lastNchars = projectName.Substring(projectName.Length - NumberOfRandomChars);
-            var project = _jiraProxy.createProject(jiraToken, "LTP" + lastNchars, projectName, "", "", "admin", null,
-                null, null);
+        //private static string CreateJiraProject(string jiraToken, string projectName)
+        //{
+        //    Console.WriteLine("Creating Jira Project: " + projectName + "...");
+        //    var lastNchars = projectName.Substring(projectName.Length - NumberOfRandomChars);
+        //    var project = _jiraProxy.createProject(jiraToken, "LTP" + lastNchars, projectName, "", "", "admin", null,
+        //        null, null);
 
-            //CreateStoriesInProject(project.id, numberOfStories);
+        //    //CreateStoriesInProject(project.id, numberOfStories);
 
-            return project.key;
-        }
+        //    return project.key;
+        //}
 
-        private static string CreateV1Project(string projectName, int numberOfEpicsInProject)
+        private static string CreateV1Project(string projectName, int numberOfEpicsInProject, string jiraProjectKey)
         {
             var scope = new Scope() { Name = projectName, Parent = "Scope:0", Scheme = "Scheme:1001" };
 
@@ -160,50 +163,96 @@ namespace VersionOne.TeamSync.LoadTester
 
         private static void CreateEpicsInProject(string v1ProjectId, int numberOfEpics)
         {
-            IJira jiraIntance = getJiraInstance();
-
             for (int i = 1; i <= numberOfEpics; i++)
             {
                 var epicName = string.Format("Epic {0}", i);
                 Console.WriteLine("\tCreating V1 Epic " + epicName + "...");
                 var epic = new Epic { Name = epicName, ScopeId = v1ProjectId };
-                _v1Connector.Post(epic, epic.CreatePayload());
+                var payload = epic.CreatePayload();
+                payload.AddSetRelationNode("Category", "EpicCategory:208");
+
+                _v1Connector.Post(epic, payload);
             }
-            
-            runEpicWorker(jiraIntance);
         }
 
-
-        private static void runEpicWorker(IJira jiraInstance)
+        private static void SyncEpics(string v1ProjectId, string jiraProjectKey, int numberOfStoriesPerEpic, int numberOfBugsPerEpic)
         {
-            var epicWorker = new EpicWorker(_v1, Log);
-           
-            epicWorker.DoWork(jiraInstance);   
-        }
-
-        private static IJira getJiraInstance()
-        {
-            List<IJira> _jiraInstances = new List<IJira>();
-
-            foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            var metaStr = _jiraRestService.Get("api/2/issue/createmeta", new Dictionary<string, string>
             {
-                var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
+                {"projectKeys", string.Join(",", jiraProjectKey)},
+                {"issuetypeNames", "Epic"},
+                {"expand", "projects.issuetypes.fields"}
+            });
+            dynamic meta = JObject.Parse(metaStr);
+            JObject dict =
+                ((JArray)((JArray)meta.projects).First<dynamic>().issuetypes).First<dynamic>()
+                    .fields;
 
-                var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
-                if (projectMappings.Any())
+            var epicNameFieldName = "";
+            var epicLinkFieldName = "";
+            foreach (var property in dict.Properties())
+            {
+                if (property.Value.ToString().Contains("Epic Name"))
                 {
-                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
+                    epicNameFieldName = property.Name;
+                }
+                if (property.Value.ToString().Contains("Epic Link"))
+                {
+                    epicLinkFieldName = property.Name;
                 }
             }
 
-            //_jiraInstances.ToList().ForEach(jiraInstance =>
-            //{
-            return _jiraInstances.ToArray().First();
-            //});
+            var epics = GetEpicsWithoutReference(v1ProjectId, "EpicCategory:208").Result;
+            foreach (var epic in epics)
+            {
+                dynamic jiraEpic = new ExpandoObject();
+                jiraEpic.fields = new Dictionary<string, object>
+                {
+                    {"description", epic.Description ?? "-"},
+                    {"summary", epic.Name},
+                    {"issuetype", new {name = "Epic"}},
+                    {"project", new {key = jiraProjectKey}},
+                    {epicNameFieldName, epic.Name},
+                    {"labels", new List<string> {epic.Number}}
+                };
+
+                var epicKey = _jiraRestService.Post("api/2/issue", jiraEpic);
+
+                for (int i = 1; i <= numberOfStoriesPerEpic; i++)
+                {
+                    dynamic linkedStory = new ExpandoObject();
+                    linkedStory.fields = new Dictionary<string, object>
+                    {
+                        {"project", new {key = jiraProjectKey}},
+                        {"summary", string.Format("Story {0}", i)},
+                        {"issuetype", new {name = "Story"}},
+                        {"description", string.Format("Story linked to {0}", epic.Name)},
+                        {epicLinkFieldName, epicKey},
+                        {"labels", new List<string> {epic.Number}}
+                    };
+
+                    _jiraRestService.Post("api/2/issue", linkedStory);
+                }
+
+                for (int i = 1; i <= numberOfBugsPerEpic; i++)
+                {
+                    dynamic linkedBug = new ExpandoObject();
+                    linkedBug.fields = new Dictionary<string, object>
+                    {
+                        {"project", new {key = jiraProjectKey}},
+                        {"summary", string.Format("Bug {0}", i)},
+                        {"issuetype", new {name = "Bug"}},
+                        {"description", string.Format("Bug linked to {0}", epic.Name)},
+                        {epicLinkFieldName, epicKey},
+                        {"labels", new List<string> {epic.Number}}
+                    };
+
+                    _jiraRestService.Post("api/2/issue", linkedBug);
+                }
+            }
         }
 
-
-        private static void CreateStoriesInProject(string jiraProjectKey, int numberOfStories)
+        private static void CreateStoriesInProject(string jiraProjectKey, int numberOfStories, int numberOfWorklogs)
         {
             for (int i = 1; i <= numberOfStories; i++)
             {
@@ -219,10 +268,11 @@ namespace VersionOne.TeamSync.LoadTester
                 };
 
                 var storyKey = _jiraRestService.Post("api/2/issue", newStory);
+                CreateWorkLogs(storyKey, numberOfWorklogs);
             }
         }
-
-        private static void CreateBugsInProject(string jiraProjectKey, int numberOfBugs, int numberOfWorklogs = 0)
+        
+        private static void CreateBugsInProject(string jiraProjectKey, int numberOfBugs, int numberOfWorklogs)
         {
             for (int i = 1; i <= numberOfBugs; i++)
             {
@@ -238,28 +288,40 @@ namespace VersionOne.TeamSync.LoadTester
                 };
 
                 var bugKey = _jiraRestService.Post("api/2/issue", newBug);
-                CreateWorkLogs(jiraProjectKey, bugKey, numberOfWorklogs);
+                CreateWorkLogs(bugKey, numberOfWorklogs);
             }
         }
 
-
-        private static void CreateWorkLogs(string jiraProjectKey, string bugKey, int numberOfWorklogs = 0)
+        private static void CreateWorkLogs(string bugKey, int numberOfWorklogs)
         {
-            if (numberOfWorklogs>0)
+            if (numberOfWorklogs > 0)
             {
                 for (int i = 1; i <= numberOfWorklogs; i++)
                 {
                     var newWorklog = new
                             {
                                 comment = "I did some work here.",
-                                started = "2015-02-15T17:34:37.937-0600",
+                                started = DateTime.UtcNow.ToString("s"),
                                 timeSpent = "1h 20m"
                             };
                     _jiraRestService.Post("/api/2/issue/" + bugKey + "/worklog", newWorklog);
                 }
-             }
+            }
         }
-        //"2012-02-15T17:34:37.937-0600"
+
+        public static Task<List<Epic>> GetEpicsWithoutReference(string v1Project, string epicCategory)
+        {
+            return _v1Connector.Query("Epic",
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
+                new[]
+                {
+                    "Reference=\"\"",
+                    "AssetState='Active'",
+                    string.Format("Scope=\"{0}\"", v1Project),
+                    string.Format("Category=\"{0}\"", epicCategory)
+                }, Epic.FromQuery);
+        }
+
         private static string AddRandomCharsToName(string name)
         {
             StringBuilder builder = new StringBuilder(name);
