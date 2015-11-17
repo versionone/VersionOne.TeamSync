@@ -7,9 +7,12 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using JiraSoapProxy;
+using log4net;
+using log4net.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.Worker;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -24,13 +27,18 @@ namespace VersionOne.TeamSync.LoadTester
         private static JiraSoapService _jiraProxy;
         private static JiraRestService _jiraRestService;
         private static Dictionary<string, string> _projectMappings = new Dictionary<string, string>();
+       
+        private static String _serviceConfigFilePath;
+        
+        private static V1 _v1 = new V1();
+        private static ILog Log = LogManager.GetLogger(typeof(Program));
 
         static void Main(string[] args)
         {
             //TODO: validate args
-            var serviceConfigFilePath = args[0];
-            if (string.IsNullOrWhiteSpace(serviceConfigFilePath))
-                throw new ArgumentNullException("serviceConfigFilePath");
+             _serviceConfigFilePath = args[0];
+             if (string.IsNullOrWhiteSpace(_serviceConfigFilePath))
+                 throw new ArgumentNullException("_serviceConfigFilePath");
 
             Console.WriteLine("Number of Epics:");
             var n1 = Console.ReadLine();
@@ -63,7 +71,7 @@ namespace VersionOne.TeamSync.LoadTester
             _jiraProxy = new JiraSoapService();
 
             var config =
-                ConfigurationManager.OpenMappedMachineConfiguration(new ConfigurationFileMap(serviceConfigFilePath));
+                ConfigurationManager.OpenMappedMachineConfiguration(new ConfigurationFileMap(_serviceConfigFilePath));
             var jiraSettings = config.GetSection("jiraSettings") as JiraSettings;
             if (jiraSettings != null)
             {
@@ -152,6 +160,8 @@ namespace VersionOne.TeamSync.LoadTester
 
         private static void CreateEpicsInProject(string v1ProjectId, int numberOfEpics)
         {
+            IJira jiraIntance = getJiraInstance();
+
             for (int i = 1; i <= numberOfEpics; i++)
             {
                 var epicName = string.Format("Epic {0}", i);
@@ -159,7 +169,39 @@ namespace VersionOne.TeamSync.LoadTester
                 var epic = new Epic { Name = epicName, ScopeId = v1ProjectId };
                 _v1Connector.Post(epic, epic.CreatePayload());
             }
+            
+            runEpicWorker(jiraIntance);
         }
+
+
+        private static void runEpicWorker(IJira jiraInstance)
+        {
+            var epicWorker = new EpicWorker(_v1, Log);
+           
+            epicWorker.DoWork(jiraInstance);   
+        }
+
+        private static IJira getJiraInstance()
+        {
+            List<IJira> _jiraInstances = new List<IJira>();
+
+            foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            {
+                var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
+
+                var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
+                if (projectMappings.Any())
+                {
+                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm)));
+                }
+            }
+
+            //_jiraInstances.ToList().ForEach(jiraInstance =>
+            //{
+            return _jiraInstances.ToArray().First();
+            //});
+        }
+
 
         private static void CreateStoriesInProject(string jiraProjectKey, int numberOfStories)
         {
@@ -210,18 +252,16 @@ namespace VersionOne.TeamSync.LoadTester
                     var newWorklog = new
                             {
                                 comment = "I did some work here.",
-                                started = "2012-02-15T17:34:37.937-0600",
-                                timeSpent =  "3h 20m"
+                                started = "2015-02-15T17:34:37.937-0600",
+                                timeSpent = "1h 20m"
                             };
                     _jiraRestService.Post("/api/2/issue/" + bugKey + "/worklog", newWorklog);
                 }
              }
         }
-
+        //"2012-02-15T17:34:37.937-0600"
         private static string AddRandomCharsToName(string name)
         {
-            
-            
             StringBuilder builder = new StringBuilder(name);
             char ch;
             for (int i = 0; i < NumberOfRandomChars; i++)
@@ -229,7 +269,6 @@ namespace VersionOne.TeamSync.LoadTester
                 ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * _random.NextDouble() + 65)));
                 builder.Append(ch);
             }
-
             return builder.ToString();
         }
     }
