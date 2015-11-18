@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -47,11 +48,11 @@ namespace VersionOne.TeamSync.Worker
             if (!_isActualWorkEnabled)
                 return;
 
-            var allJiraDefects = jiraInstance.GetBugsInProject(jiraInstance.JiraProject).issues;
+            var allJiraDefects = jiraInstance.GetBugsInProjectSince(jiraInstance.JiraProject, TimeSpan.FromSeconds(ServiceSettings.Settings.SyncIntervalInSeconds).Minutes).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
             DoActualWork(jiraInstance, allJiraDefects, allV1Defects);
 
-            var allJiraStories = jiraInstance.GetStoriesInProject(jiraInstance.JiraProject).issues;
+            var allJiraStories = jiraInstance.GetStoriesInProjectUpdatedSince(jiraInstance.JiraProject, TimeSpan.FromSeconds(ServiceSettings.Settings.SyncIntervalInSeconds).Minutes).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project);
             DoActualWork(jiraInstance, allJiraStories, allV1Stories);
         }

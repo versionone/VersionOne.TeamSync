@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using log4net;
@@ -44,10 +45,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         ItemBase CreateEpic(Epic epic, string projectKey);
         void DeleteEpicIfExists(string issueKey);
 
-        SearchResult GetStoriesInProject(string jiraProject);
+        SearchResult GetStoriesInProjectUpdatedSince(string jiraProject, int minutes);
         SearchResult GetStoriesWithNoEpicInProject(string projectKey);
 
-        SearchResult GetBugsInProject(string jiraProject);
+        SearchResult GetBugsInProjectSince(string jiraProject, int minutes);
 
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
         string GetIssueTransitionId(string issueKey, string toState);
@@ -55,10 +56,12 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         void CleanUpAfterRun(ILog log);
         IJiraSettings JiraSettings { get; }
-        SearchResult GetAllStoriesInProjectSince(string jiraProject, string date);
+        SearchResult GetAllStoriesInProjectSince(string jiraProject, DateTime date);
 
-        string RunFromThisDateOn { get; }
-        SearchResult GetAllBugsInProjectSince(string jiraProject, string createdDate);
+        DateTime RunFromThisDateOn { get; }
+        SearchResult GetAllBugsInProjectSince(string jiraProject, DateTime createdDate);
+
+        bool IssueExists(string issueKey);
     }
 
     public class Jira : IJira
@@ -86,7 +89,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public string EpicCategory { get; private set; }
 
-        public string RunFromThisDateOn { get; private set; }
+        public DateTime RunFromThisDateOn { get; private set; }
 
         public string[] DoneWords
         {
@@ -110,7 +113,8 @@ namespace VersionOne.TeamSync.Worker.Domain
             InstanceUrl = _connector.BaseUrl;
         }
 
-        public Jira(IJiraConnector connector, ProjectMapping projectMapping, string runFromThisDateOn) : this(connector)
+        public Jira(IJiraConnector connector, ProjectMapping projectMapping, DateTime runFromThisDateOn)
+            : this(connector)
         {
             JiraProject = projectMapping.JiraProject;
             V1Project = projectMapping.V1Project;
@@ -318,12 +322,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             _connector.Delete(path, HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
         }
 
-        public SearchResult GetStoriesInProject(string jiraProject)
+        public SearchResult GetStoriesInProjectUpdatedSince(string jiraProject, int minutes)
         {
-            return GetAllIssuesInProject(jiraProject, "Story");
+            return GetAllIssuesInProjectUpdatedSince(jiraProject, "Story", minutes);
         }
 
-        public SearchResult GetAllStoriesInProjectSince(string jiraProject, string date)
+        public SearchResult GetAllStoriesInProjectSince(string jiraProject, DateTime date)
         {
             return GetAllIssuesInProjectSince(jiraProject, "Story", date);
         }
@@ -343,22 +347,30 @@ namespace VersionOne.TeamSync.Worker.Domain
             });
         }
 
-        public SearchResult GetBugsInProject(string jiraProject)
+        public SearchResult GetBugsInProjectSince(string jiraProject, int minutes)
         {
-            return GetAllIssuesInProject(jiraProject, "Bug");
+            return GetAllIssuesInProjectUpdatedSince(jiraProject, "Bug", minutes);
         }
 
-
-        public SearchResult GetAllBugsInProjectSince(string jiraProject, string createdDate)
+        public SearchResult GetAllBugsInProjectSince(string jiraProject, DateTime createdDate)
         {
             var operators = new List<JqOperator>
             {
                 JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", "Bug"),
-                JqOperator.CreatedOnOrBefore(createdDate)
+                JqOperator.CreatedOnOrBefore(createdDate.ToString("yyyy-MM-dd"))
             };
 
             return GetIssuesInProject(operators);
+        }
+
+        public bool IssueExists(string issueKey)
+        {
+            var path = string.Format("{0}/issue/{{issueIdOrKey}}", Connector.JiraConnector.JiraRestApiUrl);
+            var content = _connector.Get(path, new KeyValuePair<string, string> ("issueIdOrKey", issueKey));
+            var data = JObject.Parse(content);
+
+            return data["key"] != null;
         }
 
         public IEnumerable<Worklog> GetIssueWorkLogs(string issueKey)
@@ -443,13 +455,13 @@ namespace VersionOne.TeamSync.Worker.Domain
             };
         }
 
-        private SearchResult GetAllIssuesInProjectSince(string jiraProject, string issueType, string dateSince)
+        private SearchResult GetAllIssuesInProjectSince(string jiraProject, string issueType, DateTime dateSince)
         {
             return GetIssuesInProject(new List<JqOperator>()
             {
                 JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", issueType),
-                JqOperator.CreatedOnOrBefore(dateSince)
+                JqOperator.CreatedOnOrBefore(dateSince.ToString("yyyy-MM-dd"))
             });
         }
 
@@ -471,12 +483,13 @@ namespace VersionOne.TeamSync.Worker.Domain
                 });
         }
 
-        private SearchResult GetAllIssuesInProject(string jiraProject, string issueType)
+        private SearchResult GetAllIssuesInProjectUpdatedSince(string jiraProject, string issueType, int minutes)
         {
             return GetIssuesInProject(new List<JqOperator>
             {
                 JqOperator.Equals("project", jiraProject.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", issueType),
+                JqOperator.UpdatedTimeAgo(minutes)
             });
         }
 

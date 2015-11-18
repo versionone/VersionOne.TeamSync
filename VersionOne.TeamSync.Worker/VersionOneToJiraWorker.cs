@@ -46,7 +46,7 @@ namespace VersionOne.TeamSync.Worker
             };
         }
 
-        private string GetRunFrom()
+        private DateTime GetRunFrom()
         {
             var runDate = JiraSettings.GetInstance().RunFromThisDateOn;
 
@@ -63,7 +63,7 @@ namespace VersionOne.TeamSync.Worker
                 throw new ConfigurationErrorsException("RunFromThisDateOn contains an invalid entry");
             }
 
-            return parsedRunFromDate.ToString("yyyy-MM-dd");
+            return parsedRunFromDate;
         }
 
         public void DoFirstRun()
