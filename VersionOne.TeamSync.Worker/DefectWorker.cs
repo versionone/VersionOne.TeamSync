@@ -35,9 +35,7 @@ namespace VersionOne.TeamSync.Worker
             var allJiraBugs = jiraInstance.GetAllBugsInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
 
-            //UpdateDefects(jiraInstance, allJiraBugs, allV1Defects);
             CreateDefects(jiraInstance, allJiraBugs, allV1Defects);
-            //DeleteV1Defects(jiraInstance, allJiraBugs, allV1Defects);
             _log.Trace("Defect sync stopped...");
         }
 
@@ -248,22 +246,24 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Deleting defects started");
             var processedDefects = 0;
 
-            var jiraReferencedBugsKeys =
-                allV1Defects.Where(v1Defect => !v1Defect.IsInactive && !string.IsNullOrWhiteSpace(v1Defect.Reference))
-                    .Select(v1Defect => v1Defect.Reference);
+            var jiraReferencedBugs =
+                allV1Defects.Where(v1Defect => !v1Defect.IsInactive && !string.IsNullOrWhiteSpace(v1Defect.Reference));
 
-            var jiraDeletedBugsKeys =
-                jiraReferencedBugsKeys.Where(jiraDefectKey => !allJiraBugs.Any(js => js.Key.Equals(jiraDefectKey))).ToList();
+            var jiraDeletedBugs =
+                jiraReferencedBugs.Where(jiraDefect => !allJiraBugs.Any(js => js.Key.Equals(jiraDefect.Reference))).ToList();
 
-            if (jiraDeletedBugsKeys.Any())
-                _log.DebugFormat("Found {0} defects to delete", jiraDeletedBugsKeys.Count);
+            if (jiraDeletedBugs.Any())
+                _log.DebugFormat("Found {0} defects to delete", jiraDeletedBugs.Count);
 
-            jiraDeletedBugsKeys.ForEach(key =>
+            jiraDeletedBugs.ForEach(bug =>
             {
-                _log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", key);
-                _v1.DeleteDefectWithJiraReference(jiraInstance.V1Project, key);
-                _log.DebugFormat("Deleted V1 defect referencing jira defect {0}", key);
-                processedDefects++;
+                if (!jiraInstance.IssueExists(bug.Reference))
+                {
+                    _log.TraceFormat("Attempting to delete V1 defect referencing jira defect {0}", bug.Number);
+                    _v1.DeleteDefect(jiraInstance.V1Project, bug);
+                    _log.DebugFormat("Deleted V1 defect referencing jira defect {0}", bug);
+                    processedDefects++;
+                }
             });
 
             if (processedDefects > 0)

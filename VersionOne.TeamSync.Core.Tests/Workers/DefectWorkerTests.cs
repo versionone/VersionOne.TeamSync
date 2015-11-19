@@ -71,14 +71,14 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
     [TestClass]
     public class defect_delete : defect_bits
     {
-        private List<Issue> _allJiraStories;
+        private List<Issue> _allJiraBugs;
         private List<Defect> _allV1Defects;
 
         [TestInitialize]
         public void Context()
         {
             BuildContext();
-            _allJiraStories = new List<Issue>
+            _allJiraBugs = new List<Issue>
                 {
                     new Issue
                     {
@@ -131,27 +131,27 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         public void should_never_call_delete_asset()
         {
             // All jira stories referenced in V1 exist in Jira - No stories should be deleted
-            Worker.DeleteV1Defects(MockJira.Object, _allJiraStories, _allV1Defects);
-            MockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+            Worker.DeleteV1Defects(MockJira.Object, _allJiraBugs, _allV1Defects);
+            MockV1.Verify(x => x.DeleteDefect(It.IsAny<string>(), It.IsAny<Defect>()), Times.Never());
         }
 
         [TestMethod]
         public void should_call_delete_asset_just_one_time()
         {
-            _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-2")));
+            _allJiraBugs.Remove(_allJiraBugs.First(s => s.Key.Equals("OPC-2")));
             // OPC-2 removed - Story 3 should be deleted
-            Worker.DeleteV1Defects(MockJira.Object, _allJiraStories, _allV1Defects);
-            MockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), "OPC-2"), Times.Once);
+            Worker.DeleteV1Defects(MockJira.Object, _allJiraBugs, _allV1Defects);
+            MockV1.Verify(x => x.DeleteDefect(It.IsAny<string>(), It.IsIn(_allV1Defects.First(d => d.Reference == "OPC-2"))), Times.Once);
         }
 
         [TestMethod]
         public void should_call_delete_asset_just_two_times()
         {
-            _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-1")));
-            _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-3")));
+            _allJiraBugs.Remove(_allJiraBugs.First(s => s.Key.Equals("OPC-1")));
+            _allJiraBugs.Remove(_allJiraBugs.First(s => s.Key.Equals("OPC-3")));
             // OPC-1 and OPC-3 removed - Story 2 and Story 4 should be deleted
-            Worker.DeleteV1Defects(MockJira.Object, _allJiraStories, _allV1Defects);
-            MockV1.Verify(x => x.DeleteDefectWithJiraReference(It.IsAny<string>(), It.IsIn("OPC-1", "OPC-3")), Times.Exactly(2));
+            Worker.DeleteV1Defects(MockJira.Object, _allJiraBugs, _allV1Defects);
+            MockV1.Verify(x => x.DeleteDefect(It.IsAny<string>(), It.IsIn(_allV1Defects.Where(d => d.Reference == "OPC-1" || d.Reference == "OPC-3"))), Times.Exactly(2));
         }
     }
 

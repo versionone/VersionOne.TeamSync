@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.JiraConnector.Exceptions;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.Worker.Extensions;
 using Connector = VersionOne.TeamSync.JiraConnector.Connector;
@@ -366,11 +367,22 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public bool IssueExists(string issueKey)
         {
+            bool result;
             var path = string.Format("{0}/issue/{{issueIdOrKey}}", Connector.JiraConnector.JiraRestApiUrl);
-            var content = _connector.Get(path, new KeyValuePair<string, string> ("issueIdOrKey", issueKey));
-            var data = JObject.Parse(content);
+            try
+            {
+                var content = _connector.Get(path, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
+                var data = JObject.Parse(content);
 
-            return data["key"] != null;
+                result = data["key"] != null;
+
+            }
+            catch (JiraException)
+            {
+                result = false;
+            }
+
+            return result;
         }
 
         public IEnumerable<Worklog> GetIssueWorkLogs(string issueKey)

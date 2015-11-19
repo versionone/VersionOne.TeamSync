@@ -50,7 +50,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Defect> CreateDefect(Defect defect);
         Task CloseDefect(string defectId);
         Task ReOpenDefect(string defectId);
-        void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey);
+        void DeleteDefect(string projectId, Defect defect);
 
         Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
         Task<Actual> CreateActual(Actual actual);
@@ -213,14 +213,12 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public async void DeleteStory(string projectId, Story story)
         {
-            //var story = await GetStoryWithJiraReference(projectId, jiraStoryKey);
             await _connector.Post(story, story.RemoveReference());
             await _connector.Operation(story, "Delete");
         }
 
-        public async void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey)
+        public async void DeleteDefect(string projectId, Defect defect)
         {
-            var defect = await GetDefectWithJiraReference(projectId, jiraStoryKey);
             await _connector.Post(defect, defect.RemoveReference());
             await _connector.Operation(defect, "Delete");
         }

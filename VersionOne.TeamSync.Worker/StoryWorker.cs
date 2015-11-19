@@ -35,9 +35,12 @@ namespace VersionOne.TeamSync.Worker
             var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
 
-            //UpdateStories(jiraInstance, allJiraStories, allV1Stories);
             CreateStories(jiraInstance, allJiraStories, allV1Stories);
+<<<<<<< HEAD
             //DeleteV1Stories(jiraInstance, allJiraStories, allV1Stories);
+=======
+
+>>>>>>> S-55487: Defects synced since last sync event.
             _log.Trace("Story First Run stopped...");
         }
 
@@ -264,7 +267,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 if (!jiraInstance.IssueExists(story.Reference))
                 {
-                    _log.TraceFormat("Attempting to delete V1 story referencing jira story {0}", story);
+                    _log.TraceFormat("Attempting to delete V1 story referencing jira story {0}", story.Number);
                     _v1.DeleteStory(jiraInstance.V1Project, story);
                     _log.DebugFormat("Deleted V1 story referencing jira story {0}", story);
                     processedStories++;
