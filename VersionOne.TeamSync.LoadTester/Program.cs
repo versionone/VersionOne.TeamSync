@@ -112,12 +112,13 @@ namespace VersionOne.TeamSync.LoadTester
             }
 
             config.Save(ConfigurationSaveMode.Full);
-
+            Console.WriteLine("Finish. press any key.");
             Console.ReadKey();
         }
 
         private static void CreateV1Connector()
         {
+            Console.WriteLine("Creating V1 Connector...");
             switch (V1Settings.Settings.AuthenticationType)
             {
                 case 0:
@@ -152,7 +153,7 @@ namespace VersionOne.TeamSync.LoadTester
         private static string CreateV1Project(string projectName, int numberOfEpicsInProject, string jiraProjectKey)
         {
             var scope = new Scope() { Name = projectName, Parent = "Scope:0", Scheme = "Scheme:1001" };
-
+            
             var v1ProjectId = _v1Connector.Post(scope, scope.CreatePayload()).Result.Root.Attribute("id").Value;
             v1ProjectId = v1ProjectId.Substring(0, v1ProjectId.LastIndexOf(':'));
 
@@ -163,6 +164,7 @@ namespace VersionOne.TeamSync.LoadTester
 
         private static void CreateEpicsInProject(string v1ProjectId, int numberOfEpics)
         {
+            Console.WriteLine("Creating Epics...");
             for (int i = 1; i <= numberOfEpics; i++)
             {
                 var epicName = string.Format("Epic {0}", i);
@@ -172,11 +174,13 @@ namespace VersionOne.TeamSync.LoadTester
                 payload.AddSetRelationNode("Category", "EpicCategory:208");
 
                 _v1Connector.Post(epic, payload);
+                Console.WriteLine("Created "+ epicName );
             }
         }
 
         private static void SyncEpics(string v1ProjectId, string jiraProjectKey, int numberOfStoriesPerEpic, int numberOfBugsPerEpic)
         {
+            Console.WriteLine("Synchronizing Epics...");
             var metaStr = _jiraRestService.Get("api/2/issue/createmeta", new Dictionary<string, string>
             {
                 {"projectKeys", string.Join(",", jiraProjectKey)},
@@ -217,6 +221,7 @@ namespace VersionOne.TeamSync.LoadTester
                 };
 
                 var epicKey = _jiraRestService.Post("api/2/issue", jiraEpic);
+                Console.WriteLine("Saved Epics without link...");
 
                 for (int i = 1; i <= numberOfStoriesPerEpic; i++)
                 {
@@ -232,6 +237,7 @@ namespace VersionOne.TeamSync.LoadTester
                     };
 
                     _jiraRestService.Post("api/2/issue", linkedStory);
+                    Console.WriteLine("Saved Stories linked...");
                 }
 
                 for (int i = 1; i <= numberOfBugsPerEpic; i++)
@@ -248,12 +254,14 @@ namespace VersionOne.TeamSync.LoadTester
                     };
 
                     _jiraRestService.Post("api/2/issue", linkedBug);
+                    Console.WriteLine("Saved Bugs linked ...");
                 }
             }
         }
 
         private static void CreateStoriesInProject(string jiraProjectKey, int numberOfStories, int numberOfWorklogs)
         {
+            Console.WriteLine("Creating Stories with no linked Epic...");
             for (int i = 1; i <= numberOfStories; i++)
             {
                 var newStory = new
@@ -268,12 +276,14 @@ namespace VersionOne.TeamSync.LoadTester
                 };
 
                 var storyKey = _jiraRestService.Post("api/2/issue", newStory);
+                
                 CreateWorkLogs(storyKey, numberOfWorklogs);
             }
         }
         
         private static void CreateBugsInProject(string jiraProjectKey, int numberOfBugs, int numberOfWorklogs)
         {
+            Console.WriteLine("Creating Bug with no linked Epic...");
             for (int i = 1; i <= numberOfBugs; i++)
             {
                 var newBug = new
@@ -296,12 +306,14 @@ namespace VersionOne.TeamSync.LoadTester
         {
             if (numberOfWorklogs > 0)
             {
+                Console.WriteLine("Creating Worklogs...");
+                
                 for (int i = 1; i <= numberOfWorklogs; i++)
                 {
                     var newWorklog = new
                             {
-                                comment = "I did some work here.",
-                                started = DateTime.UtcNow.ToString("s"),
+                                comment = "Added some Worklog." + i.ToString(),
+                                started = "2015-11-15T17:34:37.937-0600",
                                 timeSpent = "1h 20m"
                             };
                     _jiraRestService.Post("/api/2/issue/" + bugKey + "/worklog", newWorklog);
