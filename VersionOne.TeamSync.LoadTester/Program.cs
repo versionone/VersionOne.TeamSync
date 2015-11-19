@@ -313,13 +313,14 @@ namespace VersionOne.TeamSync.LoadTester
                     var newWorklog = new
                             {
                                 comment = "Added some Worklog." + i.ToString(),
-                                started = "2015-11-15T17:34:37.937-0600",
+                                started = DateTime.UtcNow.ToString("yyyy-MM-ddThh:mm:ss") + ".000+0000",
                                 timeSpent = "1h 20m"
                             };
                     _jiraRestService.Post("/api/2/issue/" + bugKey + "/worklog", newWorklog);
                 }
             }
         }
+
 
         public static Task<List<Epic>> GetEpicsWithoutReference(string v1Project, string epicCategory)
         {
