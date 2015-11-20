@@ -36,20 +36,15 @@ namespace VersionOne.TeamSync.Worker
             var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
 
             CreateStories(jiraInstance, allJiraStories, allV1Stories);
-<<<<<<< HEAD
-            //DeleteV1Stories(jiraInstance, allJiraStories, allV1Stories);
-=======
-
->>>>>>> S-55487: Defects synced since last sync event.
             _log.Trace("Story First Run stopped...");
         }
 
         public async Task DoWork(IJira jiraInstance)
         {
-            _lastSyncDate = DateTime.UtcNow.AddSeconds(-ServiceSettings.Settings.SyncIntervalInSeconds);
+            _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
 
             _log.Trace("Story sync started...");
-            var allJiraStories = jiraInstance.GetStoriesInProjectUpdatedSince(jiraInstance.JiraProject, TimeSpan.FromSeconds(ServiceSettings.Settings.SyncIntervalInSeconds).Minutes).issues;
+            var allJiraStories = jiraInstance.GetStoriesInProjectUpdatedSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project);
 
             UpdateStories(jiraInstance, allJiraStories, allV1Stories);

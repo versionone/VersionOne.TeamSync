@@ -41,8 +41,10 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoWork(IJira jiraInstance)
         {
+            _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
+
             _log.Trace("Defect sync started...");
-            var allJiraBugs = jiraInstance.GetBugsInProjectSince(jiraInstance.JiraProject, TimeSpan.FromSeconds(ServiceSettings.Settings.SyncIntervalInSeconds).Minutes).issues;
+            var allJiraBugs = jiraInstance.GetBugsInProjectSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
 
             UpdateDefects(jiraInstance, allJiraBugs, allV1Defects);
@@ -102,6 +104,7 @@ namespace VersionOne.TeamSync.Worker
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
@@ -175,8 +178,13 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<bool> CreateDefectFromJira(IJira jiraInstance, Issue jiraBug)
         {
+<<<<<<< HEAD
             var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraBug.Fields.Status.Name));
             var defect = jiraBug.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name), v1StatusId);
+=======
+            var defect = jiraBug.ToV1Defect(jiraInstance.V1Project,
+                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name));
+>>>>>>> Switched sync interval setting from seconds to minutes
 
             if (!string.IsNullOrEmpty(jiraBug.Fields.EpicLink))
             {

@@ -37,7 +37,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoWork(IJira jiraInstance)
         {
-            _lastSyncDate = DateTime.UtcNow.AddSeconds(-ServiceSettings.Settings.SyncIntervalInSeconds);
+            _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
             _log.Trace("Epic sync started...");
             await CreateEpics(jiraInstance);
             await UpdateEpics(jiraInstance);

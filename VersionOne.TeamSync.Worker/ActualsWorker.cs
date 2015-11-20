@@ -48,11 +48,11 @@ namespace VersionOne.TeamSync.Worker
             if (!_isActualWorkEnabled)
                 return;
 
-            var allJiraDefects = jiraInstance.GetBugsInProjectSince(jiraInstance.JiraProject, TimeSpan.FromSeconds(ServiceSettings.Settings.SyncIntervalInSeconds).Minutes).issues;
+            var allJiraDefects = jiraInstance.GetBugsInProjectSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
             DoActualWork(jiraInstance, allJiraDefects, allV1Defects);
 
-            var allJiraStories = jiraInstance.GetStoriesInProjectUpdatedSince(jiraInstance.JiraProject, TimeSpan.FromSeconds(ServiceSettings.Settings.SyncIntervalInSeconds).Minutes).issues;
+            var allJiraStories = jiraInstance.GetStoriesInProjectUpdatedSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project);
             DoActualWork(jiraInstance, allJiraStories, allV1Stories);
         }

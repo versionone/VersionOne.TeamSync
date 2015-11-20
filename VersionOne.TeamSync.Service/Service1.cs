@@ -28,7 +28,7 @@ namespace VersionOne.TeamSync.Service
         {
             try
             {
-                _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.SyncIntervalInSeconds);
+                _serviceDuration = TimeSpan.FromMinutes(ServiceSettings.Settings.SyncIntervalInMinutes);
 
                 StartMessage();
                 _worker = new VersionOneToJiraWorker();
