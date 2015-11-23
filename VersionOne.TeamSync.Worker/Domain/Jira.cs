@@ -40,7 +40,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         void SetIssueToToDo(string issueKey, string[] doneWords);
         void SetIssueToResolved(string issueKey, string[] doneWords);
 
-        SearchResult GetEpicByKey(string reference);
+        SearchResult GetEpicByKey(string epicKey);
         SearchResult GetEpicsInProject(string projectKey);
         SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys);
         ItemBase CreateEpic(Epic epic, string projectKey);
@@ -269,11 +269,12 @@ namespace VersionOne.TeamSync.Worker.Domain
             _log.Info(string.Format("Set status on {0} to {1}", issueKey, transition.Single().Name));
         }
 
-        public SearchResult GetEpicByKey(string reference)
+        public SearchResult GetEpicByKey(string epicKey)
         {
+            //TODO: it throws an exception if epicKey doesn't exists
             return _connector.GetSearchResults(new List<JqOperator>
             {
-                JqOperator.Equals("key", reference),
+                JqOperator.Equals("key", epicKey),
                 JqOperator.Equals("issuetype", "Epic")
             },
                 new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self" }
