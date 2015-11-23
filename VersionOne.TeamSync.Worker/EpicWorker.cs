@@ -52,6 +52,7 @@ namespace VersionOne.TeamSync.Worker
         {
             _log.Trace("Creating epics started");
             var processedEpics = 0;
+
             var unassignedV1Epics = epics;
 
             if (unassignedV1Epics.Any())
@@ -60,8 +61,8 @@ namespace VersionOne.TeamSync.Worker
             unassignedV1Epics.ForEach(v1Epic =>
             {
                 _log.TraceFormat("Attempting to create Jira epic from {0}", v1Epic.Number);
-                var jiraData = jiraInstance.CreateEpic(v1Epic, jiraInstance.JiraProject);
 
+                var jiraData = jiraInstance.CreateEpic(v1Epic, jiraInstance.JiraProject);
                 _log.DebugFormat("Created Jira epic {0} from V1 epic {1}", jiraData.Key, v1Epic.Number);
 
                 if (jiraData.IsEmpty)
@@ -88,8 +89,8 @@ namespace VersionOne.TeamSync.Worker
                 }
             });
 
-            if (processedEpics > 0) _log.DebugFormat("Resolved {0} Jira epics", processedEpics);
-            _log.InfoFormat("Created {0} Jira epics", processedEpics);
+            if (processedEpics > 0)
+                _log.InfoFormat("Created {0} Jira epics", processedEpics);
             _log.Trace("Create epics stopped");
         }
 
@@ -113,16 +114,15 @@ namespace VersionOne.TeamSync.Worker
             }
 
             var assignedV1Epics = await _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
+
             if (assignedV1Epics.Any())
-            {
                 _log.DebugFormat("Found {0} epics to check for update", assignedV1Epics.Count);
-                _log.Trace("Recently updated epics : " + string.Join(", ", assignedV1Epics.Select(epic => epic.Number)));
-            }
 
             var jiraEpics = searchResult.issues;
             assignedV1Epics.ForEach(v1Epic =>
             {
                 _log.TraceFormat("Attempting to update Jira epic {0}", v1Epic.Reference);
+
                 var relatedJiraEpic = jiraEpics.FirstOrDefault(issue => issue.Key == v1Epic.Reference);
                 if (relatedJiraEpic == null)
                 {
@@ -149,7 +149,7 @@ namespace VersionOne.TeamSync.Worker
 
             if (processedEpics > 0)
             {
-                _log.InfoUpdated(processedEpics, PluralAsset);
+                _log.InfoFormat("Updated {0} Jira epics", processedEpics);
                 _log.TraceFormat("Recently updated epics : {0}", string.Join(", ", assignedV1Epics.Select(epic => epic.Number)));
             }
             _log.Trace("Updating epics stopped");
@@ -173,7 +173,7 @@ namespace VersionOne.TeamSync.Worker
                 _log.DebugFormat("Deleted Jira epic {0}", v1Epic.Reference);
 
                 _v1.RemoveReferenceOnDeletedEpic(v1Epic);
-                _log.TraceFormat("Removed reference on V1 epic {0}", v1Epic.Number);
+                _log.DebugFormat("Removed reference on V1 epic {0}", v1Epic.Number);
 
                 processedEpics++;
             });

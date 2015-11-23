@@ -60,10 +60,7 @@ namespace VersionOne.TeamSync.Worker
             data["closed"] = 0;
 
             var existingBugs =
-                allJiraBugs.Where(bug =>
-                {
-                    return allV1Defects.Any(defect => bug.Fields.Labels.Contains(defect.Number));
-                }).ToList();
+                allJiraBugs.Where(bug => allV1Defects.Any(defect => bug.Fields.Labels.Contains(defect.Number))).ToList();
 
             if (existingBugs.Any())
                 _log.DebugFormat("Found {0} defects to check for update", existingBugs.Count);
@@ -74,7 +71,6 @@ namespace VersionOne.TeamSync.Worker
             {
                 var defectToUpdate = allV1Defects.Single(defect => existingJDefect.Fields.Labels.Contains(defect.Number));
                 UpdateDefectFromJiraToV1(jiraInstance, existingJDefect, defectToUpdate, assignedEpics, data).Wait();
-
             });
 
             if (data["updated"] > 0)
@@ -123,18 +119,21 @@ namespace VersionOne.TeamSync.Worker
             {
                 if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
                     update.Super = v1EpicId;
+
                 _log.TraceFormat("Attempting to update V1 defect {0}", defect.Number);
+
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated V1 defect {0}", defect.Number);
-                data["closed"] += 1;
+                data["updated"] += 1;
             }
 
             if (issue.Fields.Status != null && issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && defect.AssetState != "128")
             {
                 await _v1.CloseDefect(defect.ID);
                 _log.DebugClosedItem("defect", defect.Number);
-                data["updated"] += 1;
+                data["closed"] += 1;
             }
+
             return data;
         }
 
@@ -170,17 +169,9 @@ namespace VersionOne.TeamSync.Worker
             var defect = jiraBug.ToV1Defect(jiraInstance.V1Project,
                 JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name));
 
-            if (jiraBug.HasAssignee())
-            {
-                var member = await TrySyncMemberFromJiraUser(jiraBug.Fields.Assignee);
-                if (member != null)
-                    defect.OwnersIds.Add(member.Oid());
-            }
-
             if (!string.IsNullOrEmpty(jiraBug.Fields.EpicLink))
             {
                 var epic = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraBug.Fields.EpicLink);
-
                 if (epic != null)
                 {
                     if (epic.IsClosed)
@@ -192,7 +183,15 @@ namespace VersionOne.TeamSync.Worker
                 }
             }
 
+            if (jiraBug.HasAssignee())
+            {
+                var member = await TrySyncMemberFromJiraUser(jiraBug.Fields.Assignee);
+                if (member != null)
+                    defect.OwnersIds.Add(member.Oid());
+            }
+
             _log.TraceFormat("Attempting to create V1 defect from Jira defect {0}", jiraBug.Key);
+
             var newDefect = await _v1.CreateDefect(defect);
             _log.DebugFormat("Created {0} from Jira defect {1}", newDefect.Number, jiraBug.Key);
 
