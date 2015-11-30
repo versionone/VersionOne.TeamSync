@@ -29,7 +29,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateMemberPermissions();
 
         string GetPriorityId(string name);
-        string GetStatusId(string name)
+        string GetStatusId(string name);
 
         void AddComment(string issueKey, string comment);
         void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle);
