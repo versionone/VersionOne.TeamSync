@@ -38,9 +38,8 @@ namespace VersionOne.TeamSync.Worker
             UpdateStories(jiraInstance, allJiraStories, allV1Stories);
             CreateStories(jiraInstance, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInstance, allJiraStories, allV1Stories);
-
             _log.Trace("Story First Run stopped...");
-        } 
+        }
 
         public async Task DoWork(IJira jiraInstance)
         {
@@ -52,7 +51,6 @@ namespace VersionOne.TeamSync.Worker
             UpdateStories(jiraInstance, allJiraStories, allV1Stories);
             CreateStories(jiraInstance, allJiraStories, allV1Stories);
             DeleteV1Stories(jiraInstance, allJiraStories, allV1Stories);
-
             _log.Trace("Story sync stopped...");
         }
 
@@ -63,11 +61,10 @@ namespace VersionOne.TeamSync.Worker
             data["reopened"] = 0;
             data["updated"] = 0;
             data["closed"] = 0;
+
             var existingStories =
-                allJiraStories.Where(jiraStory =>
-                {
-                    return allV1Stories.Any(v1Story => jiraStory.Fields.Labels.Contains(v1Story.Number));
-                }).ToList();
+                allJiraStories.Where(
+                    jiraStory => allV1Stories.Any(v1Story => jiraStory.Fields.Labels.Contains(v1Story.Number))).ToList();
 
             if (existingStories.Any())
                 _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
@@ -77,15 +74,19 @@ namespace VersionOne.TeamSync.Worker
             existingStories.ForEach(existingJStory =>
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
-				var result = UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Result;
-			});
+                var result = UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Result;
+            });
 
-            if (data["updated"] > 0) _log.InfoUpdated(data["updated"], PluralAsset);
+            if (data["updated"] > 0)
+                _log.InfoUpdated(data["updated"], PluralAsset);
 
-            if (data["closed"] > 0) _log.InfoClosed(data["closed"], PluralAsset);
+            if (data["closed"] > 0)
+                _log.InfoClosed(data["closed"], PluralAsset);
 
-            if (data["reopened"] > 0) _log.InfoUpdated(data["reopened"], PluralAsset);
+            if (data["reopened"] > 0)
+                _log.InfoUpdated(data["reopened"], PluralAsset);
 
+            _log.TraceUpdateFinished(PluralAsset);
         }
 
         public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(IJira jiraInstance, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
@@ -99,7 +100,6 @@ namespace VersionOne.TeamSync.Worker
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
-
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
@@ -123,7 +123,9 @@ namespace VersionOne.TeamSync.Worker
             {
                 if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
                     update.Super = v1EpicId;
+
                 _log.TraceFormat("Attempting to update V1 story {0}", story.Number);
+
                 await _v1.UpdateAsset(update, update.CreateUpdatePayload());
                 _log.DebugFormat("Updated story V1 {0}", story.Number);
                 data["updated"] += 1;
@@ -143,6 +145,7 @@ namespace VersionOne.TeamSync.Worker
         {
             _log.Trace("Creating stories started");
             var processedStories = 0;
+
             var newStories = allJiraStories.Where(story =>
             {
                 if (allV1Stories.Any(x => story.Fields.Labels.Contains(x.Number)))
@@ -157,8 +160,8 @@ namespace VersionOne.TeamSync.Worker
 
             newStories.ForEach(story =>
             {
-                CreateStoryFromJira(jiraInstance, story).Wait();
-                processedStories++;
+                if (CreateStoryFromJira(jiraInstance, story).Result)
+                    processedStories++;
             });
 
             if (processedStories > 0)
@@ -166,7 +169,7 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceCreateFinished(PluralAsset);
         }
 
-        public async Task CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
+        public async Task<bool> CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
             var story = jiraStory.ToV1Story(jiraInstance.V1Project,
                 JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name));
@@ -174,13 +177,12 @@ namespace VersionOne.TeamSync.Worker
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
                 var epic = await _v1.GetAssetIdFromJiraReferenceNumber("Epic", jiraStory.Fields.EpicLink);
-
                 if (epic != null)
                 {
                     if (epic.IsClosed)
                     {
                         _log.Error("Unable to assign epic " + jiraStory.Fields.EpicLink + " -- Epic may be closed");
-                        return;
+                        return false;
                     }
                     story.Super = epic.Token;
                 }
@@ -194,6 +196,7 @@ namespace VersionOne.TeamSync.Worker
             }
 
             _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
+
             var newStory = await _v1.CreateStory(story);
             _log.DebugFormat("Created {0} from Jira story {1}", newStory.Number, jiraStory.Key);
 
@@ -213,6 +216,8 @@ namespace VersionOne.TeamSync.Worker
             var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraStory.Key)).ToString();
             _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);
             _log.TraceFormat("Added link in V1 story {0}", newStory.Number);
+
+            return true;
         }
 
         public void DeleteV1Stories(IJira jiraInstance, List<Issue> allJiraStories, List<Story> allV1Stories)

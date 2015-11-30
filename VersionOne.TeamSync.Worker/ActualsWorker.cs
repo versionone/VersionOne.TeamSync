@@ -40,7 +40,6 @@ namespace VersionOne.TeamSync.Worker
             var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
             DoActualWork(jiraInstance, allJiraStories, allV1Stories);
-
         }
 
         public async Task DoWork(IJira jiraInstance)
@@ -101,7 +100,8 @@ namespace VersionOne.TeamSync.Worker
 
         public void CreateActualsFromWorklogs(IJira jiraInstance, List<Worklog> newWorklogs, string workItemId, string v1Number, string issueKey)
         {
-            if (newWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for create", newWorklogs.Count());
+            if (newWorklogs.Count > 0)
+                _log.DebugFormat("Found {0} Jira work logs to check for create", newWorklogs.Count());
 
             var processedActuals = 0;
             foreach (var worklog in newWorklogs)
@@ -124,7 +124,8 @@ namespace VersionOne.TeamSync.Worker
 
         public void UpdateActualsFromWorklogs(IJira jiraInstance, List<Worklog> updateWorklogs, string workItemId, List<Actual> actuals)
         {
-            if (updateWorklogs.Count > 0) _log.DebugFormat("Found {0} Jira work logs to check for update", updateWorklogs.Count());
+            if (updateWorklogs.Count > 0)
+                _log.DebugFormat("Found {0} Jira work logs to check for update", updateWorklogs.Count());
 
             var processedActuals = 0;
             foreach (var worklog in updateWorklogs)
@@ -178,7 +179,5 @@ namespace VersionOne.TeamSync.Worker
             var member = _v1.GetMember(worklog.updateAuthor.name).Result;
             return member != null && member.Oid().Equals(actual.MemberId) && worklog.updateAuthor.ItMatchesMember(member);
         }
-
-
     }
 }
