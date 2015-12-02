@@ -31,6 +31,9 @@ namespace VersionOne.TeamSync.Core.Tests
             MockJiraSettings.Setup(x => x.GetJiraPriorityIdFromMapping(It.IsAny<string>(), "Medium")).Returns("3");
             MockJiraSettings.Setup(x => x.GetV1PriorityIdFromMapping(It.IsAny<string>(), "Medium"))
                 .Returns("WorkitemPriority:139");
+            MockJiraSettings.Setup(
+                x => x.GetJiraStatusFromMapping(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("InProgress");
 
             JiraSettings.Instance = MockJiraSettings.Object;
 
