@@ -44,7 +44,7 @@ namespace VersionOne.TeamSync.Worker
             _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
 
             _log.Trace("Defect sync started...");
-            var allJiraBugs = jiraInstance.GetBugsInProjectSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
+            var allJiraBugs = jiraInstance.GetBugsInProjectUpdatedSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
 
             UpdateDefects(jiraInstance, allJiraBugs, allV1Defects);
@@ -53,7 +53,7 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Defect sync stopped...");
         }
 
-        public async void UpdateDefects(IJira jiraInstance, List<Issue> allJiraBugs, List<Defect> allV1Defects)
+        public void UpdateDefects(IJira jiraInstance, List<Issue> allJiraBugs, List<Defect> allV1Defects)
         {
             _log.Trace("Updating defects started");
             var data = new Dictionary<string, int>();
@@ -62,12 +62,13 @@ namespace VersionOne.TeamSync.Worker
             data["closed"] = 0;
 
             var existingBugs =
-                allJiraBugs.Where(bug => allV1Defects.Any(defect => bug.Fields.Labels.Contains(defect.Number))).ToList();
+                allJiraBugs.Where(
+                    bug => allV1Defects.Any(defect => bug.Fields.Labels.Contains(defect.Number))).ToList();
 
             if (existingBugs.Any())
                 _log.DebugFormat("Found {0} defects to check for update", existingBugs.Count);
 
-            var assignedEpics = await _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate);
+            var assignedEpics = _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate).Result;
 
             existingBugs.ForEach(existingJDefect =>
             {
@@ -178,13 +179,15 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<bool> CreateDefectFromJira(IJira jiraInstance, Issue jiraBug)
         {
-<<<<<<< HEAD
-            var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraBug.Fields.Status.Name));
-            var defect = jiraBug.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name), v1StatusId);
-=======
+            var v1StatusId =
+                await
+                    _v1.GetStatusIdFromName(JiraSettings.GetInstance()
+                        .GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject,
+                            jiraBug.Fields.Status.Name));
+
             var defect = jiraBug.ToV1Defect(jiraInstance.V1Project,
-                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name));
->>>>>>> Switched sync interval setting from seconds to minutes
+                JiraSettings.GetInstance()
+                    .GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name), v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraBug.Fields.EpicLink))
             {

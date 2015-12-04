@@ -99,12 +99,13 @@ namespace VersionOne.TeamSync.Worker
                 if (!issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && story.AssetState == "128")
                 {
                     await _v1.ReOpenStory(story.ID);
-                    _log.DebugFormat("Reopened story V1 {0}", story.Number);
+                    _log.DebugFormat("Reopened V1 story {0}", story.Number);
                     data["reopened"] += 1;
                 }
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
@@ -178,8 +179,15 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<bool> CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
-            var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraStory.Fields.Status.Name));
-            var story = jiraStory.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name), v1StatusId);
+            var v1StatusId =
+                await
+                    _v1.GetStatusIdFromName(JiraSettings.GetInstance()
+                        .GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject,
+                            jiraStory.Fields.Status.Name));
+
+            var story = jiraStory.ToV1Story(jiraInstance.V1Project,
+                JiraSettings.GetInstance()
+                    .GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name), v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
@@ -202,7 +210,7 @@ namespace VersionOne.TeamSync.Worker
                     story.OwnersIds.Add(member.Oid());
             }
 
-            _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
+            _log.TraceFormat("Attempting to create V1 story from Jira story {0}", jiraStory.Key);
 
             var newStory = await _v1.CreateStory(story);
             _log.DebugFormat("Created {0} from Jira story {1}", newStory.Number, jiraStory.Key);

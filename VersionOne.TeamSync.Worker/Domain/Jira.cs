@@ -49,7 +49,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetStoriesInProjectUpdatedSince(string jiraProject, int minutes);
         SearchResult GetStoriesWithNoEpicInProject(string projectKey);
 
-        SearchResult GetBugsInProjectSince(string jiraProject, int minutes);
+        SearchResult GetBugsInProjectUpdatedSince(string jiraProject, int minutes);
 
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
         string GetIssueTransitionId(string issueKey, string toState);
@@ -348,7 +348,7 @@ namespace VersionOne.TeamSync.Worker.Domain
             });
         }
 
-        public SearchResult GetBugsInProjectSince(string jiraProject, int minutes)
+        public SearchResult GetBugsInProjectUpdatedSince(string jiraProject, int minutes)
         {
             return GetAllIssuesInProjectUpdatedSince(jiraProject, "Bug", minutes);
         }
@@ -437,7 +437,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public void RunTransitionOnIssue(string transitionId, string issueKey)
         {
             var path = string.Format("{0}/issue/{{issueIdOrKey}}/transitions", Connector.JiraConnector.JiraRestApiUrl);
-            _connector.Post(path, new {transition = new {id = transitionId}}, HttpStatusCode.NoContent,
+            _connector.Post(path, new { transition = new { id = transitionId } }, HttpStatusCode.NoContent,
                 new KeyValuePair<string, string>("issueIdOrKey", issueKey));
         }
 

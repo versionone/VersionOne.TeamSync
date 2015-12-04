@@ -48,7 +48,7 @@ namespace VersionOne.TeamSync.Worker
             if (!_isActualWorkEnabled)
                 return;
 
-            var allJiraDefects = jiraInstance.GetBugsInProjectSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
+            var allJiraDefects = jiraInstance.GetBugsInProjectUpdatedSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
             DoActualWork(jiraInstance, allJiraDefects, allV1Defects);
 

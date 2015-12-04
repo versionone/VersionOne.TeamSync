@@ -38,7 +38,6 @@ namespace VersionOne.TeamSync.Worker.Domain
         void UpdateEpicReference(Epic epic);
         void RemoveReferenceOnDeletedEpic(Epic epic);
 
-        Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey);
         Task<List<Story>> GetStoriesWithJiraReference(string projectId);
         Task<Story> CreateStory(Story story);
         Task RefreshBasicInfo(IPrimaryWorkItem workItem);
@@ -62,15 +61,13 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Member> GetMember(string jiraUsername);
         Task<Member> CreateMember(Member member);
         Task<Member> SyncMemberFromJiraUser(User jiraUser);
+
         Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, DateTime createdDate);
         Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, DateTime createdDate);
         Task<List<Epic>> GetEpicsWithoutReferenceCreatedSince(string v1Project, string epicCategory, DateTime createdDate);
+        Task<List<Epic>> GetEpicsWithoutReferenceUpdatedSince(string v1Project, string epicCategory, DateTime updatedDate);
 
         Task<string> GetStatusIdFromName(string name);
-        Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate);
-        Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate);
-        Task<List<Epic>> GetEpicsWithoutReferenceCreatedSince(string v1Project, string epicCategory, string createdDate);
-        Task<List<Epic>> GetEpicsWithoutReferenceUpdatedSince(string v1Project, string epicCategory, DateTime updatedDate);
     }
 
     public class V1 : IV1
@@ -183,18 +180,6 @@ namespace VersionOne.TeamSync.Worker.Domain
                     string.Format(WhereEpicCategory, category),
                     string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
-        }
-
-        public async Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey)
-        {
-            var story = await _connector.Query("Story", new[] { "ID.Number" }, new[] { "Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes() }, Story.FromQuery);
-            return story.FirstOrDefault();
-        }
-
-        public async Task<Defect> GetDefectWithJiraReference(string projectId, string jiraProjectKey)
-        {
-            var defect = await _connector.Query("Defect", new[] { "ID.Number" }, new[] { "Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes() }, Defect.FromQuery);
-            return defect.FirstOrDefault();
         }
 
         public async Task<Story> CreateStory(Story story)

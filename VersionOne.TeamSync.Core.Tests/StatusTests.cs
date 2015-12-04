@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -64,7 +65,7 @@ namespace VersionOne.TeamSync.Core.Tests
         public async void Context()
         {
             BuildContext();
-            MockV1.Setup(x => x.GetEpicsWithReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
+            MockV1.Setup(x => x.GetEpicsWithReferenceUpdatedSince(ProjectId, EpicCategory, It.IsAny<DateTime>())).ReturnsAsync(new List<Epic>
             {
                 new Epic {Name = "Name", Description = "Description", Reference = "key", Priority = "Medium", Status = "Done"},
                 new Epic {Name = "Name1", Description = "Description", Reference = "key1", Priority = "Medium", Status = "In progress"},
@@ -97,7 +98,7 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void calls_GetEpicWithReference_once()
         {
-            MockV1.Verify(x => x.GetEpicsWithReference(ProjectId, EpicCategory), Times.Once);
+            MockV1.Verify(x => x.GetEpicsWithReferenceUpdatedSince(ProjectId, EpicCategory, It.IsAny<DateTime>()), Times.Once);
         }
 
         [TestMethod]
@@ -124,11 +125,11 @@ namespace VersionOne.TeamSync.Core.Tests
             MockJiraSettings.Setup(x => x.GetV1StatusFromMapping(It.IsAny<string>(), It.IsAny<string>(), "To Do"))
                 .Returns("ToDo");
             NewIssue.Fields.EpicLink = null;
-            
+
             Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
             Worker.CreateStories(MockJira.Object, new List<Issue> { NewIssue }, new List<Story>());
         }
-        
+
         [TestMethod]
         public void call_GetV1StatusFromMapping_once()
         {
@@ -155,17 +156,17 @@ namespace VersionOne.TeamSync.Core.Tests
         public void Context()
         {
             BuildContext();
-            MockV1.Setup(x => x.GetEpicsWithReference(It.IsAny<string>(), It.IsAny<string>()))
+            MockV1.Setup(x => x.GetEpicsWithReferenceUpdatedSince(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>()))
                 .ReturnsAsync(new List<Epic>());
             MockV1.Setup(x => x.GetStatusIdFromName("In Progress")).ReturnsAsync("StoryStatus:134");
             MockJiraSettings.Setup(x => x.GetV1StatusFromMapping(It.IsAny<string>(), It.IsAny<string>(), "In progress"))
                 .Returns("In Progress");
 
             ExistingStory.Status = "To Do";
-            ExistingIssue.Fields.Status = new Status{Name = "In progress"};
+            ExistingIssue.Fields.Status = new Status { Name = "In progress" };
 
             Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
-            Worker.UpdateStories(MockJira.Object, new List<Issue> { ExistingIssue }, new List<Story>{ExistingStory});
+            Worker.UpdateStories(MockJira.Object, new List<Issue> { ExistingIssue }, new List<Story> { ExistingStory });
         }
 
         [TestMethod]
