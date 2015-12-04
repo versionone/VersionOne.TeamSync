@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
 
@@ -73,6 +74,17 @@ namespace VersionOne.TeamSync.Worker
                 }
                 else
                 {
+                    if (!string.IsNullOrEmpty(v1Epic.Status))
+                    {
+                        var jiraStatusFromMapping = JiraSettings.GetInstance().GetJiraStatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, v1Epic.Status);
+                        if (jiraStatusFromMapping != null)
+                        {
+                            string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraData.Key, jiraStatusFromMapping);
+                            if (transitionIdToRun != null)
+                                jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraData.Key);
+                        }
+                    }
+
                     jiraInstance.AddComment(jiraData.Key, string.Format(CreatedFromV1Comment, v1Epic.Number, v1Epic.ScopeName));
                     _log.TraceFormat("Added comment to Jira epic {0}", jiraData.Key);
                     jiraInstance.AddWebLink(jiraData.Key,
@@ -130,11 +142,19 @@ namespace VersionOne.TeamSync.Worker
                     return;
                 }
 
-                if (jiraInstance.DoneWords.Contains(relatedJiraEpic.Fields.Status.Name) && !v1Epic.IsClosed())
+                //if (jiraInstance.DoneWords.Contains(relatedJiraEpic.Fields.Status.Name) && !v1Epic.IsClosed())
+                //{
+                //    jiraInstance.SetIssueToToDo(relatedJiraEpic.Key, jiraInstance.DoneWords);
+                //    _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
+                //    reopenedEpics++;
+                //}
+
+                var jiraStatusFromMapping = JiraSettings.GetInstance().GetJiraStatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, v1Epic.Status);
+                if (jiraStatusFromMapping != null && !relatedJiraEpic.Fields.Status.Name.Equals(jiraStatusFromMapping))
                 {
-                    jiraInstance.SetIssueToToDo(relatedJiraEpic.Key, jiraInstance.DoneWords);
-                    _log.DebugFormat("Set Jira epic {0} to ToDo", relatedJiraEpic.Key);
-                    reopenedEpics++;
+                    var transitionIdToRun = jiraInstance.GetIssueTransitionId(relatedJiraEpic.Key, jiraStatusFromMapping);
+                    if (transitionIdToRun != null)
+                        jiraInstance.RunTransitionOnIssue(transitionIdToRun, relatedJiraEpic.Key);
                 }
 
                 var jiraPriorityIdFromMapping = jiraInstance.JiraSettings.GetJiraPriorityIdFromMapping(jiraInstance.InstanceUrl, v1Epic.Priority);

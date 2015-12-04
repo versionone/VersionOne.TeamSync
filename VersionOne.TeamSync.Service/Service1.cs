@@ -37,6 +37,7 @@ namespace VersionOne.TeamSync.Service
                 _worker.ValidateMemberAccountPermissions();
                 //_worker.ValidateVersionOneSchedules(); D-09877
                 _worker.ValidatePriorityMappings();
+                _worker.ValidateStatusMappings();
 
                 _worker.DoFirstRun();
 

@@ -283,6 +283,31 @@ namespace VersionOne.TeamSync.Worker
             }
         }
 
+        public void ValidateStatusMappings()
+        {
+            foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
+            {
+                var jira = _jiraInstances.FirstOrDefault(j => j.InstanceUrl.Equals(serverSettings.Url));
+                if (jira != null)
+                {
+                    foreach (var projectMapping in serverSettings.ProjectMappings.Cast<ProjectMapping>())
+                    {
+                        foreach (var statusMapping in projectMapping.StatusMappings.Cast<StatusMapping>()
+                            .Where(sm => sm.Enabled))
+                        {
+                            var jiraStatusId = jira.GetStatusId(statusMapping.JiraStatus);
+                            if (jiraStatusId == null)
+                                Log.DebugFormat("Jira status '{0}' not found. No status will be set", statusMapping.JiraStatus);
+
+                            var v1StatusId = _v1.GetStatusIdFromName(statusMapping.V1Status).Result;
+                            if (v1StatusId == null)
+                                Log.DebugFormat("Version One status '{0}' not found. No status will be set", statusMapping.V1Status);
+                        }
+                    }
+                }
+            }
+        }
+
         private void LogVersionOneErrorMessage(XDocument error)
         {
             if (error.Root != null)

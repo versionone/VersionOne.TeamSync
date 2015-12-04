@@ -87,19 +87,26 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(IJira jiraInstance, Issue issue, Defect defect, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            //need to reopen a defect first before we can update it
-            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && defect.AssetState == "128")
+            string v1StatusId = null;
+            if (issue.Fields.Status != null)
             {
-                await _v1.ReOpenDefect(defect.ID);
-                _log.DebugFormat("Reopened V1 defect {0}", defect.Number);
-                data["reopened"] += 1;
+                v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, issue.Fields.Status.Name));
+
+                //need to reopen a defect first before we can update it
+                if (!issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && defect.AssetState == "128")
+                {
+                    await _v1.ReOpenDefect(defect.ID);
+                    _log.DebugFormat("Reopened V1 defect {0}", defect.Number);
+                    data["reopened"] += 1;
+                }
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
+
+            var update = issue.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name), v1StatusId);
             update.ID = defect.ID;
             update.OwnersIds = defect.OwnersIds;
 
@@ -115,7 +122,7 @@ namespace VersionOne.TeamSync.Worker
             if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
                 _log.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic");
 
-            if (!issue.ItMatchesDefect(defect) || update.Priority != defect.Priority)
+            if (!issue.ItMatchesDefect(defect) || update.Priority != defect.Priority || update.Status != defect.Status)
             {
                 if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
                     update.Super = v1EpicId;
@@ -146,6 +153,7 @@ namespace VersionOne.TeamSync.Worker
             {
                 if (allV1Defects.Any(x => bug.Fields.Labels.Contains(x.Number)))
                     return false;
+
                 return allV1Defects.SingleOrDefault(vDefect => !string.IsNullOrWhiteSpace(vDefect.Reference) &&
                     vDefect.Reference.Contains(bug.Key)) == null;
             }).ToList();
@@ -161,13 +169,14 @@ namespace VersionOne.TeamSync.Worker
 
             if (processedDefects > 0)
                 _log.InfoCreated(processedDefects, PluralAsset);
+
             _log.TraceCreateFinished(PluralAsset);
         }
 
         public async Task<bool> CreateDefectFromJira(IJira jiraInstance, Issue jiraBug)
         {
-            var defect = jiraBug.ToV1Defect(jiraInstance.V1Project,
-                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name));
+            var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraBug.Fields.Status.Name));
+            var defect = jiraBug.ToV1Defect(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraBug.Fields.Priority.Name), v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraBug.Fields.EpicLink))
             {
@@ -197,6 +206,15 @@ namespace VersionOne.TeamSync.Worker
 
             await _v1.RefreshBasicInfo(newDefect);
 
+            // If story is closed we have to reopen it
+            var status = jiraInstance.DoneWords.FirstOrDefault(dw => dw.Equals(jiraBug.Fields.Status.Name));
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraBug.Key, Jira.ReopenedStatus);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraBug.Key);
+            }
+
             jiraInstance.UpdateIssue(newDefect.ToIssueWithOnlyNumberAsLabel(jiraBug.Fields.Labels), jiraBug.Key);
             _log.TraceFormat("Updated labels on Jira defect {0}", jiraBug.Key);
 
@@ -204,9 +222,17 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceFormat("Added comment to Jira defect {0}", jiraBug.Key);
 
             jiraInstance.AddWebLink(jiraBug.Key,
-                        string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newDefect.Number),
-                        string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
+                       string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newDefect.Number),
+                       string.Format(V1AssetDetailWebLinkTitle, newDefect.Number));
             _log.TraceFormat("Added web link to V1 defect {0} on Jira bug {1}", newDefect.Number, jiraBug.Key);
+
+            // If story is reopened we have to close it
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraBug.Key, status);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraBug.Key);
+            }
 
             var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraBug.Key)).ToString();
             _v1.CreateLink(newDefect, string.Format("Jira {0}", jiraBug.Key), link);
@@ -252,7 +278,7 @@ namespace VersionOne.TeamSync.Worker
             }
             catch (Exception e)
             {
-                _log.WarnFormat("Can not get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
+                _log.WarnFormat("Cannot get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
                 _log.Error(e);
             }
 

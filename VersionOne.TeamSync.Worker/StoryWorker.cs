@@ -74,7 +74,7 @@ namespace VersionOne.TeamSync.Worker
             existingStories.ForEach(existingJStory =>
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
-                var result = UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Result;
+                UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Wait();
             });
 
             if (data["updated"] > 0)
@@ -91,19 +91,26 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(IJira jiraInstance, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
         {
-            //need to reopen a story first before we can update it
-            if (issue.Fields.Status != null && !issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && story.AssetState == "128")
+            string v1StatusId = null;
+            if (issue.Fields.Status != null)
             {
-                await _v1.ReOpenStory(story.ID);
-                _log.DebugFormat("Reopened story V1 {0}", story.Number);
-                data["reopened"] += 1;
+                v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, issue.Fields.Status.Name));
+
+                //need to reopen a story first before we can update it
+                if (!issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && story.AssetState == "128")
+                {
+                    await _v1.ReOpenStory(story.ID);
+                    _log.DebugFormat("Reopened story V1 {0}", story.Number);
+                    data["reopened"] += 1;
+                }
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
-            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name));
+
+            var update = issue.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, issue.Fields.Priority.Name), v1StatusId);
             update.ID = story.ID;
             update.OwnersIds = story.OwnersIds;
 
@@ -119,7 +126,7 @@ namespace VersionOne.TeamSync.Worker
             if (currentAssignedEpic != null && currentAssignedEpic.IsClosed())
                 _log.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic");
 
-            if (!issue.ItMatchesStory(story) || update.Priority != story.Priority)
+            if (!issue.ItMatchesStory(story) || update.Priority != story.Priority || update.Status != story.Status)
             {
                 if (currentAssignedEpic != null && !currentAssignedEpic.IsClosed())
                     update.Super = v1EpicId;
@@ -152,7 +159,7 @@ namespace VersionOne.TeamSync.Worker
                     return false;
 
                 return allV1Stories.SingleOrDefault(vStory => !string.IsNullOrWhiteSpace(vStory.Reference) &&
-                                                              vStory.Reference.Contains(story.Key)) == null;
+                    vStory.Reference.Contains(story.Key)) == null;
             }).ToList();
 
             if (newStories.Any())
@@ -166,13 +173,14 @@ namespace VersionOne.TeamSync.Worker
 
             if (processedStories > 0)
                 _log.InfoCreated(processedStories, PluralAsset);
+
             _log.TraceCreateFinished(PluralAsset);
         }
 
         public async Task<bool> CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
-            var story = jiraStory.ToV1Story(jiraInstance.V1Project,
-                JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name));
+            var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraStory.Fields.Status.Name));
+            var story = jiraStory.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name), v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
@@ -202,6 +210,15 @@ namespace VersionOne.TeamSync.Worker
 
             await _v1.RefreshBasicInfo(newStory);
 
+            // If story is closed we have to reopen it
+            var status = jiraInstance.DoneWords.FirstOrDefault(dw => dw.Equals(jiraStory.Fields.Status.Name));
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraStory.Key, Jira.ReopenedStatus);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraStory.Key);
+            }
+
             jiraInstance.UpdateIssue(newStory.ToIssueWithOnlyNumberAsLabel(jiraStory.Fields.Labels), jiraStory.Key);
             _log.TraceFormat("Updated labels on Jira story {0}", jiraStory.Key);
 
@@ -212,6 +229,14 @@ namespace VersionOne.TeamSync.Worker
                         string.Format(V1AssetDetailWebLinkUrl, _v1.InstanceUrl, newStory.Number),
                         string.Format(V1AssetDetailWebLinkTitle, newStory.Number));
             _log.TraceFormat("Added web link to V1 story {0} on Jira story {1}", newStory.Number, jiraStory.Key);
+
+            // If story is reopened we have to close it
+            if (status != null)
+            {
+                string transitionIdToRun = jiraInstance.GetIssueTransitionId(jiraStory.Key, status);
+                if (transitionIdToRun != null)
+                    jiraInstance.RunTransitionOnIssue(transitionIdToRun, jiraStory.Key);
+            }
 
             var link = new Uri(new Uri(jiraInstance.InstanceUrl), string.Format("browse/{0}", jiraStory.Key)).ToString();
             _v1.CreateLink(newStory, string.Format("Jira {0}", jiraStory.Key), link);
@@ -257,7 +282,7 @@ namespace VersionOne.TeamSync.Worker
             }
             catch (Exception e)
             {
-                _log.WarnFormat("Can not get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
+                _log.WarnFormat("Cannot get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
                 _log.Error(e);
             }
 

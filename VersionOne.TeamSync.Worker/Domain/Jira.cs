@@ -29,6 +29,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         bool ValidateMemberPermissions();
 
         string GetPriorityId(string name);
+        string GetStatusId(string name);
 
         void AddComment(string issueKey, string comment);
         void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle);
@@ -49,6 +50,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         SearchResult GetBugsInProject(string jiraProject);
 
         IEnumerable<Worklog> GetIssueWorkLogs(string issueKey);
+        string GetIssueTransitionId(string issueKey, string toState);
+        void RunTransitionOnIssue(string transitionId, string issueKey);
 
         void CleanUpAfterRun(ILog log);
         IJiraSettings JiraSettings { get; }
@@ -60,6 +63,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
     public class Jira : IJira
     {
+        public const string ReopenedStatus = "Reopened";
         private const int ConnectionAttempts = 3;
 
         private readonly ILog _log;
@@ -159,6 +163,14 @@ namespace VersionOne.TeamSync.Worker.Domain
             return data.Where<dynamic>(i => i.name == name).Select(i => i.id).FirstOrDefault();
         }
 
+        public string GetStatusId(string name)
+        {
+            var path = string.Format("{0}/status", Connector.JiraConnector.JiraRestApiUrl);
+            var content = _connector.Get(path);
+            var data = JArray.Parse(content);
+            return data.Where<dynamic>(i => i.name == name).Select(i => i.id).FirstOrDefault();
+        }
+
         public JiraVersionInfo VersionInfo
         {
             get { return _jiraVersionInfo ?? (_jiraVersionInfo = _connector.GetVersionInfo()); }
@@ -166,8 +178,8 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public void AddComment(string issueKey, string comment)
         {
-            var path = string.Format("{0}/issue/{{issueIdOrKey}}", Connector.JiraConnector.JiraRestApiUrl);
-            _connector.Put(path, AddComment(comment), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
+            var path = string.Format("{0}/issue/{{issueIdOrKey}}/comment", Connector.JiraConnector.JiraRestApiUrl);
+            _connector.Post(path, AddComment(comment), HttpStatusCode.Created, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
         }
 
         public void AddWebLink(string issueKey, string webLinkUrl, string webLinkTitle)
@@ -270,7 +282,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", "Epic")
             },
-                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self", "labels", "priority" }
+                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self", "labels", "priority", "status" }
             );
         }
 
@@ -387,6 +399,24 @@ namespace VersionOne.TeamSync.Worker.Domain
             });
         }
 
+        public string GetIssueTransitionId(string issueKey, string toState)
+        {
+            var path = string.Format("{0}/issue/{{issueIdOrKey}}/transitions", Connector.JiraConnector.JiraRestApiUrl);
+            var content = _connector.Get(path, new KeyValuePair<string, string>("issueIdOrKey", issueKey));
+
+            dynamic data = JObject.Parse(content);
+            var id = ((JArray)data.transitions).Where<dynamic>(i => i.to.name.ToString().ToLower().Equals(toState.ToLower())).Select(i => i.id).FirstOrDefault();
+
+            return id;
+        }
+
+        public void RunTransitionOnIssue(string transitionId, string issueKey)
+        {
+            var path = string.Format("{0}/issue/{{issueIdOrKey}}/transitions", Connector.JiraConnector.JiraRestApiUrl);
+            _connector.Post(path, new {transition = new {id = transitionId}}, HttpStatusCode.NoContent,
+                new KeyValuePair<string, string>("issueIdOrKey", issueKey));
+        }
+
         public void CleanUpAfterRun(ILog log)
         {
             _projectMeta = null;
@@ -409,16 +439,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         {
             return new
             {
-                update = new
-                {
-                    comment = new[]
-                    {
-                        new
-                        {
-                            add = new { body }
-                        }
-                    }
-                }
+                body
             };
         }
 

@@ -71,6 +71,7 @@
     <Compile Include="EpicExtensionTests.cs" />
     <Compile Include="Jira\SettingProjectToResolved_Tests.cs" />
     <Compile Include="PriorityTests.cs" />
+    <Compile Include="StatusTests.cs" />
     <Compile Include="Workers\DefectWorkerTests.cs" />
     <Compile Include="Workers\EpicWorkerTests.cs" />
     <Compile Include="IssueExtensionTests.cs" />
