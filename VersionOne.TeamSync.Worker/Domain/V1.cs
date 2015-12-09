@@ -473,6 +473,9 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<string> GetStatusIdFromName(string name)
         {
             var result = await _connector.Query("StoryStatus", new[] { "" }, new[] { string.Format("Name='{0}'", name) }, element => element.Attribute("id").Value);
+            if (!result.Any())
+                result = await _connector.Query("EpicStatus", new[] { "" }, new[] { string.Format("Name='{0}'", name) }, element => element.Attribute("id").Value);
+
             return result.FirstOrDefault();
         }
 
