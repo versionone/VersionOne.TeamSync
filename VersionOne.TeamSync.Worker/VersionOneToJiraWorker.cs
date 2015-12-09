@@ -1,16 +1,16 @@
-﻿using log4net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
-using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.JiraWorker.Domain;
 
-namespace VersionOne.TeamSync.Worker
+namespace VersionOne.TeamSync.JiraWorker
 {
     public class VersionOneToJiraWorker
     {

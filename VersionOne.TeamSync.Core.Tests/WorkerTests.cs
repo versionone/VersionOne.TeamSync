@@ -7,8 +7,8 @@ using Moq;
 using Should;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.Worker;
-using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.JiraWorker;
+using VersionOne.TeamSync.JiraWorker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
 {

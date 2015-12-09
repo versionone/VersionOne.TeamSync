@@ -1,8 +1,8 @@
 ﻿using System.Xml.Linq;
+using VersionOne.TeamSync.JiraWorker.Extensions;
 using VersionOne.TeamSync.V1Connector.Interfaces;
-using VersionOne.TeamSync.Worker.Extensions;
 
-namespace VersionOne.TeamSync.Worker.Domain
+namespace VersionOne.TeamSync.JiraWorker.Domain
 {
     public class Link : IV1Asset
     {

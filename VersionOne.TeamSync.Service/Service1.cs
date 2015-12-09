@@ -3,7 +3,7 @@ using System.ServiceProcess;
 using System.Threading;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
-using VersionOne.TeamSync.Worker;
+using VersionOne.TeamSync.JiraWorker;
 
 namespace VersionOne.TeamSync.Service
 {

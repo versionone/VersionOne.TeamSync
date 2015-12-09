@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.JiraWorker.Domain;
 
-namespace VersionOne.TeamSync.Worker.Extensions
+namespace VersionOne.TeamSync.JiraWorker.Extensions
 {
     public static class EpicExtensions
     {

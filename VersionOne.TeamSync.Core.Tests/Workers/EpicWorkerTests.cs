@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using VersionOne.TeamSync.Worker;
-using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.JiraWorker;
+using VersionOne.TeamSync.JiraWorker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests.Workers
 {

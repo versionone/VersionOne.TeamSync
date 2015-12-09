@@ -1,6 +1,6 @@
 using System.Xml.Linq;
 
-namespace VersionOne.TeamSync.Worker.Domain.Xml
+namespace VersionOne.TeamSync.JiraWorker.Domain.Xml
 {
 	public interface IV1ApiXmlNode
 	{

@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Caching;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace VersionOne.TeamSync.Worker
+namespace VersionOne.TeamSync.JiraWorker
 {
     public class ApiCaching
     {

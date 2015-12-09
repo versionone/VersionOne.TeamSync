@@ -58,7 +58,7 @@ namespace VersionOne.TeamSync.Core.Tests.Jira
 
         protected void RunIt()
         {
-            var jira = new Worker.Domain.Jira(MockConnector.Object, null, MockLogger.Object);
+            var jira = new JiraWorker.Domain.Jira(MockConnector.Object, null, MockLogger.Object);
 
             jira.SetIssueToResolved(IssueKey, new[] { "Done" });
         }

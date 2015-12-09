@@ -1,7 +1,7 @@
 ﻿using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Should;
-using VersionOne.TeamSync.Worker.Extensions;
+using VersionOne.TeamSync.JiraWorker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests.Xml
 {

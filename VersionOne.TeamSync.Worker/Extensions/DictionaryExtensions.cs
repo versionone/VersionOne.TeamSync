@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
-using Microsoft.SqlServer.Server;
 using VersionOne.TeamSync.JiraConnector.Entities;
 
-namespace VersionOne.TeamSync.Worker.Extensions
+namespace VersionOne.TeamSync.JiraWorker.Extensions
 {
 	public static class DictionaryExtensions
 	{

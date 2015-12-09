@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Xml.Linq;
 
-namespace VersionOne.TeamSync.Worker.Domain.Xml
+namespace VersionOne.TeamSync.JiraWorker.Domain.Xml
 {
     public class V1MultiRelationNode : IV1ApiXmlNode
     {
