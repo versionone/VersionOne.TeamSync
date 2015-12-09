@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using VersionOne.TeamSync.JiraConnector.Entities;
+using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.V1Connector.Interfaces;
-using VersionOne.TeamSync.Worker.Domain;
 
-namespace VersionOne.TeamSync.Worker.Extensions
+namespace VersionOne.TeamSync.JiraWorker.Extensions
 {
     public static class V1AssetExtensions
     {

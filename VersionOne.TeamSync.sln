@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Service", "VersionOne.TeamSync.Service\VersionOne.TeamSync.Service.csproj", "{29AE818B-33C5-4DC9-A5E8-F01D6404D94B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.JiraCon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Core.Tests", "VersionOne.TeamSync.Core.Tests\VersionOne.TeamSync.Core.Tests.csproj", "{1C5AD822-FE01-4D48-ADD4-C91E892D52BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Worker", "VersionOne.TeamSync.Worker\VersionOne.TeamSync.Worker.csproj", "{52681EF1-BAE1-4E7D-82A7-9BF3638CEFF9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.JiraWorker", "VersionOne.TeamSync.Worker\VersionOne.TeamSync.JiraWorker.csproj", "{52681EF1-BAE1-4E7D-82A7-9BF3638CEFF9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.JiraConnector.Tests", "VersionOne.TeamSync.JiraConnector.Tests\VersionOne.TeamSync.JiraConnector.Tests.csproj", "{9B7888A4-BB67-4DB8-B299-37F8A12E3CE2}"
 EndProject

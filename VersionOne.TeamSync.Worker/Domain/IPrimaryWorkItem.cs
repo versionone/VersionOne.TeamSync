@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using VersionOne.TeamSync.V1Connector.Interfaces;
+﻿using VersionOne.TeamSync.V1Connector.Interfaces;
 
-namespace VersionOne.TeamSync.Worker.Domain
+namespace VersionOne.TeamSync.JiraWorker.Domain
 {
     public interface IPrimaryWorkItem : IV1Asset
     {

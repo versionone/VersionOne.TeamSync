@@ -1,8 +1,7 @@
-using System;
 using System.Threading.Tasks;
-using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.JiraWorker.Domain;
 
-namespace VersionOne.TeamSync.Worker
+namespace VersionOne.TeamSync.JiraWorker
 {
     public interface IAsyncWorker
     {

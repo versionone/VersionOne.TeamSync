@@ -7,8 +7,8 @@ using Should;
 using VersionOne.TeamSync.Core.Tests.Workers;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
-using VersionOne.TeamSync.Worker;
-using VersionOne.TeamSync.Worker.Domain;
+using VersionOne.TeamSync.JiraWorker;
+using VersionOne.TeamSync.JiraWorker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
@@ -47,7 +47,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             };
 
-            Jira = new Worker.Domain.Jira(MockJiraConnector.Object, ProjectMeta, null);
+            Jira = new JiraWorker.Domain.Jira(MockJiraConnector.Object, ProjectMeta, null);
         }
     }
 

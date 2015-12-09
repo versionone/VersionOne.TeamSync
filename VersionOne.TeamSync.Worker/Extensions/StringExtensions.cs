@@ -2,7 +2,7 @@
 using System.Linq;
 using VersionOne.TeamSync.JiraConnector.Entities;
 
-namespace VersionOne.TeamSync.Worker.Extensions
+namespace VersionOne.TeamSync.JiraWorker.Extensions
 {
     public static class StringExtensions
     {

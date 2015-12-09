@@ -12,8 +12,7 @@ using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
-using VersionOne.TeamSync.Worker.Domain;
-using VersionOne.TeamSync.Worker.Extensions;
+using VersionOne.TeamSync.JiraWorker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
@@ -134,7 +133,7 @@ namespace VersionOne.TeamSync.Core.Tests
             mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey)))
                 .Verifiable();
 
-            var jira = new Worker.Domain.Jira(mockConnector.Object, null, mockLogger.Object);
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, null, mockLogger.Object);
 
             jira.SetIssueToToDo(IssueKey, new[] { "Done" });
 
@@ -164,7 +163,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new Worker.Domain.Jira(mockConnector.Object);
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object);
 
             jira.GetEpicByKey(IssueKey);
         }
@@ -405,7 +404,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _mockLogger = new Mock<ILog>();
             _mockLogger.Setup(x => x.Warn(It.IsAny<string>()));
 
-            var jira = new Worker.Domain.Jira(mockConnector.Object, new MetaProject
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, new MetaProject
             {
                 IssueTypes = new List<MetaIssueType>
                 {
@@ -502,7 +501,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 {
                     ErrorMessages = new List<string> { "An issue with key 'AS-25' does not exist for field 'key'." }
                 });
-            var jira = new Worker.Domain.Jira(mockConnector.Object, null, mockLogger.Object);
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, null, mockLogger.Object);
 
             jira.DeleteEpicIfExists(IssueKey);
 

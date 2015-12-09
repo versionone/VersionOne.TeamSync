@@ -100,9 +100,9 @@
       <Project>{59dc969b-6c21-4e8a-af90-e7b6cd4f5a1f}</Project>
       <Name>VersionOne.TeamSync.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VersionOne.TeamSync.Worker\VersionOne.TeamSync.Worker.csproj">
+    <ProjectReference Include="..\VersionOne.TeamSync.Worker\VersionOne.TeamSync.JiraWorker.csproj">
       <Project>{52681EF1-BAE1-4E7D-82A7-9BF3638CEFF9}</Project>
-      <Name>VersionOne.TeamSync.Worker</Name>
+      <Name>VersionOne.TeamSync.JiraWorker</Name>
     </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.JiraConnector\VersionOne.TeamSync.JiraConnector.csproj">
       <Project>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</Project>

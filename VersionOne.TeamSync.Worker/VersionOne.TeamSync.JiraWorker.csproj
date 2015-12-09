@@ -7,8 +7,8 @@
     <ProjectGuid>{52681EF1-BAE1-4E7D-82A7-9BF3638CEFF9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VersionOne.TeamSync.Worker</RootNamespace>
-    <AssemblyName>VersionOne.TeamSync.Worker</AssemblyName>
+    <RootNamespace>VersionOne.TeamSync.JiraWorker</RootNamespace>
+    <AssemblyName>VersionOne.TeamSync.JiraWorker</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.Worker.Domain;
-using VersionOne.TeamSync.Worker.Extensions;
+using VersionOne.TeamSync.JiraWorker.Domain;
+using VersionOne.TeamSync.JiraWorker.Extensions;
 
-namespace VersionOne.TeamSync.Worker
+namespace VersionOne.TeamSync.JiraWorker
 {
     public class ActualsWorker : IAsyncWorker
     {

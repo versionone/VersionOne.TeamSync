@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using log4net;
@@ -8,10 +7,10 @@ using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
-using VersionOne.TeamSync.Worker.Extensions;
+using VersionOne.TeamSync.JiraWorker.Extensions;
 using Connector = VersionOne.TeamSync.JiraConnector.Connector;
 
-namespace VersionOne.TeamSync.Worker.Domain
+namespace VersionOne.TeamSync.JiraWorker.Domain
 {
     public interface IJira
     {
