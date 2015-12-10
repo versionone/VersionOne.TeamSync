@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
-using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.JiraWorker.Extensions;
+using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.V1Connector;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.VersionOneWorker.Extensions;
 
-namespace VersionOne.TeamSync.JiraWorker.Domain
+namespace VersionOne.TeamSync.VersionOneWorker.Domain
 {
     public interface IV1
     {
@@ -37,7 +37,7 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
         void UpdateEpicReference(Epic epic);
         void RemoveReferenceOnDeletedEpic(Epic epic);
 
-        Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey);
+        Task<Story> GetStoryWithReference(string projectId, string referenceValue);
         Task<List<Story>> GetStoriesWithJiraReference(string projectId);
         Task<Story> CreateStory(Story story);
         Task RefreshBasicInfo(IPrimaryWorkItem workItem);
@@ -58,9 +58,9 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
         //Task<XDocument> CreateScheduleForProject(string projectId);
         //Task<XDocument> SetScheduleToProject(string projectId, string scheduleId);
 
-        Task<Member> GetMember(string jiraUsername);
+        Task<Member> GetMember(string username);
         Task<Member> CreateMember(Member member);
-        Task<Member> SyncMemberFromJiraUser(User jiraUser);
+        Task<Member> UpdateMember(Member member);
 
         Task<string> GetStatusIdFromName(string name);
         Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate);
@@ -162,9 +162,9 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
                 }, Epic.FromQuery);
         }
 
-        public async Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey)
+        public async Task<Story> GetStoryWithReference(string projectId, string referenceValue)
         {
-            var story = await _connector.Query("Story", new[] { "ID.Number" }, new[] { "Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes() }, Story.FromQuery);
+            var story = await _connector.Query("Story", new[] { "ID.Number" }, new[] { "Reference=" + referenceValue.InQuotes(), "Scope=" + projectId.InQuotes() }, Story.FromQuery);
             return story.FirstOrDefault();
         }
 
@@ -190,7 +190,7 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
 
         public async void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey)
         {
-            var story = await GetStoryWithJiraReference(projectId, jiraStoryKey);
+            var story = await GetStoryWithReference(projectId, jiraStoryKey);
             await _connector.Post(story, story.RemoveReference());
             await _connector.Operation(story, "Delete");
         }
@@ -440,12 +440,12 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
         //    return await _connector.Post(projectId.Replace(':', '/'), payload.ToString());
         //}
 
-        public async Task<Member> GetMember(string jiraUsername)
+        public async Task<Member> GetMember(string username)
         {
             var members =
                 await
                     _connector.Query("Member", new[] { "Name", "Nickname", "Email", "Username" },
-                        new[] { string.Format("Nickname='{0}'|Username='{0}'", jiraUsername) }, Member.FromQuery);
+                        new[] { string.Format("Nickname='{0}'|Username='{0}'", username) }, Member.FromQuery);
 
             return members.FirstOrDefault();
         }
@@ -457,17 +457,11 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
             return member;
         }
 
-        public async Task<Member> SyncMemberFromJiraUser(User jiraUser)
+        public async Task<Member> UpdateMember(Member member)
         {
-            var member = await GetMember(jiraUser.name);
-            if (member != null && !jiraUser.ItMatchesMember(member))
-            {
-                member.Name = jiraUser.displayName;
-                member.Nickname = jiraUser.name;
-                member.Email = jiraUser.emailAddress;
-                await _connector.Post(member, member.CreateUpdatePayload());
-            }
-            return member ?? await CreateMember(jiraUser.ToV1Member());
+            var xDoc = await _connector.Post(member, member.CreateUpdatePayload());
+            member.FromCreate(xDoc.Root);
+            return member;
         }
 
         public async Task<string> GetStatusIdFromName(string name)

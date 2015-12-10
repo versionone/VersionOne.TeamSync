@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 
 namespace VersionOne.TeamSync.JiraWorker.Extensions
 {

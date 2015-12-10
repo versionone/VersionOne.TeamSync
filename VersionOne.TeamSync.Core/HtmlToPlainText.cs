@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using HtmlAgilityPack;
 
-namespace VersionOne.TeamSync.JiraWorker
+namespace VersionOne.TeamSync.Core
 {
     public class HtmlToPlainText
     {

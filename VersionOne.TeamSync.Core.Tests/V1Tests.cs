@@ -8,6 +8,7 @@ using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.JiraWorker.Extensions;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
 {
@@ -42,105 +43,105 @@ namespace VersionOne.TeamSync.Core.Tests
         }
     }
 
-    [TestClass]
-    public class when_assignee_does_not_exists_in_v1 : v1_bits
-    {
-        private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
+    //[TestClass]
+    //public class when_assignee_does_not_exists_in_v1 : v1_bits
+    //{
+    //    private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
 
-        [TestInitialize]
-        public async void Context()
-        {
-            BuildContext();
+    //    [TestInitialize]
+    //    public async void Context()
+    //    {
+    //        BuildContext();
 
-            MockV1Connector.Setup(
-                x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
-                .ReturnsAsync(new List<Member>());
-            MockV1Connector.Setup(
-                x =>
-                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
-                        It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))))
-                .ReturnsAsync(XDocument.Parse(CreatedMember));
+    //        MockV1Connector.Setup(
+    //            x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
+    //            .ReturnsAsync(new List<Member>());
+    //        MockV1Connector.Setup(
+    //            x =>
+    //                x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+    //                    It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))))
+    //            .ReturnsAsync(XDocument.Parse(CreatedMember));
 
-            V1 = new V1(MockV1Connector.Object);
-            await V1.SyncMemberFromJiraUser(Assignee);
-        }
+    //        V1 = new V1(MockV1Connector.Object);
+    //        await V1.SyncMemberFromJiraUser(Assignee);
+    //    }
 
-        [TestMethod]
-        public void should_call_create_member_just_once()
-        {
-            MockV1Connector.Verify(
-                x =>
-                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
-                        It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))),
-                Times.Once);
-        }
-    }
+    //    [TestMethod]
+    //    public void should_call_create_member_just_once()
+    //    {
+    //        MockV1Connector.Verify(
+    //            x =>
+    //                x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+    //                    It.Is<XDocument>(doc => doc.ToString().Equals(Assignee.ToV1Member().CreatePayload().ToString()))),
+    //            Times.Once);
+    //    }
+    //}
 
-    [TestClass]
-    public class when_assignee_exists_in_v1_and_it_matches_equals_true : v1_bits
-    {
-        [TestInitialize]
-        public async void Context()
-        {
-            BuildContext();
+    //[TestClass]
+    //public class when_assignee_exists_in_v1_and_it_matches_equals_true : v1_bits
+    //{
+    //    [TestInitialize]
+    //    public async void Context()
+    //    {
+    //        BuildContext();
 
-            MockV1Connector.Setup(
-                x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
-                .ReturnsAsync(new List<Member> { Assignee.ToV1Member() });
+    //        MockV1Connector.Setup(
+    //            x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
+    //            .ReturnsAsync(new List<Member> { Assignee.ToV1Member() });
 
-            V1 = new V1(MockV1Connector.Object);
-            await V1.SyncMemberFromJiraUser(Assignee);
-        }
+    //        V1 = new V1(MockV1Connector.Object);
+    //        await V1.SyncMemberFromJiraUser(Assignee);
+    //    }
 
-        [TestMethod]
-        public void should_create_a_post_to_create_member()
-        {
-            MockV1Connector.Verify(x => x.Post(It.IsAny<Member>(), It.IsAny<XDocument>()), Times.Never);
-        }
-    }
+    //    [TestMethod]
+    //    public void should_create_a_post_to_create_member()
+    //    {
+    //        MockV1Connector.Verify(x => x.Post(It.IsAny<Member>(), It.IsAny<XDocument>()), Times.Never);
+    //    }
+    //}
 
-    [TestClass]
-    public class when_assignee_exists_in_v1_and_it_matches_equals_false : v1_bits
-    {
-        private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
+    //[TestClass]
+    //public class when_assignee_exists_in_v1_and_it_matches_equals_false : v1_bits
+    //{
+    //    private const string CreatedMember = @"<Asset href=""/VersionOne/rest-1.v1/Data/Member/20"" id=""Member:20""></Asset>";
 
-        [TestInitialize]
-        public async void Context()
-        {
-            BuildContext();
+    //    [TestInitialize]
+    //    public async void Context()
+    //    {
+    //        BuildContext();
 
-            var modifiedAssignee = new User
-            {
-                displayName = "TeamSync User",
-                name = "teamsyncuser",
-                emailAddress = "teamsyncuser@versionone.com"
-            };
+    //        var modifiedAssignee = new User
+    //        {
+    //            displayName = "TeamSync User",
+    //            name = "teamsyncuser",
+    //            emailAddress = "teamsyncuser@versionone.com"
+    //        };
 
-            MockV1Connector.Setup(
-                x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
-                .ReturnsAsync(new List<Member> { modifiedAssignee.ToV1Member() });
-            MockV1Connector.Setup(
-                x =>
-                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
-                        It.Is<XDocument>(
-                            doc => doc.ToString().Equals(Assignee.ToV1Member().CreateUpdatePayload().ToString()))))
-                .ReturnsAsync(XDocument.Parse(CreatedMember));
+    //        MockV1Connector.Setup(
+    //            x => x.Query("Member", It.IsAny<string[]>(), It.IsAny<string[]>(), It.IsAny<Func<XElement, Member>>()))
+    //            .ReturnsAsync(new List<Member> { modifiedAssignee.ToV1Member() });
+    //        MockV1Connector.Setup(
+    //            x =>
+    //                x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+    //                    It.Is<XDocument>(
+    //                        doc => doc.ToString().Equals(Assignee.ToV1Member().CreateUpdatePayload().ToString()))))
+    //            .ReturnsAsync(XDocument.Parse(CreatedMember));
 
-            V1 = new V1(MockV1Connector.Object);
-            await V1.SyncMemberFromJiraUser(Assignee);
-        }
+    //        V1 = new V1(MockV1Connector.Object);
+    //        await V1.SyncMemberFromJiraUser(Assignee);
+    //    }
 
-        [TestMethod]
-        public void should_create_a_post_to_update_member()
-        {
-            MockV1Connector.Verify(
-                x =>
-                    x.Post(It.Is<Member>(m => MembersAreEquals(m)),
-                        It.Is<XDocument>(
-                            doc => doc.ToString().Equals(Assignee.ToV1Member().CreateUpdatePayload().ToString()))),
-                Times.Once);
-        }
-    }
+    //    [TestMethod]
+    //    public void should_create_a_post_to_update_member()
+    //    {
+    //        MockV1Connector.Verify(
+    //            x =>
+    //                x.Post(It.Is<Member>(m => MembersAreEquals(m)),
+    //                    It.Is<XDocument>(
+    //                        doc => doc.ToString().Equals(Assignee.ToV1Member().CreateUpdatePayload().ToString()))),
+    //            Times.Once);
+    //    }
+    //}
 
     [TestClass]
     public class when_creating_a_story : v1_bits

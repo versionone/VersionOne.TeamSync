@@ -2,48 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using VersionOne.TeamSync.JiraWorker.Extensions;
 using VersionOne.TeamSync.V1Connector.Extensions;
+using VersionOne.TeamSync.VersionOneWorker.Extensions;
 
-namespace VersionOne.TeamSync.JiraWorker.Domain
+namespace VersionOne.TeamSync.VersionOneWorker.Domain
 {
-    public class Defect : IPrimaryWorkItem
+    public class Story : IPrimaryWorkItem
     {
-        public Defect()
+        public Story()
         {
             OwnersIds = new List<string>();
         }
 
         public string AssetType
         {
-            get { return "Defect"; }
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Defect)obj);
-        }
-
-        protected bool Equals(Defect other)
-        {
-            return string.Equals(Name, other.Name) && string.Equals(Description, other.Description) && string.Equals(Estimate, other.Estimate) && string.Equals(ToDo, other.ToDo) && string.Equals(Reference, other.Reference) && string.Equals(Super, other.Super);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = (Name != null ? Name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Estimate != null ? Estimate.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (ToDo != null ? ToDo.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Reference != null ? Reference.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Super != null ? Super.GetHashCode() : 0);
-                return hashCode;
-            }
+            get { return "Story"; }
         }
 
         public string ID { get; set; }
@@ -121,20 +94,20 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
             return doc;
         }
 
-        public static Defect FromQuery(XElement asset)
+        public static Story FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
             var relation = asset.Elements("Relation").ToDictionary(item => item.Attribute("name").Value, item => item.Elements("Asset").Select(x => x.Attribute("idref").Value).ToList());
 
-            return new Defect
+            return new Story
             {
                 ID = asset.GetAssetID(),
                 Number = attributes.GetValueOrDefault("ID.Number"),
                 ScopeName = attributes.GetValueOrDefault("Scope.Name"),
                 Reference = attributes.GetValueOrDefault("Reference"),
+                Description = attributes.GetValueOrDefault("Description"),
                 Estimate = attributes.GetValueOrDefault("Estimate"),
                 ToDo = attributes.GetValueOrDefault("ToDo"),
-                Description = attributes.GetValueOrDefault("Description"),
                 Name = attributes.GetValueOrDefault("Name"),
                 IsInactive = Convert.ToBoolean(attributes.GetValueOrDefault("IsInactive")),
                 AssetState = attributes.GetValueOrDefault("AssetState"),

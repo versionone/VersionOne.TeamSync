@@ -8,6 +8,7 @@ using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.JiraWorker.Extensions;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 
 namespace VersionOne.TeamSync.JiraWorker
 {
@@ -107,7 +108,7 @@ namespace VersionOne.TeamSync.JiraWorker
             foreach (var worklog in newWorklogs)
             {
                 _log.TraceFormat("Attempting to create actual from Jira worklog id {0}", worklog.id);
-                var member = _v1.SyncMemberFromJiraUser(worklog.updateAuthor).Result;
+                var member = TrySyncMemberFromJiraUser(worklog.updateAuthor);
                 var actual = worklog.ToV1Actual(member.Oid(), jiraInstance.V1Project, workItemId);
                 var newActual = _v1.CreateActual(actual).Result;
                 _log.DebugFormat("Created V1 actual id {0} from Jira worklog id {1}", newActual.ID, worklog.id);
@@ -130,7 +131,7 @@ namespace VersionOne.TeamSync.JiraWorker
             var processedActuals = 0;
             foreach (var worklog in updateWorklogs)
             {
-                var member = _v1.SyncMemberFromJiraUser(worklog.updateAuthor).Result;
+                var member = TrySyncMemberFromJiraUser(worklog.updateAuthor);
                 var actual = worklog.ToV1Actual(member.Oid(), jiraInstance.V1Project, workItemId);
                 actual.ID = actuals.Single(a => a.Reference.Equals(worklog.id.ToString())).ID;
 
@@ -178,6 +179,34 @@ namespace VersionOne.TeamSync.JiraWorker
         {
             var member = _v1.GetMember(worklog.updateAuthor.name).Result;
             return member != null && member.Oid().Equals(actual.MemberId) && worklog.updateAuthor.ItMatchesMember(member);
+        }
+
+        private Member TrySyncMemberFromJiraUser(User jiraUser)
+        {
+            Member member = null;
+            try
+            {
+                member = _v1.GetMember(jiraUser.name).Result;
+                if (member != null && !jiraUser.ItMatchesMember(member))
+                {
+                    member.Name = jiraUser.displayName;
+                    member.Nickname = jiraUser.name;
+                    member.Email = jiraUser.emailAddress;
+                    _v1.UpdateMember(member);
+                }
+                else if (member == null)
+                {
+                    member = _v1.CreateMember(jiraUser.ToV1Member()).Result;
+                }
+
+            }
+            catch (Exception e)
+            {
+                _log.WarnFormat("Cannot get or create VersionOne Member for Jira User '{0}'", jiraUser.name);
+                _log.Error(e);
+            }
+
+            return member;
         }
     }
 }
