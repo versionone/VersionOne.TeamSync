@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
+using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.JiraWorker.Extensions;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 
 namespace VersionOne.TeamSync.JiraWorker
 {
@@ -287,7 +289,18 @@ namespace VersionOne.TeamSync.JiraWorker
             Member member = null;
             try
             {
-                member = await _v1.SyncMemberFromJiraUser(jiraUser);
+                member = await _v1.GetMember(jiraUser.name);
+                if (member != null && !jiraUser.ItMatchesMember(member))
+                {
+                    member.Name = jiraUser.displayName;
+                    member.Nickname = jiraUser.name;
+                    member.Email = jiraUser.emailAddress;
+                    await _v1.UpdateMember(member);
+                }
+                else if (member == null)
+                {
+                    member = await _v1.CreateMember(jiraUser.ToV1Member());
+                }
             }
             catch (Exception e)
             {

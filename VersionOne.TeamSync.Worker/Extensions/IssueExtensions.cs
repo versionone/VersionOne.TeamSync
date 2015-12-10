@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.JiraWorker.Domain;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 
 namespace VersionOne.TeamSync.JiraWorker.Extensions
 {

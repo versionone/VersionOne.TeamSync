@@ -10,6 +10,7 @@ using VersionOne.TeamSync.JiraWorker;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.JiraWorker.Extensions;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests.Workers
 {
@@ -492,28 +493,28 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         }
     }
 
-    [TestClass]
-    public class defect_with_assignee : defect_bits
-    {
-        [TestInitialize]
-        public void Context()
-        {
-            BuildContext();
-            NewIssue.Fields.EpicLink = null;
-            NewIssue.Fields.Assignee = Assignee;
+    //[TestClass]
+    //public class defect_with_assignee : defect_bits
+    //{
+    //    [TestInitialize]
+    //    public void Context()
+    //    {
+    //        BuildContext();
+    //        NewIssue.Fields.EpicLink = null;
+    //        NewIssue.Fields.Assignee = Assignee;
 
-            MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
-            MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
+    //        MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
+    //        MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
 
-            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+    //        Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
 
-            Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
-        }
+    //        Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
+    //    }
 
-        [TestMethod]
-        public void should_sync_member_at_least_once()
-        {
-            MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
-        }
-    }
+    //    [TestMethod]
+    //    public void should_sync_member_at_least_once()
+    //    {
+    //        MockV1.Verify(x => x.SyncMemberFromJiraUser(Assignee), Times.AtLeastOnce);
+    //    }
+    //}
 }

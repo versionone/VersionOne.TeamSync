@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{59DC969B-6C21-4E8A-AF90-E7B6CD4F5A1F}</ProjectGuid>
+    <ProjectGuid>{C9992783-26DE-4D44-B29F-36B9CE0C8D81}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VersionOne.TeamSync.Core</RootNamespace>
-    <AssemblyName>VersionOne.TeamSync.Core</AssemblyName>
+    <RootNamespace>VersionOne.TeamSync.VersionOne</RootNamespace>
+    <AssemblyName>VersionOne.TeamSync.VersionOne</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,20 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HtmlAgilityPack">
-      <HintPath>..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net, Version=1.2.14.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.4\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration">
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,27 +44,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\Proxy.cs" />
-    <Compile Include="Config\ServiceSettings.cs" />
-    <Compile Include="Config\V1Settings.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="HtmlToPlainText.cs" />
-    <Compile Include="ILogExtensions.cs" />
-    <Compile Include="LevelFilter.cs" />
-    <Compile Include="LogLevel.cs" />
+    <Compile Include="Domain\Actual.cs" />
+    <Compile Include="Domain\BasicAsset.cs" />
+    <Compile Include="Domain\Defect.cs" />
+    <Compile Include="Domain\Epic.cs" />
+    <Compile Include="Domain\IPrimaryWorkItem.cs" />
+    <Compile Include="Domain\Link.cs" />
+    <Compile Include="Domain\Member.cs" />
+    <Compile Include="Domain\Story.cs" />
+    <Compile Include="Domain\V1.cs" />
+    <Compile Include="Domain\Xml\IV1ApiXmlNode.cs" />
+    <Compile Include="Domain\Xml\V1MultiRelationNode.cs" />
+    <Compile Include="Domain\Xml\V1NulableSetNode.cs" />
+    <Compile Include="Domain\Xml\V1NullableCDataSetNode.cs" />
+    <Compile Include="Domain\Xml\V1NullableSetRelationNode.cs" />
+    <Compile Include="Domain\Xml\V1SetNode.cs" />
+    <Compile Include="Domain\Xml\V1SetRelationNode.cs" />
+    <Compile Include="Extensions\DictionaryExtensions.cs" />
+    <Compile Include="Extensions\V1AssetExtensions.cs" />
+    <Compile Include="Extensions\XDocumentExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\VersionOne.TeamSync.Core\VersionOne.TeamSync.Core.csproj">
+      <Project>{59DC969B-6C21-4E8A-AF90-E7B6CD4F5A1F}</Project>
+      <Name>VersionOne.TeamSync.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VersionOne.TeamSync.V1Connector\VersionOne.TeamSync.V1Connector.csproj">
+      <Project>{EC7ADEBC-99CA-4951-A61A-5CF1EE011E77}</Project>
+      <Name>VersionOne.TeamSync.V1Connector</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

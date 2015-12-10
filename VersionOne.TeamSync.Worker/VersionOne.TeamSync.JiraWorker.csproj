@@ -71,31 +71,13 @@
     <Compile Include="ActualsWorker.cs" />
     <Compile Include="ApiCaching.cs" />
     <Compile Include="DefectWorker.cs" />
-    <Compile Include="Domain\Actual.cs" />
-    <Compile Include="Domain\BasicAsset.cs" />
-    <Compile Include="Domain\Epic.cs" />
-    <Compile Include="Domain\IPrimaryWorkItem.cs" />
     <Compile Include="Domain\Jira.cs" />
-    <Compile Include="Domain\Link.cs" />
-    <Compile Include="Domain\Defect.cs" />
-    <Compile Include="Domain\Member.cs" />
-    <Compile Include="Domain\Story.cs" />
-    <Compile Include="Domain\V1.cs" />
-    <Compile Include="Domain\Xml\IV1ApiXmlNode.cs" />
-    <Compile Include="Domain\Xml\V1NullableSetRelationNode.cs" />
-    <Compile Include="Domain\Xml\V1NullableCDataSetNode.cs" />
-    <Compile Include="Domain\Xml\V1NulableSetNode.cs" />
-    <Compile Include="Domain\Xml\V1MultiRelationNode.cs" />
-    <Compile Include="Domain\Xml\V1SetNode.cs" />
-    <Compile Include="Domain\Xml\V1SetRelationNode.cs" />
     <Compile Include="EpicWorker.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\EpicExtensions.cs" />
     <Compile Include="Extensions\IssueExtensions.cs" />
     <Compile Include="Extensions\V1AssetExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Extensions\XDocumentExtensions.cs" />
-    <Compile Include="HtmlToPlainText.cs" />
     <Compile Include="IAsyncWorker.cs" />
     <Compile Include="StoryWorker.cs" />
     <Compile Include="VersionOneToJiraWorker.cs" />
@@ -113,6 +95,10 @@
     <ProjectReference Include="..\VersionOne.TeamSync.JiraConnector\VersionOne.TeamSync.JiraConnector.csproj">
       <Project>{57f712ae-9e25-4578-bb06-71afe3121deb}</Project>
       <Name>VersionOne.TeamSync.JiraConnector</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VersionOne.TeamSync.VersionOne\VersionOne.TeamSync.VersionOne.csproj">
+      <Project>{c9992783-26de-4d44-b29f-36b9ce0c8d81}</Project>
+      <Name>VersionOne.TeamSync.VersionOne</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

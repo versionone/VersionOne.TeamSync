@@ -1,6 +1,6 @@
 ﻿using VersionOne.TeamSync.V1Connector.Interfaces;
 
-namespace VersionOne.TeamSync.JiraWorker.Domain
+namespace VersionOne.TeamSync.VersionOneWorker.Domain
 {
     public interface IPrimaryWorkItem : IV1Asset
     {

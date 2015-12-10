@@ -9,6 +9,7 @@ using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker;
 using VersionOne.TeamSync.JiraWorker.Domain;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
 {

@@ -1,10 +1,10 @@
 ﻿using System.Linq;
 using System.Xml.Linq;
-using VersionOne.TeamSync.JiraWorker.Extensions;
 using VersionOne.TeamSync.V1Connector.Extensions;
 using VersionOne.TeamSync.V1Connector.Interfaces;
+using VersionOne.TeamSync.VersionOneWorker.Extensions;
 
-namespace VersionOne.TeamSync.JiraWorker.Domain
+namespace VersionOne.TeamSync.VersionOneWorker.Domain
 {
     public class Member : IV1Asset
     {

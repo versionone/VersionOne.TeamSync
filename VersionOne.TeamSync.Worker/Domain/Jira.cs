@@ -5,12 +5,14 @@ using System.Linq;
 using System.Net;
 using log4net;
 using Newtonsoft.Json.Linq;
+using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.JiraWorker.Extensions;
+using VersionOne.TeamSync.VersionOneWorker.Domain;
 using Connector = VersionOne.TeamSync.JiraConnector.Connector;
 
 namespace VersionOne.TeamSync.JiraWorker.Domain

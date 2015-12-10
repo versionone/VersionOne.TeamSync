@@ -1,13 +1,13 @@
 using System.Xml.Linq;
 
-namespace VersionOne.TeamSync.JiraWorker.Domain.Xml
+namespace VersionOne.TeamSync.VersionOneWorker.Domain.Xml
 {
-	public class V1NullableSetNode : IV1ApiXmlNode
+	public class V1NullableCDataSetNode : IV1ApiXmlNode
 	{
 		private readonly string _attributeName;
 		private readonly string _value;
 
-        public V1NullableSetNode(string attributeName, string value)
+        public V1NullableCDataSetNode(string attributeName, string value)
 		{
 			_attributeName = attributeName;
 			_value = value;
@@ -15,13 +15,11 @@ namespace VersionOne.TeamSync.JiraWorker.Domain.Xml
 
 		public void AddNode(XDocument doc)
 		{
-			var node = new XElement("Attribute");
+			var node = new XElement("Attribute", new XCData(_value));
 			node.Add(
 				new XAttribute("act", "set"),
 				new XAttribute("name", _attributeName));
 
-            if (!string.IsNullOrWhiteSpace(_value))
-			    node.Value = _value;
 			doc.Root.Add(node);
 		}
 	}
