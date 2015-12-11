@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -41,7 +42,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             };
 
-            MockV1.Setup(x => x.GetEpicsWithReference(It.IsAny<string>(), It.IsAny<string>()))
+            MockV1.Setup(x => x.GetEpicsWithReferenceUpdatedSince(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>()))
                 .ReturnsAsync(new List<Epic>());
 
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Story>(), It.IsAny<XDocument>())).Callback(
@@ -131,26 +132,28 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             // All jira stories referenced in V1 exist in Jira - No stories should be deleted
             Worker.DeleteV1Stories(MockJira.Object, _allJiraStories, _allV1Stories);
-            MockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+            MockV1.Verify(x => x.DeleteStory(It.IsAny<string>(), It.IsAny<Story>()), Times.Never());
         }
 
         [TestMethod]
         public void should_call_delete_asset_just_one_time()
         {
+            MockJira.Setup(x => x.IssueExists(It.IsAny<string>())).Returns(false);
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-2")));
             // OPC-2 removed - Story 3 should be deleted
             Worker.DeleteV1Stories(MockJira.Object, _allJiraStories, _allV1Stories);
-            MockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), "OPC-2"), Times.Once);
+            MockV1.Verify(x => x.DeleteStory(It.IsAny<string>(), It.IsIn(_allV1Stories.First(s => s.Reference == "OPC-2"))), Times.Once);
         }
 
         [TestMethod]
         public void should_call_delete_asset_just_two_times()
         {
+            MockJira.Setup(x => x.IssueExists(It.IsAny<string>())).Returns(false);
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-1")));
             _allJiraStories.Remove(_allJiraStories.First(s => s.Key.Equals("OPC-3")));
             // OPC-1 and OPC-3 removed - Story 2 and Story 4 should be deleted
             Worker.DeleteV1Stories(MockJira.Object, _allJiraStories, _allV1Stories);
-            MockV1.Verify(x => x.DeleteStoryWithJiraReference(It.IsAny<string>(), It.IsIn("OPC-1", "OPC-3")), Times.Exactly(2));
+            MockV1.Verify(x => x.DeleteStory(It.IsAny<string>(), It.IsIn(_allV1Stories.Where(s => s.Reference == "OPC-1" || s.Reference == "OPC-3"))), Times.Exactly(2));
         }
     }
 

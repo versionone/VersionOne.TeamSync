@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -31,17 +32,16 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<XDocument> UpdateAsset(IV1Asset asset, XDocument updateData);
 
         Task<List<Epic>> GetEpicsWithoutReference(string projectId, string category);
-        Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category);
-        Task<List<Epic>> GetEpicsWithReference(string projectId, string category);
-        Task<List<Epic>> GetDeletedEpics(string projectId, string category);
+        Task<List<Epic>> GetClosedTrackedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate);
+        Task<List<Epic>> GetEpicsWithReferenceUpdatedSince(string projectId, string category, DateTime updatedDate);
+        Task<List<Epic>> GetDeletedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate);
         void UpdateEpicReference(Epic epic);
         void RemoveReferenceOnDeletedEpic(Epic epic);
 
-        Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey);
         Task<List<Story>> GetStoriesWithJiraReference(string projectId);
         Task<Story> CreateStory(Story story);
         Task RefreshBasicInfo(IPrimaryWorkItem workItem);
-        void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey);
+        void DeleteStory(string projectId, Story story);
         Task CloseStory(string storyId);
         Task ReOpenStory(string storyId);
 
@@ -49,7 +49,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Defect> CreateDefect(Defect defect);
         Task CloseDefect(string defectId);
         Task ReOpenDefect(string defectId);
-        void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey);
+        void DeleteDefect(string projectId, Defect defect);
 
         Task<IEnumerable<Actual>> GetWorkItemActuals(string projectId, string workItemId);
         Task<Actual> CreateActual(Actual actual);
@@ -62,10 +62,12 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<Member> CreateMember(Member member);
         Task<Member> SyncMemberFromJiraUser(User jiraUser);
 
+        Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, DateTime createdDate);
+        Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, DateTime createdDate);
+        Task<List<Epic>> GetEpicsWithoutReferenceCreatedSince(string v1Project, string epicCategory, DateTime createdDate);
+        Task<List<Epic>> GetEpicsWithoutReferenceUpdatedSince(string v1Project, string epicCategory, DateTime updatedDate);
+
         Task<string> GetStatusIdFromName(string name);
-        Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate);
-        Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate);
-        Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate);
     }
 
     public class V1 : IV1
@@ -74,7 +76,8 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const int ConnectionAttempts = 3;
         private const string WhereProject = "Scope=\"{0}\"";
         private const string WhereEpicCategory = "Category=\"{0}\"";
-        private const string CreateOnUTC_before = "CreateDateUTC>={0}";
+        private const string CreateOnUTC_before = "CreateDateUTC>='{0}'";
+        private const string UpdateOnUTC_before = "ChangeDateUTC>='{0}'";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
@@ -111,7 +114,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }, Epic.FromQuery);
         }
 
-        public async Task<List<Epic>> GetEpicsWithoutReferenceSince(string v1Project, string epicCategory, string createdDate)
+        public async Task<List<Epic>> GetEpicsWithoutReferenceCreatedSince(string v1Project, string epicCategory, DateTime createdDate)
         {
             return await _connector.Query("Epic",
                 new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
@@ -125,53 +128,58 @@ namespace VersionOne.TeamSync.Worker.Domain
                 }, Epic.FromQuery);
         }
 
+        public async Task<List<Epic>> GetEpicsWithoutReferenceUpdatedSince(string v1Project, string epicCategory, DateTime updatedDate)
+        {
+            return await _connector.Query("Epic",
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
+                new[]
+                {
+                    "Reference=\"\"",
+                    "AssetState='Active'",
+                    string.Format(WhereProject, v1Project),
+                    string.Format(WhereEpicCategory, epicCategory),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
+                }, Epic.FromQuery);
+        }
+
         public async void UpdateEpicReference(Epic epic)
         {
             await _connector.Post(epic, epic.UpdateReferenceXml());
         }
 
-        public async Task<List<Epic>> GetClosedTrackedEpics(string projectId, string category)
+        public async Task<List<Epic>> GetClosedTrackedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate)
         {
             return await _connector.Query("Epic", new[] { "Name", "AssetState", "Reference" },
                 new[] { 
                     "Reference!=\"\"",
                     "AssetState='Closed'", 
                     string.Format(WhereProject, projectId),
-                    string.Format(WhereEpicCategory, category)
+                    string.Format(WhereEpicCategory, category),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
         }
 
-        public async Task<List<Epic>> GetEpicsWithReference(string projectId, string category)
+        public async Task<List<Epic>> GetEpicsWithReferenceUpdatedSince(string projectId, string category, DateTime updatedDate)
         {
             return await _connector.Query("Epic", new[] { "ID.Number", "Name", "Description", "Reference", "AssetState", "Priority.Name", "Status.Name" },
                 new[] { 
                     "Reference!=\"\"", 
                     string.Format(WhereProject, projectId), 
-                    string.Format(WhereEpicCategory, category)
+                    string.Format(WhereEpicCategory, category),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
         }
 
-        public async Task<List<Epic>> GetDeletedEpics(string projectId, string category)
+        public async Task<List<Epic>> GetDeletedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate)
         {
             return await _connector.Query("Epic", _numberNameDescriptRef,
                 new[] { 
                     "Reference!=\"\"", 
                     "IsDeleted='True'",
                     string.Format(WhereProject, projectId), 
-                    string.Format(WhereEpicCategory, category) 
+                    string.Format(WhereEpicCategory, category),
+                    string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
-        }
-
-        public async Task<Story> GetStoryWithJiraReference(string projectId, string jiraProjectKey)
-        {
-            var story = await _connector.Query("Story", new[] { "ID.Number" }, new[] { "Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes() }, Story.FromQuery);
-            return story.FirstOrDefault();
-        }
-
-        public async Task<Defect> GetDefectWithJiraReference(string projectId, string jiraProjectKey)
-        {
-            var defect = await _connector.Query("Defect", new[] { "ID.Number" }, new[] { "Reference=" + jiraProjectKey.InQuotes(), "Scope=" + projectId.InQuotes() }, Defect.FromQuery);
-            return defect.FirstOrDefault();
         }
 
         public async Task<Story> CreateStory(Story story)
@@ -188,16 +196,14 @@ namespace VersionOne.TeamSync.Worker.Domain
             return defect;
         }
 
-        public async void DeleteStoryWithJiraReference(string projectId, string jiraStoryKey)
+        public async void DeleteStory(string projectId, Story story)
         {
-            var story = await GetStoryWithJiraReference(projectId, jiraStoryKey);
             await _connector.Post(story, story.RemoveReference());
             await _connector.Operation(story, "Delete");
         }
 
-        public async void DeleteDefectWithJiraReference(string projectId, string jiraStoryKey)
+        public async void DeleteDefect(string projectId, Defect defect)
         {
-            var defect = await GetDefectWithJiraReference(projectId, jiraStoryKey);
             await _connector.Post(defect, defect.RemoveReference());
             await _connector.Operation(defect, "Delete");
         }
@@ -313,12 +319,12 @@ namespace VersionOne.TeamSync.Worker.Domain
                 Story.FromQuery);
         }
 
-        public async Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, string createdDate)
+        public async Task<List<Story>> GetStoriesWithJiraReferenceCreatedSince(string projectId, DateTime createdDate)
         {
             return await GetStoriesWithJiraReference(new[] { 
                 "Reference!=\"\"", 
                 string.Format(WhereProject, projectId),
-                string.Format(CreateOnUTC_before, createdDate.InQuotes())
+                string.Format(CreateOnUTC_before, createdDate.ToString(CultureInfo.InvariantCulture))
             });
         }
 
@@ -338,12 +344,12 @@ namespace VersionOne.TeamSync.Worker.Domain
                 whereClauses, Defect.FromQuery);
         }
 
-        public async Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, string createdDate)
+        public async Task<List<Defect>> GetDefectsWithJiraReferenceCreatedSince(string projectId, DateTime createdDate)
         {
             return await GetDefects(new[] { 
                 "Reference!=\"\"", 
                 string.Format(WhereProject, projectId),
-                string.Format(CreateOnUTC_before, createdDate.InQuotes())
+                string.Format(CreateOnUTC_before, createdDate.ToString(CultureInfo.InvariantCulture))
             });
         }
 

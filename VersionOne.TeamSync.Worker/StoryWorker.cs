@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.Worker.Domain;
@@ -20,8 +21,7 @@ namespace VersionOne.TeamSync.Worker
 
         private readonly IV1 _v1;
         private readonly ILog _log;
-
-        public bool FirstRunCompleted { get; private set; }
+        private DateTime _lastSyncDate;
 
         public StoryWorker(IV1 v1, ILog log)
         {
@@ -35,17 +35,16 @@ namespace VersionOne.TeamSync.Worker
             var allJiraStories = jiraInstance.GetAllStoriesInProjectSince(jiraInstance.JiraProject, jiraInstance.RunFromThisDateOn).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.RunFromThisDateOn);
 
-            UpdateStories(jiraInstance, allJiraStories, allV1Stories);
             CreateStories(jiraInstance, allJiraStories, allV1Stories);
-            DeleteV1Stories(jiraInstance, allJiraStories, allV1Stories);
             _log.Trace("Story First Run stopped...");
         }
 
         public async Task DoWork(IJira jiraInstance)
         {
+            _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
 
             _log.Trace("Story sync started...");
-            var allJiraStories = jiraInstance.GetStoriesInProject(jiraInstance.JiraProject).issues;
+            var allJiraStories = jiraInstance.GetStoriesInProjectUpdatedSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project);
 
             UpdateStories(jiraInstance, allJiraStories, allV1Stories);
@@ -69,7 +68,7 @@ namespace VersionOne.TeamSync.Worker
             if (existingStories.Any())
                 _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
-            var assignedEpics = _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory).Result;
+            var assignedEpics = _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate).Result;
 
             existingStories.ForEach(existingJStory =>
             {
@@ -100,12 +99,13 @@ namespace VersionOne.TeamSync.Worker
                 if (!issue.Fields.Status.Name.Is(jiraInstance.DoneWords) && story.AssetState == "128")
                 {
                     await _v1.ReOpenStory(story.ID);
-                    _log.DebugFormat("Reopened story V1 {0}", story.Number);
+                    _log.DebugFormat("Reopened V1 story {0}", story.Number);
                     data["reopened"] += 1;
                 }
             }
 
             var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
                 issue.Fields.EpicLink = currentAssignedEpic.Number;
@@ -179,8 +179,15 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task<bool> CreateStoryFromJira(IJira jiraInstance, Issue jiraStory)
         {
-            var v1StatusId = await _v1.GetStatusIdFromName(JiraSettings.GetInstance().GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject, jiraStory.Fields.Status.Name));
-            var story = jiraStory.ToV1Story(jiraInstance.V1Project, JiraSettings.GetInstance().GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name), v1StatusId);
+            var v1StatusId =
+                await
+                    _v1.GetStatusIdFromName(JiraSettings.GetInstance()
+                        .GetV1StatusFromMapping(jiraInstance.InstanceUrl, jiraInstance.JiraProject,
+                            jiraStory.Fields.Status.Name));
+
+            var story = jiraStory.ToV1Story(jiraInstance.V1Project,
+                JiraSettings.GetInstance()
+                    .GetV1PriorityIdFromMapping(jiraInstance.InstanceUrl, jiraStory.Fields.Priority.Name), v1StatusId);
 
             if (!string.IsNullOrEmpty(jiraStory.Fields.EpicLink))
             {
@@ -203,7 +210,7 @@ namespace VersionOne.TeamSync.Worker
                     story.OwnersIds.Add(member.Oid());
             }
 
-            _log.TraceFormat("Attempting to create story from Jira story {0}", jiraStory.Key);
+            _log.TraceFormat("Attempting to create V1 story from Jira story {0}", jiraStory.Key);
 
             var newStory = await _v1.CreateStory(story);
             _log.DebugFormat("Created {0} from Jira story {1}", newStory.Number, jiraStory.Key);
@@ -250,22 +257,24 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Deleting stories started");
             var processedStories = 0;
 
-            var jiraReferencedStoriesKeys =
-                allV1Stories.Where(v1Story => !v1Story.IsInactive && !string.IsNullOrWhiteSpace(v1Story.Reference))
-                    .Select(v1Story => v1Story.Reference);
+            var jiraReferencedStories =
+                allV1Stories.Where(v1Story => !v1Story.IsInactive && !string.IsNullOrWhiteSpace(v1Story.Reference));
 
-            var jiraDeletedStoriesKeys =
-                jiraReferencedStoriesKeys.Where(jiraStoryKey => !allJiraStories.Any(js => js.Key.Equals(jiraStoryKey))).ToList();
+            var jiraDeletedStories =
+                jiraReferencedStories.Where(jiraStory => !allJiraStories.Any(js => js.Key.Equals(jiraStory.Reference))).ToList();
 
-            if (jiraDeletedStoriesKeys.Any())
-                _log.DebugFormat("Found {0} stories to check for delete", jiraDeletedStoriesKeys.Count);
+            if (jiraDeletedStories.Any())
+                _log.DebugFormat("Found {0} stories to check for delete", jiraDeletedStories.Count);
 
-            jiraDeletedStoriesKeys.ForEach(key =>
+            jiraDeletedStories.ForEach(story =>
             {
-                _log.TraceFormat("Attempting to delete V1 story referencing jira story {0}", key);
-                _v1.DeleteStoryWithJiraReference(jiraInstance.V1Project, key);
-                _log.DebugFormat("Deleted V1 story referencing jira story {0}", key);
-                processedStories++;
+                if (!jiraInstance.IssueExists(story.Reference))
+                {
+                    _log.TraceFormat("Attempting to delete V1 story referencing jira story {0}", story.Number);
+                    _v1.DeleteStory(jiraInstance.V1Project, story);
+                    _log.DebugFormat("Deleted V1 story referencing jira story {0}", story);
+                    processedStories++;
+                }
             });
 
             if (processedStories > 0)

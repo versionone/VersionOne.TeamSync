@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.Worker.Domain;
 using VersionOne.TeamSync.Worker.Extensions;
@@ -19,6 +20,7 @@ namespace VersionOne.TeamSync.Worker
 
         private readonly IV1 _v1;
         private readonly ILog _log;
+        private DateTime _lastSyncDate;
 
         public EpicWorker(IV1 v1, ILog log)
         {
@@ -35,6 +37,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task DoWork(IJira jiraInstance)
         {
+            _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
             _log.Trace("Epic sync started...");
             await CreateEpics(jiraInstance);
             await UpdateEpics(jiraInstance);
@@ -45,7 +48,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task CreateEpicsSince(IJira jiraInstance)
         {
-            var epics = await _v1.GetEpicsWithoutReferenceSince(jiraInstance.V1Project, jiraInstance.EpicCategory, jiraInstance.RunFromThisDateOn);
+            var epics = await _v1.GetEpicsWithoutReferenceCreatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, jiraInstance.RunFromThisDateOn);
             CreateEpics(jiraInstance, epics);
         }
 
@@ -108,7 +111,7 @@ namespace VersionOne.TeamSync.Worker
 
         public async Task CreateEpics(IJira jiraInstance)
         {
-            var epics = await _v1.GetEpicsWithoutReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var epics = await _v1.GetEpicsWithoutReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate);
             CreateEpics(jiraInstance, epics);
         }
 
@@ -125,7 +128,7 @@ namespace VersionOne.TeamSync.Worker
                 return;
             }
 
-            var assignedV1Epics = await _v1.GetEpicsWithReference(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var assignedV1Epics = await _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate);
 
             if (assignedV1Epics.Any())
                 _log.DebugFormat("Found {0} epics to check for update", assignedV1Epics.Count);
@@ -180,7 +183,7 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Deleting epics started");
             var processedEpics = 0;
 
-            var deletedV1Epics = await _v1.GetDeletedEpics(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var deletedV1Epics = await _v1.GetDeletedEpicsUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate);
 
             if (deletedV1Epics.Any())
                 _log.DebugFormat("Found {0} epics to check for delete", deletedV1Epics.Count);
@@ -208,7 +211,7 @@ namespace VersionOne.TeamSync.Worker
             _log.Trace("Resolving epics started");
             var processedEpics = 0;
 
-            var closedV1Epics = await _v1.GetClosedTrackedEpics(jiraInstance.V1Project, jiraInstance.EpicCategory);
+            var closedV1Epics = await _v1.GetClosedTrackedEpicsUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate);
 
             if (closedV1Epics.Any())
                 _log.DebugFormat("Found {0} epics to check for resolve", closedV1Epics.Count);

@@ -17,7 +17,7 @@ function Clean-ConfigFile {
      }
 
     ## serviceSettings
-    $xml.configuration.serviceSettings.syncIntervalInSeconds = "900"
+    $xml.configuration.serviceSettings.syncIntervalInMinutes = "15"
 
 	## v1Settings
     $xml.configuration.v1Settings.authenticationType = "0"
