@@ -465,6 +465,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                     UpdateDefect = (Defect)defect;
                 })
                 .ReturnsAsync(new XDocument());
+            MockV1.Setup(x => x.GetReferencedEpic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(Epic);
 
             Defect.ID = DefectId;
             _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
@@ -485,7 +487,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                     Summary = "summary",
                     Priority = new Priority { Name = "Low" }
                 }
-            }, Defect, new List<Epic> { Epic }, data);
+            }, Defect, data);
         }
     }
 

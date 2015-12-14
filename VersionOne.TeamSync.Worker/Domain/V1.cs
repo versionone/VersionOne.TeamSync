@@ -35,6 +35,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         Task<List<Epic>> GetClosedTrackedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate);
         Task<List<Epic>> GetEpicsWithReferenceUpdatedSince(string projectId, string category, DateTime updatedDate);
         Task<List<Epic>> GetDeletedEpicsUpdatedSince(string projectId, string category, DateTime updatedDate);
+        Task<Epic> GetReferencedEpic(string v1Project, string epicCategory, string reference);
         void UpdateEpicReference(Epic epic);
         void RemoveReferenceOnDeletedEpic(Epic epic);
 
@@ -76,6 +77,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         private const int ConnectionAttempts = 3;
         private const string WhereProject = "Scope=\"{0}\"";
         private const string WhereEpicCategory = "Category=\"{0}\"";
+        private const string WhereReference = "Reference=\"{0}\"";
         private const string CreateOnUTC_before = "CreateDateUTC>='{0}'";
         private const string UpdateOnUTC_before = "ChangeDateUTC>='{0}'";
 
@@ -107,7 +109,7 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name", "Status.Name" },
                 new[]
                 {
-                    "Reference=\"\"",
+                    string.Format(WhereReference, ""),
                     "AssetState='Active'",
                     string.Format(WhereProject, projectId),
                     string.Format(WhereEpicCategory, category)
@@ -120,11 +122,11 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
                 new[]
                 {
-                    "Reference=\"\"",
+                    string.Format(WhereReference, ""),
                     "AssetState='Active'",
                     string.Format(WhereProject, v1Project),
                     string.Format(WhereEpicCategory, epicCategory),
-                    string.Format(CreateOnUTC_before, createdDate)
+                    string.Format(CreateOnUTC_before, createdDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
         }
 
@@ -134,12 +136,27 @@ namespace VersionOne.TeamSync.Worker.Domain
                 new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
                 new[]
                 {
-                    "Reference=\"\"",
+                    string.Format(WhereReference, ""),
                     "AssetState='Active'",
                     string.Format(WhereProject, v1Project),
                     string.Format(WhereEpicCategory, epicCategory),
                     string.Format(UpdateOnUTC_before, updatedDate.ToString(CultureInfo.InvariantCulture))
                 }, Epic.FromQuery);
+        }
+
+        public async Task<Epic> GetReferencedEpic(string v1Project, string epicCategory, string reference)
+        {
+            var epics = await _connector.Query("Epic",
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
+                new[]
+                {
+                    "AssetState='Active'",
+                    string.Format(WhereProject, v1Project),
+                    string.Format(WhereEpicCategory, epicCategory),
+                    string.Format(WhereReference, reference)
+                }, Epic.FromQuery);
+            
+            return epics.FirstOrDefault();
         }
 
         public async void UpdateEpicReference(Epic epic)

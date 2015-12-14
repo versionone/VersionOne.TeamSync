@@ -68,12 +68,10 @@ namespace VersionOne.TeamSync.Worker
             if (existingBugs.Any())
                 _log.DebugFormat("Found {0} defects to check for update", existingBugs.Count);
 
-            var assignedEpics = _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate).Result;
-
             existingBugs.ForEach(existingJDefect =>
             {
                 var defectToUpdate = allV1Defects.Single(defect => existingJDefect.Fields.Labels.Contains(defect.Number));
-                UpdateDefectFromJiraToV1(jiraInstance, existingJDefect, defectToUpdate, assignedEpics, data).Wait();
+                UpdateDefectFromJiraToV1(jiraInstance, existingJDefect, defectToUpdate, data).Wait();
             });
 
             if (data["updated"] > 0)
@@ -88,7 +86,7 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(IJira jiraInstance, Issue issue, Defect defect, List<Epic> assignedEpics, Dictionary<string, int> data)
+        public async Task<Dictionary<string, int>> UpdateDefectFromJiraToV1(IJira jiraInstance, Issue issue, Defect defect, Dictionary<string, int> data)
         {
             string v1StatusId = null;
             if (issue.Fields.Status != null)
@@ -104,7 +102,8 @@ namespace VersionOne.TeamSync.Worker
                 }
             }
 
-            var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+            var currentAssignedEpic = await _v1.GetReferencedEpic(jiraInstance.V1Project, jiraInstance.EpicCategory,
+                issue.Fields.EpicLink);
 
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)

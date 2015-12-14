@@ -68,12 +68,10 @@ namespace VersionOne.TeamSync.Worker
             if (existingStories.Any())
                 _log.DebugFormat("Found {0} stories to check for update", existingStories.Count);
 
-            var assignedEpics = _v1.GetEpicsWithReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate).Result;
-
             existingStories.ForEach(existingJStory =>
             {
                 var storyToUpdate = allV1Stories.Single(story => existingJStory.Fields.Labels.Contains(story.Number));
-                UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, assignedEpics, data).Wait();
+                UpdateStoryFromJiraToV1(jiraInstance, existingJStory, storyToUpdate, data).Wait();
             });
 
             if (data["updated"] > 0)
@@ -88,7 +86,7 @@ namespace VersionOne.TeamSync.Worker
             _log.TraceUpdateFinished(PluralAsset);
         }
 
-        public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(IJira jiraInstance, Issue issue, Story story, List<Epic> assignedEpics, Dictionary<string, int> data)
+        public async Task<Dictionary<string, int>> UpdateStoryFromJiraToV1(IJira jiraInstance, Issue issue, Story story, Dictionary<string, int> data)
         {
             string v1StatusId = null;
             if (issue.Fields.Status != null)
@@ -104,7 +102,8 @@ namespace VersionOne.TeamSync.Worker
                 }
             }
 
-            var currentAssignedEpic = assignedEpics.FirstOrDefault(epic => epic.Reference == issue.Fields.EpicLink);
+            var currentAssignedEpic = await _v1.GetReferencedEpic(jiraInstance.V1Project, jiraInstance.EpicCategory,
+                issue.Fields.EpicLink);
 
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)

@@ -156,6 +156,8 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     UpdateStory = (Story)story;
                 })
                 .ReturnsAsync(new XDocument());
+            MockV1.Setup(x => x.GetReferencedEpic(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(Epic);
 
             var data = new Dictionary<string, int>();
             data["reopened"] = 0;
@@ -177,7 +179,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                     Summary = "summary",
                     Priority = new Priority { Name = "Medium" }
                 }
-            }, Story, new List<Epic> { Epic }, data);
+            }, Story, data);
         }
     }
 
