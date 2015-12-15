@@ -2,7 +2,7 @@
 <Include>
   
   <?define AppName = "VersionOne TeamSync" ?>
-  <?define AppVersion = "1.0.0" ?>
+  <?define AppVersion = "1.1.0" ?>
   <?define AppManufacturer = "VersionOne, Inc." ?>
   <?define SourceDir = "..\VersionOne.TeamSync.Service\bin\Release" ?>
 
