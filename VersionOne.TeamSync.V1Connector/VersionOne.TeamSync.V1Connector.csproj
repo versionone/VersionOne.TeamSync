@@ -49,9 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\XDocumentExtensions.cs" />
-    <Compile Include="Interfaces\IV1Asset.cs" />
-    <Compile Include="Interfaces\IV1Connector.cs" />
-    <Compile Include="Interfaces\IV1Fluent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyProvider.cs" />
     <Compile Include="V1Connector.cs" />
@@ -60,6 +57,10 @@
     <ProjectReference Include="..\VersionOne.TeamSync.Core\VersionOne.TeamSync.Core.csproj">
       <Project>{59dc969b-6c21-4e8a-af90-e7b6cd4f5a1f}</Project>
       <Name>VersionOne.TeamSync.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VersionOne.TeamSync.Interfaces\VersionOne.TeamSync.Interfaces.csproj">
+      <Project>{50C7AAF3-8374-490F-91EB-DD693FF423A6}</Project>
+      <Name>VersionOne.TeamSync.Interfaces</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

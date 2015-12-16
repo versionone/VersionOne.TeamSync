@@ -7,11 +7,11 @@ using System.Xml.Linq;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Core.Extensions;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.V1Connector;
-using VersionOne.TeamSync.V1Connector.Interfaces;
-using VersionOne.TeamSync.VersionOneWorker.Extensions;
+using VersionOne.TeamSync.VersionOne.Extensions;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Domain
+namespace VersionOne.TeamSync.VersionOne.Domain
 {
     public interface IV1
     {

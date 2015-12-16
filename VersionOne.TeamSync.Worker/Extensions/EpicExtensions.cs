@@ -3,7 +3,7 @@ using System.Dynamic;
 using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker.Domain;
-using VersionOne.TeamSync.VersionOneWorker.Domain;
+using VersionOne.TeamSync.VersionOne.Domain;
 
 namespace VersionOne.TeamSync.JiraWorker.Extensions
 {

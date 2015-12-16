@@ -1,6 +1,6 @@
-﻿using VersionOne.TeamSync.V1Connector.Interfaces;
+﻿using VersionOne.TeamSync.Interfaces;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Extensions
+namespace VersionOne.TeamSync.VersionOne.Extensions
 {
     public static class V1AssetExtensions
     {

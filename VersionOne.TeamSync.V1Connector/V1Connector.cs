@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using log4net;
 using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.V1Connector.Extensions;
-using VersionOne.TeamSync.V1Connector.Interfaces;
 
 namespace VersionOne.TeamSync.V1Connector
 {
@@ -309,7 +309,7 @@ namespace VersionOne.TeamSync.V1Connector
             return _useOAuthEndpoints ? DATA_API_OAUTH_ENDPOINT : DATA_API_ENDPOINT;
         }
 
-        private class Builder : ICanSetUserAgentHeader, ICanSetAuthMethod, ICanSetProxyOrEndpointOrGetConnector, ICanSetProxyOrGetConnector
+        public class Builder : ICanSetUserAgentHeader, ICanSetAuthMethod, ICanSetProxyOrEndpointOrGetConnector, ICanSetProxyOrGetConnector
         {
             private readonly V1Connector _instance;
 
@@ -386,7 +386,7 @@ namespace VersionOne.TeamSync.V1Connector
                 return this;
             }
 
-            public ICanGetConnector WithProxy(ProxyProvider proxyProvider)
+            public ICanGetConnector WithProxy(IProxyProvider proxyProvider)
             {
                 if (proxyProvider == null)
                     throw new ArgumentNullException("proxyProvider");
@@ -396,12 +396,12 @@ namespace VersionOne.TeamSync.V1Connector
                 return this;
             }
 
-            public V1Connector Build()
+            public IV1Connector Build()
             {
                 return _instance;
             }
 
-            ICanGetConnector ICanSetProxyOrGetConnector.WithProxy(ProxyProvider proxyProvider)
+            ICanGetConnector ICanSetProxyOrGetConnector.WithProxy(IProxyProvider proxyProvider)
             {
                 if (proxyProvider == null)
                     throw new ArgumentNullException("proxyProvider");

@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using VersionOne.TeamSync.JiraWorker;
 using VersionOne.TeamSync.JiraWorker.Domain;
-using VersionOne.TeamSync.VersionOneWorker.Domain;
+using VersionOne.TeamSync.VersionOne.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests.Workers
 {

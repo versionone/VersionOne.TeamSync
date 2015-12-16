@@ -1,6 +1,6 @@
-﻿using VersionOne.TeamSync.V1Connector.Interfaces;
+﻿using VersionOne.TeamSync.Interfaces;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Domain
+namespace VersionOne.TeamSync.VersionOne.Domain
 {
     public interface IPrimaryWorkItem : IV1Asset
     {

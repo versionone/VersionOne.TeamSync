@@ -2,11 +2,11 @@
 using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.V1Connector.Extensions;
-using VersionOne.TeamSync.V1Connector.Interfaces;
-using VersionOne.TeamSync.VersionOneWorker.Extensions;
+using VersionOne.TeamSync.VersionOne.Extensions;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Domain
+namespace VersionOne.TeamSync.VersionOne.Domain
 {
     public class Actual : IV1Asset
     {

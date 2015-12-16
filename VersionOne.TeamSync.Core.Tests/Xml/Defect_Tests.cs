@@ -3,7 +3,7 @@ using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Should;
 using VersionOne.TeamSync.JiraWorker.Domain;
-using VersionOne.TeamSync.VersionOneWorker.Domain;
+using VersionOne.TeamSync.VersionOne.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests.Xml
 {

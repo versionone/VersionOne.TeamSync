@@ -84,6 +84,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\VersionOne.TeamSync.Interfaces\VersionOne.TeamSync.Interfaces.csproj">
+      <Project>{50C7AAF3-8374-490F-91EB-DD693FF423A6}</Project>
+      <Name>VersionOne.TeamSync.Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.V1Connector\VersionOne.TeamSync.V1Connector.csproj">
       <Project>{ec7adebc-99ca-4951-a61a-5cf1ee011e77}</Project>
       <Name>VersionOne.TeamSync.V1Connector</Name>

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.V1Connector.Interfaces;
-using VersionOne.TeamSync.VersionOneWorker.Domain;
+using VersionOne.TeamSync.VersionOne.Domain;
 
 namespace VersionOne.TeamSync.JiraWorker.Extensions
 {
@@ -16,11 +15,6 @@ namespace VersionOne.TeamSync.JiraWorker.Extensions
                     Labels = new List<string>(preExistingLabels) { primaryWorkItem.Number }
                 }
             };
-        }
-
-        public static string Oid(this IV1Asset asset)
-        {
-            return string.Format("{0}:{1}", asset.AssetType, asset.ID);
         }
     }
 }

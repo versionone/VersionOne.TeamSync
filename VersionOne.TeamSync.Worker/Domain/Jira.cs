@@ -9,7 +9,7 @@ using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.JiraWorker.Extensions;
-using VersionOne.TeamSync.VersionOneWorker.Domain;
+using VersionOne.TeamSync.VersionOne.Domain;
 using Connector = VersionOne.TeamSync.JiraConnector.Connector;
 
 namespace VersionOne.TeamSync.JiraWorker.Domain

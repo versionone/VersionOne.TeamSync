@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace VersionOne.TeamSync.V1Connector.Interfaces
+namespace VersionOne.TeamSync.Interfaces
 {
     public interface IV1Connector
     {
