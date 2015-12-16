@@ -4,7 +4,7 @@ using Should;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.JiraWorker.Extensions;
-using VersionOne.TeamSync.VersionOneWorker.Domain;
+using VersionOne.TeamSync.VersionOne.Domain;
 
 namespace VersionOne.TeamSync.Core.Tests
 {

@@ -56,6 +56,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Worker.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.VersionOne", "VersionOne.TeamSync.VersionOne\VersionOne.TeamSync.VersionOne.csproj", "{C9992783-26DE-4D44-B29F-36B9CE0C8D81}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Interfaces", "VersionOne.TeamSync.Interfaces\VersionOne.TeamSync.Interfaces.csproj", "{50C7AAF3-8374-490F-91EB-DD693FF423A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -213,6 +215,18 @@ Global
 		{C9992783-26DE-4D44-B29F-36B9CE0C8D81}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C9992783-26DE-4D44-B29F-36B9CE0C8D81}.Release|x64.ActiveCfg = Release|Any CPU
 		{C9992783-26DE-4D44-B29F-36B9CE0C8D81}.Release|x86.ActiveCfg = Release|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Release|x64.ActiveCfg = Release|Any CPU
+		{50C7AAF3-8374-490F-91EB-DD693FF423A6}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

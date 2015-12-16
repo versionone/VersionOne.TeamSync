@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Net;
+using VersionOne.TeamSync.Interfaces;
 
 namespace VersionOne.TeamSync.V1Connector
 {
-    public class ProxyProvider
+    public class ProxyProvider : IProxyProvider
     {
         public readonly Uri Path;
         public readonly string Username;
@@ -18,6 +19,16 @@ namespace VersionOne.TeamSync.V1Connector
             Username = username;
             Password = password;
             Domain = domain;
+        }
+
+        public IWebProxy CreateWebProxy()
+        {
+            if (proxy == null)
+            {
+                proxy = new WebProxy(Path, false, new string[0], GetCredential());
+            }
+
+            return proxy;
         }
 
         private NetworkCredential GetCredential()
@@ -35,16 +46,6 @@ namespace VersionOne.TeamSync.V1Connector
             }
 
             return credential;
-        }
-
-        internal IWebProxy CreateWebProxy()
-        {
-            if (proxy == null)
-            {
-                proxy = new WebProxy(Path, false, new string[0], GetCredential());
-            }
-
-            return proxy;
         }
     }
 }

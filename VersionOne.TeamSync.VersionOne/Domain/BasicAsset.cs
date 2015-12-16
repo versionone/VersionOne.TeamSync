@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using System.Xml.Linq;
 using VersionOne.TeamSync.V1Connector.Extensions;
-using VersionOne.TeamSync.VersionOneWorker.Extensions;
+using VersionOne.TeamSync.VersionOne.Extensions;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Domain
+namespace VersionOne.TeamSync.VersionOne.Domain
 {
     public class BasicAsset
     {

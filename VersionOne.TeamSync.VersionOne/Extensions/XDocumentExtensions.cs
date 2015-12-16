@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
-using VersionOne.TeamSync.VersionOneWorker.Domain.Xml;
+using VersionOne.TeamSync.VersionOne.Domain.Xml;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Extensions
+namespace VersionOne.TeamSync.VersionOne.Extensions
 {
 	public static class XDocumentExtensions
 	{

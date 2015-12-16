@@ -1,6 +1,6 @@
 using System.Xml.Linq;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Domain.Xml
+namespace VersionOne.TeamSync.VersionOne.Domain.Xml
 {
 	public class V1SetNode : IV1ApiXmlNode
 	{

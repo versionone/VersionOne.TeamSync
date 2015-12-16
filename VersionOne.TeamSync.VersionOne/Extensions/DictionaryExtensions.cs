@@ -2,7 +2,7 @@
 using System.Linq;
 using VersionOne.TeamSync.Core;
 
-namespace VersionOne.TeamSync.VersionOneWorker.Extensions
+namespace VersionOne.TeamSync.VersionOne.Extensions
 {
 	public static class DictionaryExtensions
 	{

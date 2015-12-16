@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace VersionOne.TeamSync.V1Connector.Interfaces
+﻿namespace VersionOne.TeamSync.Interfaces
 {
 
     public interface ICanSetUserAgentHeader
@@ -59,7 +57,7 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
         /// Required terminating method that returns the V1Connector object.
         /// </summary>
         /// <returns>V1Connector</returns>
-        V1Connector Build();
+        IV1Connector Build();
     }
 
     public interface ICanSetProxyOrEndpointOrGetConnector : ICanSetEndpoint, ICanGetConnector
@@ -69,7 +67,7 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
         /// </summary>
         /// <param name="proxyProvider">The ProxyProvider containing the proxy URI, username, and password.</param>
         /// <returns>ICanSetEndpointOrGetConnector</returns>
-        ICanGetConnector WithProxy(ProxyProvider proxyProvider);
+        ICanGetConnector WithProxy(IProxyProvider proxyProvider);
     }
 
     public interface ICanSetProxyOrGetConnector : ICanGetConnector
@@ -79,7 +77,7 @@ namespace VersionOne.TeamSync.V1Connector.Interfaces
         /// </summary>
         /// <param name="proxyProvider">The ProxyProvider containing the proxy URI, username, and password.</param>
         /// <returns>ICanGetConnector</returns>
-        ICanGetConnector WithProxy(ProxyProvider proxyProvider);
+        ICanGetConnector WithProxy(IProxyProvider proxyProvider);
     }
 
     public interface ICanSetEndpoint
