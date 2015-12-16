@@ -46,6 +46,8 @@
     <Compile Include="IV1Connector.cs" />
     <Compile Include="IV1ConnectorFactory.cs" />
     <Compile Include="IV1Fluent.cs" />
+    <Compile Include="IV1StartupWorker.cs" />
+    <Compile Include="IV1StartupWorkerFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

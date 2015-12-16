@@ -7,13 +7,22 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.VersionOne.Domain;
 
 namespace VersionOne.TeamSync.JiraWorker
 {
-    public class VersionOneToJiraWorker
+    public class VersionOneToJiraWorkerFactory : IV1StartupWorkerFactory
+    {
+        public IV1StartupWorker Create()
+        {
+            return new VersionOneToJiraWorker();
+        }
+    }
+
+    public class VersionOneToJiraWorker : IV1StartupWorker
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
         private readonly IV1 _v1;
@@ -100,6 +109,11 @@ namespace VersionOne.TeamSync.JiraWorker
 
             Log.Info("Ending sync...");
             Log.DebugFormat("Total sync time: {0}", DateTime.Now - syncTime);
+        }
+
+        public bool IsActualWorkEnabled
+        {
+            get { throw new NotImplementedException(); }
         }
 
         public void ValidateConnections()

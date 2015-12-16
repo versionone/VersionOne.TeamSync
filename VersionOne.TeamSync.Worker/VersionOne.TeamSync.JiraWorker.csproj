@@ -88,20 +88,16 @@
       <Project>{50C7AAF3-8374-490F-91EB-DD693FF423A6}</Project>
       <Name>VersionOne.TeamSync.Interfaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VersionOne.TeamSync.V1Connector\VersionOne.TeamSync.V1Connector.csproj">
-      <Project>{ec7adebc-99ca-4951-a61a-5cf1ee011e77}</Project>
-      <Name>VersionOne.TeamSync.V1Connector</Name>
-    </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.Core\VersionOne.TeamSync.Core.csproj">
       <Project>{59dc969b-6c21-4e8a-af90-e7b6cd4f5a1f}</Project>
       <Name>VersionOne.TeamSync.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.JiraConnector\VersionOne.TeamSync.JiraConnector.csproj">
-      <Project>{57f712ae-9e25-4578-bb06-71afe3121deb}</Project>
+      <Project>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</Project>
       <Name>VersionOne.TeamSync.JiraConnector</Name>
     </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.VersionOne\VersionOne.TeamSync.VersionOne.csproj">
-      <Project>{c9992783-26de-4d44-b29f-36b9ce0c8d81}</Project>
+      <Project>{C9992783-26DE-4D44-B29F-36B9CE0C8D81}</Project>
       <Name>VersionOne.TeamSync.VersionOne</Name>
     </ProjectReference>
   </ItemGroup>

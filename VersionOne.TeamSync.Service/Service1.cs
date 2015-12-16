@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraWorker;
 
 namespace VersionOne.TeamSync.Service
@@ -11,7 +15,8 @@ namespace VersionOne.TeamSync.Service
     {
         private Timer _timer;
         private static TimeSpan _serviceDuration;
-        private static VersionOneToJiraWorker _worker;
+        [ImportMany] private IEnumerable<IV1StartupWorkerFactory> _startupWorkerFactories;
+        private IV1StartupWorker _worker;
         private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
 
         public Service1()
@@ -29,9 +34,10 @@ namespace VersionOne.TeamSync.Service
             try
             {
                 _serviceDuration = TimeSpan.FromMinutes(ServiceSettings.Settings.SyncIntervalInMinutes);
+                var firstStartupWorkerFactory = _startupWorkerFactories.FirstOrDefault();
 
                 StartMessage();
-                _worker = new VersionOneToJiraWorker();
+                _worker = firstStartupWorkerFactory.Create();
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
                 _worker.ValidateMemberAccountPermissions();
@@ -59,7 +65,7 @@ namespace VersionOne.TeamSync.Service
             StopMessage();
         }
 
-        private static void OnTimedEvent(object stateInfo)
+        private void OnTimedEvent(object stateInfo)
         {
             Log.DebugFormat("The service event was raised at {0}", DateTime.Now);
             _worker.DoWork();
