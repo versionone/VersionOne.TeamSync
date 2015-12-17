@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
@@ -15,13 +16,18 @@ namespace VersionOne.TeamSync.Service
     {
         private Timer _timer;
         private static TimeSpan _serviceDuration;
-        [ImportMany] private IEnumerable<IV1StartupWorkerFactory> _startupWorkerFactories;
+        [ImportMany] 
+        private IEnumerable<IV1StartupWorkerFactory> _startupWorkerFactories;
         private IV1StartupWorker _worker;
         private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
 
         public Service1()
         {
             InitializeComponent();
+
+            var dirCatalog = new DirectoryCatalog(@".\");
+            var container = new CompositionContainer(dirCatalog);
+            container.ComposeParts(this);
         }
 
         public void OnDebugStart()
