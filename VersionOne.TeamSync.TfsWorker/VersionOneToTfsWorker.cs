@@ -4,22 +4,41 @@ using System.Threading;
 using log4net;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.VersionOne.Domain;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 
 namespace VersionOne.TeamSync.TfsWorker
 {
     public class VersionOneToTfsWorkerFactory : IV1StartupWorkerFactory
     {
-        public IV1StartupWorker Create()
+        public IV1StartupWorker Create(CompositionContainer container)
         {
-            return new VersionOneToTfsWorker();
+            var worker = new VersionOneToTfsWorker();
+			container.ComposeParts(worker);
+			return worker;
         }
     }
 
     public class VersionOneToTfsWorker : IV1StartupWorker
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof (VersionOneToTfsWorker));
         private readonly IV1 _v1;
         private readonly List<IAsyncWorker> _asyncWorkers;
+
+		[Import]
+		private IV1LogFactory _v1LogFactory;
+
+		private IV1Log _v1Log;
+		private IV1Log Log
+		{
+			get
+			{
+				if (_v1Log == null)
+				{
+					_v1Log = _v1LogFactory.Create<VersionOneToTfsWorker>();
+				}
+				return _v1Log;
+			}
+		}
 
         public void DoFirstRun()
         {

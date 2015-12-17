@@ -19,14 +19,15 @@ namespace VersionOne.TeamSync.Service
         private IEnumerable<IV1StartupWorkerFactory> _startupWorkerFactories;
         private IV1StartupWorker _worker;
         private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
+		private CompositionContainer _container;
 
         public Service1()
         {
             InitializeComponent();
 
             var dirCatalog = new DirectoryCatalog(@".\");
-            var container = new CompositionContainer(dirCatalog);
-            container.ComposeParts(this);
+            _container = new CompositionContainer(dirCatalog);
+            _container.ComposeParts(this);
         }
 
         public void OnDebugStart()
@@ -42,7 +43,7 @@ namespace VersionOne.TeamSync.Service
                 var firstStartupWorkerFactory = _startupWorkerFactories.FirstOrDefault();
 
                 StartMessage();
-                _worker = firstStartupWorkerFactory.Create();
+                _worker = firstStartupWorkerFactory.Create(_container);
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
                 _worker.ValidateMemberAccountPermissions();

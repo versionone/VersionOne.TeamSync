@@ -53,10 +53,12 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="ILogExtensions.cs" />
     <Compile Include="IProxyProvider.cs" />
+    <Compile Include="IV1Log.cs" />
     <Compile Include="IV1Asset.cs" />
     <Compile Include="IV1Connector.cs" />
     <Compile Include="IV1ConnectorFactory.cs" />
     <Compile Include="IV1Fluent.cs" />
+    <Compile Include="IV1LogFactory.cs" />
     <Compile Include="IV1StartupWorker.cs" />
     <Compile Include="IV1StartupWorkerFactory.cs" />
     <Compile Include="LevelFilter.cs" />
