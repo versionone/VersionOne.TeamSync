@@ -6,6 +6,7 @@ using log4net;
 using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Core.Extensions;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker.Domain;

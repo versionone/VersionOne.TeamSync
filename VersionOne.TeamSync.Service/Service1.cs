@@ -8,7 +8,6 @@ using System.Threading;
 using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Interfaces;
-using VersionOne.TeamSync.JiraWorker;
 
 namespace VersionOne.TeamSync.Service
 {
