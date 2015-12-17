@@ -10,12 +10,13 @@ using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.VersionOne.Domain;
+using System.ComponentModel.Composition.Hosting;
 
 namespace VersionOne.TeamSync.JiraWorker
 {
     public class VersionOneToJiraWorkerFactory : IV1StartupWorkerFactory
     {
-        public IV1StartupWorker Create()
+        public IV1StartupWorker Create(CompositionContainer container)
         {
             return new VersionOneToJiraWorker();
         }
