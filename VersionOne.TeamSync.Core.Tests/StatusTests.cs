@@ -90,7 +90,7 @@ namespace VersionOne.TeamSync.Core.Tests
             });
             MockJira.SetupGet(x => x.InstanceUrl).Returns("http://jira-6.cloudapp.net:8080");
 
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _worker.UpdateEpics(MockJira.Object);
         }
@@ -126,7 +126,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 .Returns("ToDo");
             NewIssue.Fields.EpicLink = null;
             
-            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            Worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
             Worker.CreateStories(MockJira.Object, new List<Issue> { NewIssue }, new List<Story>());
         }
         
@@ -165,7 +165,7 @@ namespace VersionOne.TeamSync.Core.Tests
             ExistingStory.Status = "To Do";
             ExistingIssue.Fields.Status = new Status{Name = "In progress"};
 
-            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            Worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
             Worker.UpdateStories(MockJira.Object, new List<Issue> { ExistingIssue }, new List<Story>{ExistingStory});
         }
 

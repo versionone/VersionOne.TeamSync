@@ -22,7 +22,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         {
             BuildContext();
             MockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(new Story());
-            _worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            _worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
             await _worker.CreateStoryFromJira(MockJira.Object, new Issue
             {
                 Key = IssueKey,
@@ -87,7 +87,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
 
             MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
                 .ReturnsAsync(new BasicAsset { AssetState = "128" });
-            _worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            _worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
             await _worker.CreateStoryFromJira(MockJira.Object, new Issue
             {
                 Key = IssueKey,
@@ -110,7 +110,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_log_an_error()
         {
-            MockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
+            MockV1Log.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
         }
 
         [TestMethod]
@@ -164,7 +164,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
             data["closed"] = 0;
 
             Story.ID = StoryId;
-            _worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            _worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
             await _worker.UpdateStoryFromJiraToV1(MockJira.Object, new Issue
             {
                 Key = IssueKey,
@@ -295,7 +295,7 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
         [TestMethod]
         public void should_log_a_message_about_the_closed_epic()
         {
-            MockLogger.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic"), Times.Once);
+            MockV1Log.Verify(x => x.Error("Cannot assign a story to a closed Epic.  Story will be still be updated, but reassign to an open Epic"), Times.Once);
         }
     }
 }

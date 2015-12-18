@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker.Domain;
@@ -21,9 +19,9 @@ namespace VersionOne.TeamSync.JiraWorker
 
         private bool _isActualWorkEnabled;
         private readonly IV1 _v1;
-        private readonly ILog _log;
+        private readonly IV1Log _log;
 
-        public ActualsWorker(IV1 v1, ILog log)
+        public ActualsWorker(IV1 v1, IV1Log log)
         {
             _v1 = v1;
             _log = log;

@@ -4,6 +4,7 @@ using log4net.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraWorker;
@@ -17,7 +18,8 @@ namespace VersionOne.TeamSync.Core.Tests
         protected Mock<IV1> MockV1;
         protected Mock<IJiraSettings> MockJiraSettings;
         protected Mock<IJira> MockJira;
-        protected Mock<ILog> MockLogger;
+        protected Mock<ILog> MockLog;
+        protected Mock<V1Log> MockV1Log;
         protected string ProjectId = "Scope:1000";
         protected string JiraKey = "OPC";
         protected string EpicCategory = "EpicCategory:1000";
@@ -47,8 +49,9 @@ namespace VersionOne.TeamSync.Core.Tests
             MockJira.Setup(x => x.EpicCategory).Returns(EpicCategory);
             MockJira.Setup(x => x.DoneWords).Returns(new[] { "Done" });
 
-            MockLogger = new Mock<ILog>();
-            MockLogger.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
+            MockLog = new Mock<ILog>();
+            MockLog.Setup(x => x.Logger).Returns(new Mock<ILogger>().Object);
+            MockV1Log = new Mock<V1Log>(MockLog.Object);
 
             Assignee = new User
             {
@@ -69,7 +72,7 @@ namespace VersionOne.TeamSync.Core.Tests
         {
             BuildContext();
             MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _worker.CreateEpics(MockJira.Object);
         }
@@ -115,7 +118,7 @@ namespace VersionOne.TeamSync.Core.Tests
             MockJira.Setup(x => x.CreateEpic(Epic, JiraKey)).Returns(() => ItemBase);
 
             Epic.Reference.ShouldBeNull();
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
             await _worker.CreateEpics(MockJira.Object);
         }
     }
@@ -202,7 +205,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             MockJira.Setup(x => x.GetEpicsInProject(It.IsAny<string>())).Returns(new SearchResult());
 
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _worker.UpdateEpics(MockJira.Object);
         }
@@ -257,7 +260,7 @@ namespace VersionOne.TeamSync.Core.Tests
             });
             MockJira.SetupGet(x => x.InstanceUrl).Returns("http://jira-6.cloudapp.net:8080");
 
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _worker.UpdateEpics(MockJira.Object);
         }
@@ -324,7 +327,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _epic.Reference.ShouldNotBeNull("need a reference");
             _epic.IsClosed().ShouldBeFalse();
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _worker.UpdateEpics(MockJira.Object);
         }
@@ -373,7 +376,7 @@ namespace VersionOne.TeamSync.Core.Tests
             _epic.Reference.ShouldNotBeNull("need a reference");
             _searchResult.issues[0].Key.ShouldNotBeNull("need a reference");
 
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _worker.UpdateEpics(MockJira.Object);
         }
@@ -421,7 +424,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
     //        MockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
-    //        _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+    //        _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
     //        await _worker.ClosedV1EpicsSetJiraEpicsToClosed(MockJira.Object);
     //    }
@@ -469,7 +472,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
     //        MockJira.Setup(x => x.GetEpicByKey(It.IsAny<string>())).Returns(() => _searchResult);
 
-    //        _epicWorker = new EpicWorker(MockV1.Object, MockLogger.Object);
+    //        _epicWorker = new EpicWorker(MockV1.Object, MockV1Log.Object);
     //        await _epicWorker.ClosedV1EpicsSetJiraEpicsToClosed(MockJira.Object);
     //    }
 
@@ -513,7 +516,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             MockJira.Setup(x => x.DeleteEpicIfExists(_epic.Reference));
 
-            _worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _worker.DeleteEpics(MockJira.Object);
         }

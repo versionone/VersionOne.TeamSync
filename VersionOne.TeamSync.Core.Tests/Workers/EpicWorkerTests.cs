@@ -17,7 +17,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             BuildContext();
             MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
 
-            _epicWorker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            _epicWorker = new EpicWorker(MockV1.Object, MockV1Log.Object);
 
             await _epicWorker.CreateEpics(MockJira.Object);
         }

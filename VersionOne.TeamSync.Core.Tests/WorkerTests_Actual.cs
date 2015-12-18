@@ -50,7 +50,7 @@ namespace VersionOne.TeamSync.Core.Tests
             MockV1.Setup(x => x.CreateActual(It.IsAny<Actual>())).ReturnsAsync(Actual);
             MockV1.Setup(x => x.GetMember(Assignee.name)).ReturnsAsync(Assignee.ToV1Member());
 
-            var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
+            var worker = new ActualsWorker(MockV1.Object, MockV1Log.Object);
             worker.CreateActualsFromWorklogs(MockJira.Object, new List<Worklog> { Worklog }, WorkItemId, V1Number, IssueKey);
         }
 
@@ -105,7 +105,7 @@ namespace VersionOne.TeamSync.Core.Tests
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>())).ReturnsAsync(_updatedActual);
             MockV1.Setup(x => x.GetMember(Assignee.name)).ReturnsAsync(Assignee.ToV1Member());
 
-            var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
+            var worker = new ActualsWorker(MockV1.Object, MockV1Log.Object);
             worker.UpdateActualsFromWorklogs(MockJira.Object, new List<Worklog> { Worklog }, WorkItemId, new List<Actual> { Actual });
         }
 
@@ -144,7 +144,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             MockV1.Setup(x => x.UpdateAsset(It.IsAny<Actual>(), It.IsAny<XDocument>()));
 
-            var worker = new ActualsWorker(MockV1.Object, MockLogger.Object);
+            var worker = new ActualsWorker(MockV1.Object, MockV1Log.Object);
             worker.DeleteActualsFromWorklogs(new List<Actual> { Actual });
         }
 

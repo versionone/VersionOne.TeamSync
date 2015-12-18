@@ -50,7 +50,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 {
                     DefectSentToUpdate = (Defect)asset;
                 }).ReturnsAsync(new XDocument());
-            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            Worker = new DefectWorker(MockV1.Object, MockV1Log.Object);
 
             Worker.UpdateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue, updatedIssue }, new List<Defect> { ExistingDefect, _updatedDefect });
         }
@@ -124,7 +124,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                     }
                 };
 
-            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            Worker = new DefectWorker(MockV1.Object, MockV1Log.Object);
         }
 
         [TestMethod]
@@ -197,7 +197,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             };
             FakeCreatedDefect = new Defect { Number = "S-8900" };
             MockV1.Setup(x => x.CreateDefect(It.IsAny<Defect>())).ReturnsAsync(FakeCreatedDefect);
-            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            Worker = new DefectWorker(MockV1.Object, MockV1Log.Object);
         }
     }
 
@@ -210,7 +210,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
             BuildContext();
             NewIssue.Fields.EpicLink = null;
 
-            Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            Worker = new DefectWorker(MockV1.Object, MockV1Log.Object);
 
             Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
         }
@@ -218,13 +218,13 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_tell_us_about_creating_a_defect()
         {
-            MockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
+            MockV1Log.Verify(x => x.InfoCreated(1, "defects"), Times.Once);
         }
 
         [TestMethod]
         public void should_give_us_a_count_of_the_defects_created()
         {
-            MockLogger.Verify(x => x.DebugFormat("Found {0} defects to check for create", 1), Times.Once);
+            MockV1Log.Verify(x => x.DebugFormat("Found {0} defects to check for create", 1), Times.Once);
         }
 
         [TestMethod]
@@ -282,7 +282,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_tell_us_about_creating_a_defect()
         {
-            MockLogger.Verify(x => x.Info("Created 1 V1 defects"), Times.Once);
+            MockV1Log.Verify(x => x.InfoCreated(1, "defects"), Times.Once);
         }
 
         [TestMethod]
@@ -369,7 +369,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_log_a_message_about_the_closed_epic()
         {
-            MockLogger.Verify(x => x.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic"), Times.Once);
+            MockV1Log.Verify(x => x.Error("Cannot assign a defect to a closed Epic.  The defect will be still be updated, but should be reassigned to an open Epic"), Times.Once);
         }
     }
 
@@ -395,7 +395,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
 
             MockV1.Setup(x => x.GetAssetIdFromJiraReferenceNumber("Epic", "E-1000"))
                 .ReturnsAsync(new BasicAsset() { AssetState = "128" });
-            _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            _worker = new DefectWorker(MockV1.Object, MockV1Log.Object);
             await _worker.CreateDefectFromJira(MockJira.Object, new Issue()
             {
                 Key = IssueKey,
@@ -418,7 +418,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
         [TestMethod]
         public void should_log_an_error()
         {
-            MockLogger.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
+            MockV1Log.Verify(x => x.Error("Unable to assign epic E-1000 -- Epic may be closed"));
         }
 
         [TestMethod]
@@ -467,7 +467,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 .ReturnsAsync(new XDocument());
 
             Defect.ID = DefectId;
-            _worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+            _worker = new DefectWorker(MockV1.Object, MockV1Log.Object);
             var data = new Dictionary<string, int>();
             data["reopened"] = 0;
             data["updated"] = 0;
@@ -502,7 +502,7 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
     //        MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>());
     //        MockV1.Setup(x => x.SyncMemberFromJiraUser(Assignee)).ReturnsAsync(Assignee.ToV1Member());
 
-    //        Worker = new DefectWorker(MockV1.Object, MockLogger.Object);
+    //        Worker = new DefectWorker(MockV1.Object, MockV1Log.Object);
 
     //        Worker.CreateDefects(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue }, new List<Defect> { ExistingDefect });
     //    }

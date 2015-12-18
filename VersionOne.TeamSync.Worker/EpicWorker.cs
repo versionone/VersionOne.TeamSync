@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraWorker.Domain;
@@ -14,15 +12,14 @@ namespace VersionOne.TeamSync.JiraWorker
 {
     public class EpicWorker : IAsyncWorker
     {
-        private const string PluralAsset = "epics";
         private const string CreatedFromV1Comment = "Created from VersionOne Portfolio Item {0} in Project {1}";
         private const string V1AssetDetailWebLinkUrl = "{0}assetdetail.v1?Number={1}";
         private const string V1AssetDetailWebLinkTitle = "VersionOne Portfolio Item ({0})";
 
         private readonly IV1 _v1;
-        private readonly ILog _log;
+        private readonly IV1Log _log;
 
-        public EpicWorker(IV1 v1, ILog log)
+        public EpicWorker(IV1 v1, IV1Log log)
         {
             _v1 = v1;
             _log = log;

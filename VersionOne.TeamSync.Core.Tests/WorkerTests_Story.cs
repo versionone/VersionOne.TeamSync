@@ -50,7 +50,7 @@ namespace VersionOne.TeamSync.Core.Tests
                 {
                     StorySentToUpdate = (Story)asset;
                 }).ReturnsAsync(new XDocument());
-            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            Worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
 
             Worker.UpdateStories(MockJira.Object, new List<Issue> { ExistingIssue, NewIssue, updatedIssue }, new List<Story> { ExistingStory, _updatedStory });
         }
@@ -124,7 +124,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     }
                 };
 
-            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            Worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
         }
 
         [TestMethod]
@@ -197,7 +197,7 @@ namespace VersionOne.TeamSync.Core.Tests
             };
             FakeCreatedStory = new Story { Number = "S-8900" };
             MockV1.Setup(x => x.CreateStory(It.IsAny<Story>())).ReturnsAsync(FakeCreatedStory);
-            Worker = new StoryWorker(MockV1.Object, MockLogger.Object);
+            Worker = new StoryWorker(MockV1.Object, MockV1Log.Object);
         }
     }
 

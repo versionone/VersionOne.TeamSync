@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
@@ -23,9 +21,9 @@ namespace VersionOne.TeamSync.JiraWorker
         private const string V1AssetDetailWebLinkTitle = "VersionOne Defect ({0})";
 
         private readonly IV1 _v1;
-        private readonly ILog _log;
+        private readonly IV1Log _log;
 
-        public DefectWorker(IV1 v1, ILog log)
+        public DefectWorker(IV1 v1, IV1Log log)
         {
             _v1 = v1;
             _log = log;

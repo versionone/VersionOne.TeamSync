@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using log4net;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.VersionOne.Domain;
 using System.ComponentModel.Composition;

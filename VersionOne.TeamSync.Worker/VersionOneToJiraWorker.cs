@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
@@ -18,16 +18,27 @@ namespace VersionOne.TeamSync.JiraWorker
     {
         public IV1StartupWorker Create(CompositionContainer container)
         {
-            return new VersionOneToJiraWorker();
+            var worker = new VersionOneToJiraWorker();
+            container.ComposeParts(worker);
+            return worker;
         }
     }
 
     public class VersionOneToJiraWorker : IV1StartupWorker
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(VersionOneToJiraWorker));
         private readonly IV1 _v1;
         private readonly IList<IJira> _jiraInstances;
         private readonly List<IAsyncWorker> _asyncWorkers;
+
+        [Import] 
+        private IV1LogFactory _v1LogFactory;
+
+        private IV1Log _v1Log;
+
+        private IV1Log Log
+        {
+            get { return _v1Log ?? (_v1Log = _v1LogFactory.Create<VersionOneToJiraWorker>()); }
+        }
 
         public VersionOneToJiraWorker()
         {
