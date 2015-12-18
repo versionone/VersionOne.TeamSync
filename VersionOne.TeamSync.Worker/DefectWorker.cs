@@ -102,8 +102,9 @@ namespace VersionOne.TeamSync.Worker
                 }
             }
 
-            var currentAssignedEpic = await _v1.GetReferencedEpic(jiraInstance.V1Project, jiraInstance.EpicCategory,
-                issue.Fields.EpicLink);
+            Epic currentAssignedEpic = null;
+            if (!string.IsNullOrEmpty(issue.Fields.EpicLink))
+                currentAssignedEpic = await _v1.GetReferencedEpic(jiraInstance.V1Project, jiraInstance.EpicCategory, issue.Fields.EpicLink);
 
             var v1EpicId = currentAssignedEpic == null ? "" : "Epic:" + currentAssignedEpic.ID;
             if (currentAssignedEpic != null)
