@@ -6,6 +6,7 @@ using System.Net;
 using log4net;
 using Newtonsoft.Json.Linq;
 using VersionOne.TeamSync.Core.Extensions;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
@@ -57,7 +58,7 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
         string GetIssueTransitionId(string issueKey, string toState);
         void RunTransitionOnIssue(string transitionId, string issueKey);
 
-        void CleanUpAfterRun(ILog log);
+        void CleanUpAfterRun(IV1Log log);
         IJiraSettings JiraSettings { get; }
         SearchResult GetAllStoriesInProjectSince(string jiraProject, DateTime date);
 
@@ -444,7 +445,7 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
                 new KeyValuePair<string, string>("issueIdOrKey", issueKey));
         }
 
-        public void CleanUpAfterRun(ILog log)
+        public void CleanUpAfterRun(IV1Log log)
         {
             _projectMeta = null;
         }

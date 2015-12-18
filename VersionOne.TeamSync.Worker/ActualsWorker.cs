@@ -22,9 +22,9 @@ namespace VersionOne.TeamSync.JiraWorker
 
         private bool _isActualWorkEnabled;
         private readonly IV1 _v1;
-        private readonly ILog _log;
+        private readonly IV1Log _log;
 
-        public ActualsWorker(IV1 v1, ILog log)
+        public ActualsWorker(IV1 v1, IV1Log log)
         {
             _v1 = v1;
             _log = log;

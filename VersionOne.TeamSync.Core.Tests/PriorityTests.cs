@@ -148,7 +148,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
             SearchResult.issues[0].Key.ShouldNotBeNull("need a reference");
 
-            Worker = new EpicWorker(MockV1.Object, MockLogger.Object);
+            Worker = new EpicWorker(MockV1.Object, MockV1Log.Object);
         }
     }
 

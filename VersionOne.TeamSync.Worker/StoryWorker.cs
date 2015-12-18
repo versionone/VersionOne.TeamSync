@@ -24,10 +24,11 @@ namespace VersionOne.TeamSync.JiraWorker
         private const string V1AssetDetailWebLinkTitle = "VersionOne Story ({0})";
 
         private readonly IV1 _v1;
-        private readonly ILog _log;
-        private DateTime _lastSyncDate;
+        private readonly IV1Log _log;
 
-        public StoryWorker(IV1 v1, ILog log)
+        public bool FirstRunCompleted { get; private set; }
+
+        public StoryWorker(IV1 v1, IV1Log log)
         {
             _v1 = v1;
             _log = log;
@@ -45,8 +46,6 @@ namespace VersionOne.TeamSync.JiraWorker
 
         public async Task DoWork(IJira jiraInstance)
         {
-            _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
-
             _log.Trace("Story sync started...");
             var allJiraStories = jiraInstance.GetStoriesInProjectUpdatedSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Stories = await _v1.GetStoriesWithJiraReference(jiraInstance.V1Project);

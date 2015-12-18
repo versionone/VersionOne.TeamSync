@@ -18,6 +18,10 @@ namespace VersionOne.TeamSync.Interfaces
 		void TraceCreateFinished(string pluralAsset);
 		void TraceDeleteFinished(string pluralAsset);
 		void TraceFormat(string format, params object[] args);
+	    void Error(object message);
+        void ErrorFormat(string format, params object[] args);
+        void Warn(object message);
+        void WarnFormat(string format, params object[] args);
 		void TraceUpdateFinished(string pluralAsset);
 		void Verbose(string message);
 		void Verbose(string message, Exception exception);

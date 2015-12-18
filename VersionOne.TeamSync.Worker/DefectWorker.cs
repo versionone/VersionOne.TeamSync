@@ -24,10 +24,9 @@ namespace VersionOne.TeamSync.JiraWorker
         private const string V1AssetDetailWebLinkTitle = "VersionOne Defect ({0})";
 
         private readonly IV1 _v1;
-        private readonly ILog _log;
-        private DateTime _lastSyncDate;
+        private readonly IV1Log _log;
 
-        public DefectWorker(IV1 v1, ILog log)
+        public DefectWorker(IV1 v1, IV1Log log)
         {
             _v1 = v1;
             _log = log;
@@ -45,8 +44,6 @@ namespace VersionOne.TeamSync.JiraWorker
 
         public async Task DoWork(IJira jiraInstance)
         {
-            _lastSyncDate = DateTime.UtcNow.AddMinutes(-ServiceSettings.Settings.SyncIntervalInMinutes);
-
             _log.Trace("Defect sync started...");
             var allJiraBugs = jiraInstance.GetBugsInProjectUpdatedSince(jiraInstance.JiraProject, ServiceSettings.Settings.SyncIntervalInMinutes).issues;
             var allV1Defects = await _v1.GetDefectsWithJiraReference(jiraInstance.V1Project);
