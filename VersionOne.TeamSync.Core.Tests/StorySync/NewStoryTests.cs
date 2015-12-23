@@ -177,7 +177,8 @@ namespace VersionOne.TeamSync.Core.Tests.StorySync
                 {
                     Status = Status,
                     Summary = "summary",
-                    Priority = new Priority { Name = "Medium" }
+                    Priority = new Priority { Name = "Medium" },
+                    EpicLink = Epic.Number
                 }
             }, Story, data);
         }

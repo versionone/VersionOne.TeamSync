@@ -485,7 +485,8 @@ namespace VersionOne.TeamSync.Core.Tests.Workers
                 {
                     Status = Status,
                     Summary = "summary",
-                    Priority = new Priority { Name = "Low" }
+                    Priority = new Priority { Name = "Low" },
+                    EpicLink = Epic.Number
                 }
             }, Defect, data);
         }
