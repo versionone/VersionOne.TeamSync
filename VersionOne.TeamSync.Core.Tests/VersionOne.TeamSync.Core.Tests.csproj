@@ -108,7 +108,7 @@
       <Project>{C9992783-26DE-4D44-B29F-36B9CE0C8D81}</Project>
       <Name>VersionOne.TeamSync.VersionOne</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VersionOne.TeamSync.Worker\VersionOne.TeamSync.JiraWorker.csproj">
+    <ProjectReference Include="..\VersionOne.TeamSync.JiraWorker\VersionOne.TeamSync.JiraWorker.csproj">
       <Project>{52681EF1-BAE1-4E7D-82A7-9BF3638CEFF9}</Project>
       <Name>VersionOne.TeamSync.JiraWorker</Name>
     </ProjectReference>
