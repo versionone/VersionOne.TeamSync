@@ -29,8 +29,22 @@ namespace VersionOne.TeamSync.JiraWorker
     {
         private readonly IV1 _v1;
         private readonly IList<IJira> _jiraInstances;
-        private readonly List<IAsyncWorker> _asyncWorkers;
+        private List<IAsyncWorker> _asyncWorkers;
 
+        private List<IAsyncWorker> AsyncWorkers
+        {
+            get
+            {
+                return _asyncWorkers ?? (_asyncWorkers = new List<IAsyncWorker>
+                {
+                    new EpicWorker(_v1, Log),
+                    new StoryWorker(_v1, Log),
+                    new DefectWorker(_v1, Log),
+                    new ActualsWorker(_v1, Log)
+                });
+            }
+        }
+            
         [Import] 
         private IV1LogFactory _v1LogFactory;
 
@@ -60,13 +74,13 @@ namespace VersionOne.TeamSync.JiraWorker
                     Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
             }
 
-            _asyncWorkers = new List<IAsyncWorker>
-            {
-                new EpicWorker(_v1, Log),
-                new StoryWorker(_v1, Log),
-                new DefectWorker(_v1, Log),
-                new ActualsWorker(_v1, Log)
-            };
+            //_asyncWorkers = new List<IAsyncWorker>
+            //{
+            //    new EpicWorker(_v1, Log),
+            //    new StoryWorker(_v1, Log),
+            //    new DefectWorker(_v1, Log),
+            //    new ActualsWorker(_v1, Log)
+            //};
         }
 
         private DateTime GetRunFrom()
@@ -97,7 +111,7 @@ namespace VersionOne.TeamSync.JiraWorker
             _jiraInstances.ToList().ForEach(jiraInstance => 
             {
                 Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
-                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoFirstRun(jiraInstance)).ToArray());
+                Task.WaitAll(AsyncWorkers.Select(worker => worker.DoFirstRun(jiraInstance)).ToArray());
                 jiraInstance.CleanUpAfterRun(Log);
             });
 
@@ -114,7 +128,7 @@ namespace VersionOne.TeamSync.JiraWorker
             {
                 Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
-                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoWork(jiraInstance)).ToArray());
+                Task.WaitAll(AsyncWorkers.Select(worker => worker.DoWork(jiraInstance)).ToArray());
 
                 jiraInstance.CleanUpAfterRun(Log);
             });
