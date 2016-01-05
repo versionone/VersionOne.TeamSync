@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using log4net;
 using Newtonsoft.Json.Linq;
 using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.Interfaces;
@@ -68,7 +67,7 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
         public const string ReopenedStatus = "Reopened";
         private const int ConnectionAttempts = 3;
 
-        private readonly ILog _log;
+        private readonly IV1Log _log;
         private readonly IJiraConnector _connector;
         private MetaProject _projectMeta;
         private JiraVersionInfo _jiraVersionInfo;
@@ -106,26 +105,27 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
             _jiraSettings = jiraSettings;
         }
 
-        public Jira(IJiraConnector connector)
+        public Jira(IJiraConnector connector, IV1LogFactory v1LogFactory)
         {
             _connector = connector;
             InstanceUrl = _connector.BaseUrl;
+            _log = v1LogFactory.Create<Jira>();
         }
 
-        public Jira(IJiraConnector connector, ProjectMapping projectMapping, string runFromThisDateOn) : this(connector)
+        public Jira(IJiraConnector connector, IV1LogFactory v1LogFactory, ProjectMapping projectMapping, string runFromThisDateOn)
+            : this(connector, v1LogFactory)
         {
             JiraProject = projectMapping.JiraProject;
             V1Project = projectMapping.V1Project;
             EpicCategory = projectMapping.EpicSyncType;
             RunFromThisDateOn = runFromThisDateOn;
-            _log = LogManager.GetLogger(typeof(Jira));
+            
         }
 
-        public Jira(IJiraConnector connector, MetaProject project, ILog log)
-            : this(connector)
+        public Jira(IJiraConnector connector, IV1LogFactory v1LogFactory, MetaProject project)
+            : this(connector, v1LogFactory)
         {
             _projectMeta = project;
-            _log = log;
         }
 
         public bool ValidateConnection()

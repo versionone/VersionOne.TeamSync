@@ -15,8 +15,7 @@ namespace VersionOne.TeamSync.Service
     {
         private Timer _timer;
         private static TimeSpan _serviceDuration;
-        [ImportMany] 
-        private IEnumerable<IV1StartupWorkerFactory> _startupWorkerFactories;
+        [Import]
         private IV1StartupWorker _worker;
         private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
 		private CompositionContainer _container;
@@ -39,11 +38,9 @@ namespace VersionOne.TeamSync.Service
         {
             try
             {
-                var firstStartupWorkerFactory = _startupWorkerFactories.FirstOrDefault();
                 _serviceDuration = new TimeSpan(0, 0, ServiceSettings.Settings.SyncIntervalInSeconds);
 
                 StartMessage();
-                _worker = firstStartupWorkerFactory.Create(_container);
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();
                 _worker.ValidateMemberAccountPermissions();
