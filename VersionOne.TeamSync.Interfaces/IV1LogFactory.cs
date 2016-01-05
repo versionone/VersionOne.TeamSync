@@ -2,7 +2,7 @@
 
 namespace VersionOne.TeamSync.Interfaces
 {
-	[InheritedExport]
+    [InheritedExport]
 	public interface IV1LogFactory
 	{
 		IV1Log Create<T>() where T : class;

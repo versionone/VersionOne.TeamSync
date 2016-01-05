@@ -1,5 +1,8 @@
-﻿namespace VersionOne.TeamSync.Interfaces
+﻿using System.ComponentModel.Composition;
+
+namespace VersionOne.TeamSync.Interfaces
 {
+    [InheritedExport]
     public interface IV1StartupWorker
     {
         void DoFirstRun();

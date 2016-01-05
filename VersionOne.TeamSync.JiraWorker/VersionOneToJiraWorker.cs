@@ -11,54 +11,22 @@ using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.VersionOne.Domain;
-using System.ComponentModel.Composition.Hosting;
 
 namespace VersionOne.TeamSync.JiraWorker
 {
-    public class VersionOneToJiraWorkerFactory : IV1StartupWorkerFactory
-    {
-        public IV1StartupWorker Create(CompositionContainer container)
-        {
-            var worker = new VersionOneToJiraWorker();
-            container.ComposeParts(worker);
-            return worker;
-        }
-    }
-
     public class VersionOneToJiraWorker : IV1StartupWorker
     {
         private readonly IV1 _v1;
         private readonly IList<IJira> _jiraInstances;
-        private List<IAsyncWorker> _asyncWorkers;
+        private readonly List<IAsyncWorker> _asyncWorkers;
+        private readonly IV1LogFactory _v1LogFactory;
+        private readonly IV1Log _v1Log;
 
-        private List<IAsyncWorker> AsyncWorkers
+        [ImportingConstructor]
+        public VersionOneToJiraWorker([Import]IV1LogFactory v1LogFactory)
         {
-            get
-            {
-                return _asyncWorkers ?? (_asyncWorkers = new List<IAsyncWorker>
-                {
-                    new EpicWorker(_v1, Log),
-                    new StoryWorker(_v1, Log),
-                    new DefectWorker(_v1, Log),
-                    new ActualsWorker(_v1, Log)
-                });
-            }
-        }
-            
-        [Import] 
-        private IV1LogFactory _v1LogFactory;
-
-        private IV1Log _v1Log;
-
-        private IV1Log Log
-        {
-            get { return _v1Log ?? (_v1Log = _v1LogFactory.Create<VersionOneToJiraWorker>()); }
-        }
-
-        public VersionOneToJiraWorker()
-        {
+            _v1Log = v1LogFactory.Create<VersionOneToJiraWorker>();
             _v1 = new V1();
-
             _jiraInstances = new List<IJira>();
 
             var jiraDate = GetRunFrom();
@@ -69,18 +37,18 @@ namespace VersionOne.TeamSync.JiraWorker
                 
                 var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())
-                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, pm, jiraDate)));
+                    projectMappings.ForEach(pm => _jiraInstances.Add(new Jira(connector, v1LogFactory, pm, jiraDate)));
                 else
-                    Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
+                    _v1Log.ErrorFormat("Jira server '{0}' requires that project mappings are set in the configuration file.", serverSettings.Name);
             }
 
-            //_asyncWorkers = new List<IAsyncWorker>
-            //{
-            //    new EpicWorker(_v1, Log),
-            //    new StoryWorker(_v1, Log),
-            //    new DefectWorker(_v1, Log),
-            //    new ActualsWorker(_v1, Log)
-            //};
+            _asyncWorkers = new List<IAsyncWorker>
+            {
+                new EpicWorker(_v1, _v1Log),
+                new StoryWorker(_v1, _v1Log),
+                new DefectWorker(_v1, _v1Log),
+                new ActualsWorker(_v1, _v1Log)
+            };
         }
 
         private DateTime GetRunFrom()
@@ -92,11 +60,11 @@ namespace VersionOne.TeamSync.JiraWorker
             if (string.IsNullOrEmpty(runDate))
             {
                 parsedRunFromDate = new DateTime(1980, 1, 1);
-                Log.Info("No date found, defaulting to " + parsedRunFromDate.ToString("yyyy-MM-dd"));
+                _v1Log.Info("No date found, defaulting to " + parsedRunFromDate.ToString("yyyy-MM-dd"));
             }
             else if (!DateTime.TryParseExact(runDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedRunFromDate))
             {
-                Log.Error("Invalid date : " + runDate);
+                _v1Log.Error("Invalid date : " + runDate);
                 throw new ConfigurationErrorsException("RunFromThisDateOn contains an invalid entry");
             }
 
@@ -106,35 +74,35 @@ namespace VersionOne.TeamSync.JiraWorker
         public void DoFirstRun()
         {
             var syncTime = DateTime.Now;
-            Log.Info("Beginning first run...");
+            _v1Log.Info("Beginning first run...");
 
             _jiraInstances.ToList().ForEach(jiraInstance => 
             {
-                Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
-                Task.WaitAll(AsyncWorkers.Select(worker => worker.DoFirstRun(jiraInstance)).ToArray());
-                jiraInstance.CleanUpAfterRun(Log);
+                _v1Log.Info(string.Format("Doing first run between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
+                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoFirstRun(jiraInstance)).ToArray());
+                jiraInstance.CleanUpAfterRun(_v1Log);
             });
 
-            Log.Info("Ending first run...");
-            Log.DebugFormat("Total time: {0}", DateTime.Now - syncTime);
+            _v1Log.Info("Ending first run...");
+            _v1Log.DebugFormat("Total time: {0}", DateTime.Now - syncTime);
         }
 
         public void DoWork()
         {
             var syncTime = DateTime.Now;
-            Log.Info("Beginning sync...");
+            _v1Log.Info("Beginning sync...");
 
             _jiraInstances.ToList().ForEach(jiraInstance =>
             {
-                Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
+                _v1Log.Info(string.Format("Syncing between {0} and {1}", jiraInstance.JiraProject, jiraInstance.V1Project));
 
-                Task.WaitAll(AsyncWorkers.Select(worker => worker.DoWork(jiraInstance)).ToArray());
+                Task.WaitAll(_asyncWorkers.Select(worker => worker.DoWork(jiraInstance)).ToArray());
 
-                jiraInstance.CleanUpAfterRun(Log);
+                jiraInstance.CleanUpAfterRun(_v1Log);
             });
 
-            Log.Info("Ending sync...");
-            Log.DebugFormat("Total sync time: {0}", DateTime.Now - syncTime);
+            _v1Log.Info("Ending sync...");
+            _v1Log.DebugFormat("Total sync time: {0}", DateTime.Now - syncTime);
         }
 
         public bool IsActualWorkEnabled
@@ -146,23 +114,23 @@ namespace VersionOne.TeamSync.JiraWorker
         {
             if (_jiraInstances.Any())
             {
-                Log.Info("Verifying VersionOne connection...");
-                Log.DebugFormat("URL: {0}", _v1.InstanceUrl);
+                _v1Log.Info("Verifying VersionOne connection...");
+                _v1Log.DebugFormat("URL: {0}", _v1.InstanceUrl);
                 if (_v1.ValidateConnection())
                 {
-                    Log.Info("VersionOne connection successful!");
+                    _v1Log.Info("VersionOne connection successful!");
                 }
                 else
                 {
-                    Log.Error("VersionOne connection failed.");
+                    _v1Log.Error("VersionOne connection failed.");
                     throw new Exception(string.Format("Unable to validate connection to {0}.", _v1.InstanceUrl));
                 }
 
                 foreach (var jiraInstanceInfo in _jiraInstances.ToList())
                 {
-                    Log.InfoFormat("Verifying Jira connection...");
-                    Log.DebugFormat("URL: {0}", jiraInstanceInfo.InstanceUrl);
-                    Log.Info(jiraInstanceInfo.ValidateConnection()
+                    _v1Log.InfoFormat("Verifying Jira connection...");
+                    _v1Log.DebugFormat("URL: {0}", jiraInstanceInfo.InstanceUrl);
+                    _v1Log.Info(jiraInstanceInfo.ValidateConnection()
                         ? "Jira connection successful!"
                         : "Jira connection failed!");
                 }
@@ -178,33 +146,33 @@ namespace VersionOne.TeamSync.JiraWorker
             foreach (var jiraInstance in _jiraInstances.ToList())
             {
                 var isMappingValid = true;
-                Log.InfoFormat("Verifying V1ProjectID={1} to JiraProjectID={0} project mapping...", jiraInstance.JiraProject, jiraInstance.V1Project);
+                _v1Log.InfoFormat("Verifying V1ProjectID={1} to JiraProjectID={0} project mapping...", jiraInstance.JiraProject, jiraInstance.V1Project);
 
                 if (!jiraInstance.ValidateProjectExists())
                 {
-                    Log.ErrorFormat("Jira project '{0}' does not exist. Current project mapping will be ignored", jiraInstance.JiraProject);
+                    _v1Log.ErrorFormat("Jira project '{0}' does not exist. Current project mapping will be ignored", jiraInstance.JiraProject);
                     isMappingValid = false;
                 }
                 if (!_v1.ValidateProjectExists(jiraInstance.V1Project))
                 {
-                    Log.ErrorFormat(
+                    _v1Log.ErrorFormat(
                         "VersionOne project '{0}' does not exist or does not have a role assigned for user {1}. Current project mapping will be ignored",
                         jiraInstance.V1Project, V1Settings.Settings.Username);
                     isMappingValid = false;
                 }
                 if (!_v1.ValidateEpicCategoryExists(jiraInstance.EpicCategory))
                 {
-                    Log.ErrorFormat("VersionOne Epic Category '{0}' does not exist. Current project mapping will be ignored", jiraInstance.EpicCategory);
+                    _v1Log.ErrorFormat("VersionOne Epic Category '{0}' does not exist. Current project mapping will be ignored", jiraInstance.EpicCategory);
                     isMappingValid = false;
                 }
 
                 if (isMappingValid)
                 {
-                    Log.Info("Mapping successful! Projects will be synchronized.");
+                    _v1Log.Info("Mapping successful! Projects will be synchronized.");
                 }
                 else
                 {
-                    Log.Error("Mapping failed. Projects will not be synchronized.");
+                    _v1Log.Error("Mapping failed. Projects will not be synchronized.");
                     _jiraInstances.Remove(jiraInstance);
                 }
             }
@@ -215,29 +183,29 @@ namespace VersionOne.TeamSync.JiraWorker
 
         public void ValidateMemberAccountPermissions()
         {
-            Log.Info("Verifying VersionOne member account permissions...");
-            Log.DebugFormat("Member: {0}", _v1.MemberId);
+            _v1Log.Info("Verifying VersionOne member account permissions...");
+            _v1Log.DebugFormat("Member: {0}", _v1.MemberId);
             if (_v1.ValidateMemberPermissions())
             {
-                Log.Info("VersionOne member account has valid permissions.");
+                _v1Log.Info("VersionOne member account has valid permissions.");
             }
             else
             {
-                Log.Error("VersionOne member account is not valid, default role must be Project Lead or higher.");
+                _v1Log.Error("VersionOne member account is not valid, default role must be Project Lead or higher.");
                 throw new Exception(string.Format("Unable to validate permissions for {0}.", _v1.MemberId));
             }
 
             foreach (var jiraInstanceInfo in _jiraInstances.ToList())
             {
-                Log.InfoFormat("Verifying JIRA member account permissions...");
-                Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.InstanceUrl, jiraInstanceInfo.Username);
+                _v1Log.InfoFormat("Verifying JIRA member account permissions...");
+                _v1Log.DebugFormat("Server: {0}, User: {1}", jiraInstanceInfo.InstanceUrl, jiraInstanceInfo.Username);
                 if (jiraInstanceInfo.ValidateMemberPermissions())
                 {
-                    Log.Info("JIRA user has valid permissions.");
+                    _v1Log.Info("JIRA user has valid permissions.");
                 }
                 else
                 {
-                    Log.Error("JIRA user is not valid, must belong to 'jira-developers' or 'jira-administrators' group.");
+                    _v1Log.Error("JIRA user is not valid, must belong to 'jira-developers' or 'jira-administrators' group.");
                     throw new Exception(string.Format("Unable to validate permissions for user {0}.", jiraInstanceInfo.Username));
                 }
             }
@@ -247,11 +215,11 @@ namespace VersionOne.TeamSync.JiraWorker
         //{
         //    foreach (var jiraInstance in _jiraInstances.ToList())
         //    {
-        //        Log.InfoFormat("Validating iteration schedule for {0}.", jiraInstance.V1ProjectId);
+        //        _v1Log.InfoFormat("Validating iteration schedule for {0}.", jiraInstance.V1ProjectId);
 
         //        if (_v1.ValidateScheduleExists(jiraInstance.V1ProjectId))
         //        {
-        //            Log.DebugFormat("Schedule found!");
+        //            _v1Log.DebugFormat("Schedule found!");
         //        }
         //        else
         //        {
@@ -260,25 +228,25 @@ namespace VersionOne.TeamSync.JiraWorker
         //            {
         //                var id = result.Root.Attribute("id").Value;
         //                var scheduleId = id.Substring(0, id.LastIndexOf(':')); // OID without snapshot ID
-        //                Log.DebugFormat("Created schedule {0} for project {1}.", scheduleId, jiraInstance.V1ProjectId);
+        //                _v1Log.DebugFormat("Created schedule {0} for project {1}.", scheduleId, jiraInstance.V1ProjectId);
 
 
         //                result = _v1.SetScheduleToProject(jiraInstance.V1ProjectId, scheduleId).Result;
         //                if (!result.Root.Name.LocalName.Equals("Error"))
         //                {
-        //                    Log.DebugFormat("Schedule {0} is now set to project {1}", scheduleId, jiraInstance.V1ProjectId);
+        //                    _v1Log.DebugFormat("Schedule {0} is now set to project {1}", scheduleId, jiraInstance.V1ProjectId);
         //                }
         //                else
         //                {
         //                    LogVersionOneErrorMessage(result);
-        //                    Log.WarnFormat("Unable to set schedule {0} to project {1}.", scheduleId, jiraInstance.V1ProjectId);
+        //                    _v1Log.WarnFormat("Unable to set schedule {0} to project {1}.", scheduleId, jiraInstance.V1ProjectId);
         //                    ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
         //                }
         //            }
         //            else
         //            {
         //                LogVersionOneErrorMessage(result);
-        //                Log.WarnFormat("Unable to create schedule for {0}, project will not be synchronized.", jiraInstance.V1ProjectId);
+        //                _v1Log.WarnFormat("Unable to create schedule for {0}, project will not be synchronized.", jiraInstance.V1ProjectId);
         //                ((HashSet<V1JiraInfo>)_jiraInstances).Remove(jiraInstance);
         //            }
         //        }
@@ -298,7 +266,7 @@ namespace VersionOne.TeamSync.JiraWorker
                     var jiraDefaultPriorityId = jira.GetPriorityId(serverSettings.PriorityMappings.DefaultJiraPriority);
                     if (jiraDefaultPriorityId == null)
                     {
-                        Log.DebugFormat(
+                        _v1Log.DebugFormat(
                             "Jira default priority '{0}' not found on Jira Server '{1}'. Server won't be synced",
                             serverSettings.PriorityMappings.DefaultJiraPriority, serverSettings.Url);
                         _jiraInstances.Where(j => j.InstanceUrl.Equals(serverSettings.Url))
@@ -313,12 +281,12 @@ namespace VersionOne.TeamSync.JiraWorker
                             var v1WorkitemPriorityId = _v1.GetPriorityId("WorkitemPriority", priorityMapping.V1Priority).Result;
                             priorityMapping.V1WorkitemPriorityId = v1WorkitemPriorityId;
                             if (v1WorkitemPriorityId == null)
-                                Log.DebugFormat("Version One workintem priority '{0}' not found. Default priority will be set", priorityMapping.V1Priority);
+                                _v1Log.DebugFormat("Version One workintem priority '{0}' not found. Default priority will be set", priorityMapping.V1Priority);
 
                             var jiraIssuePriorityId = jira.GetPriorityId(priorityMapping.JiraPriority);
                             priorityMapping.JiraIssuePriorityId = jiraIssuePriorityId;
                             if (jiraIssuePriorityId == null)
-                                Log.DebugFormat("Jira priority '{0}' not found. No priority will be set", priorityMapping.JiraPriority);
+                                _v1Log.DebugFormat("Jira priority '{0}' not found. No priority will be set", priorityMapping.JiraPriority);
                         }
                     }
                 }
@@ -339,11 +307,11 @@ namespace VersionOne.TeamSync.JiraWorker
                         {
                             var jiraStatusId = jira.GetStatusId(statusMapping.JiraStatus);
                             if (jiraStatusId == null)
-                                Log.DebugFormat("Jira status '{0}' not found. No status will be set", statusMapping.JiraStatus);
+                                _v1Log.DebugFormat("Jira status '{0}' not found. No status will be set", statusMapping.JiraStatus);
 
                             var v1StatusId = _v1.GetStatusIdFromName(statusMapping.V1Status).Result;
                             if (v1StatusId == null)
-                                Log.DebugFormat("Version One status '{0}' not found. No status will be set", statusMapping.V1Status);
+                                _v1Log.DebugFormat("Version One status '{0}' not found. No status will be set", statusMapping.V1Status);
                         }
                     }
                 }
@@ -360,7 +328,7 @@ namespace VersionOne.TeamSync.JiraWorker
                     var messageNode = exceptionNode.Element("Message");
                     if (messageNode != null)
                     {
-                        Log.Error(messageNode.Value);
+                        _v1Log.Error(messageNode.Value);
                     }
                 }
             }
