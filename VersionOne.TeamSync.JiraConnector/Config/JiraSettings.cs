@@ -34,10 +34,24 @@ namespace VersionOne.TeamSync.JiraConnector.Config
             return _instance;
         }
 
-        [ConfigurationProperty("runFromThisDateOn", IsRequired = false)]
+        [ConfigurationProperty("runFromThisDateOn", IsRequired = false, DefaultValue = "01/01/1980")]
+        [CallbackValidator(Type = typeof(JiraSettings), CallbackMethodName = "ValidateRunFromThisDateOn")]
         public string RunFromThisDateOn
         {
             get { return (string)this["runFromThisDateOn"]; }
+        }
+
+        public static void ValidateRunFromThisDateOn(object value)
+        {
+            var validator = new RegexStringValidator(@"^\d{2}/\d{2}/\d{4}$");
+            try
+            {
+                validator.Validate(value);
+            }
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException(string.Format("Invalid date: {0}", value), e.ParamName, e);
+            }
         }
 
         [ConfigurationProperty("servers", IsDefaultCollection = true)]
