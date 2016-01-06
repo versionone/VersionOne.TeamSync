@@ -16,17 +16,16 @@ namespace VersionOne.TeamSync.JiraWorker
 {
     public class VersionOneToJiraWorker : IV1StartupWorker
     {
+        [Import]
         private readonly IV1 _v1;
         private readonly IList<IJira> _jiraInstances;
         private readonly List<IAsyncWorker> _asyncWorkers;
-        private readonly IV1LogFactory _v1LogFactory;
         private readonly IV1Log _v1Log;
 
         [ImportingConstructor]
         public VersionOneToJiraWorker([Import]IV1LogFactory v1LogFactory)
         {
             _v1Log = v1LogFactory.Create<VersionOneToJiraWorker>();
-            _v1 = new V1();
             _jiraInstances = new List<IJira>();
 
             var jiraDate = GetRunFrom();
