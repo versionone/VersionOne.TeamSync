@@ -133,7 +133,7 @@ namespace VersionOne.TeamSync.Worker.Domain
         public async Task<List<Epic>> GetEpicsWithoutReferenceUpdatedSince(string v1Project, string epicCategory, DateTime updatedDate)
         {
             return await _connector.Query("Epic",
-                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name" },
+                new[] { "ID.Number", "Name", "Description", "Scope.Name", "Priority.Name", "ChangeDateUTC", "CreateDateUTC" },
                 new[]
                 {
                     string.Format(WhereReference, ""),

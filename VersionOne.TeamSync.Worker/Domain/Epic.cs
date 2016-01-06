@@ -26,6 +26,10 @@ namespace VersionOne.TeamSync.Worker.Domain
         public string Priority { get; set; }
         public string Status { get; set; }
 
+        public string CreateDateUTC { get; set; }
+        public string ChangeDateUTC { get; set; }
+
+
         public static Epic FromQuery(XElement asset)
         {
             var attributes = asset.Elements("Attribute").ToDictionary(item => item.Attribute("name").Value, item => item.Value);
@@ -39,7 +43,9 @@ namespace VersionOne.TeamSync.Worker.Domain
                 Reference = attributes.GetValueOrDefault("Reference"),
                 ScopeName = attributes.GetValueOrDefault("Scope.Name"),
                 Priority = attributes.GetValueOrDefault("Priority.Name"),
-                Status = attributes.GetValueOrDefault("Status.Name")
+                Status = attributes.GetValueOrDefault("Status.Name"),
+                CreateDateUTC = attributes.GetValueOrDefault("CreateDateUTC"),
+                ChangeDateUTC = attributes.GetValueOrDefault("ChangeDateUTC")
             };
         }
 

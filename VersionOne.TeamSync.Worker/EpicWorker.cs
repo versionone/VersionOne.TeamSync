@@ -112,7 +112,10 @@ namespace VersionOne.TeamSync.Worker
         public async Task CreateEpics(IJira jiraInstance)
         {
             var epics = await _v1.GetEpicsWithoutReferenceUpdatedSince(jiraInstance.V1Project, jiraInstance.EpicCategory, _lastSyncDate);
-            CreateEpics(jiraInstance, epics);
+            // if CreateDateUTC == ChangeDateUTC then epic was not updated
+            var updatedEpics = epics.Where(e => !e.CreateDateUTC.Equals(e.ChangeDateUTC)).ToList();
+
+            CreateEpics(jiraInstance, updatedEpics);
         }
 
         public async Task UpdateEpics(IJira jiraInstance)
