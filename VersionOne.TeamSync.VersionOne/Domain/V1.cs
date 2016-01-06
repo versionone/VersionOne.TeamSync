@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Core.Extensions;
 using VersionOne.TeamSync.Interfaces;
@@ -76,13 +76,15 @@ namespace VersionOne.TeamSync.VersionOne.Domain
         private const string WhereEpicCategory = "Category=\"{0}\"";
         private const string CreateOnUTC_before = "CreateDateUTC>={0}";
 
-        private static readonly ILog Log = LogManager.GetLogger(typeof(V1));
+        private readonly IV1Log _log;
         private readonly string[] _numberNameDescriptRef = { "ID.Number", "Name", "Description", "Reference" };
 
         private IV1Connector _connector;
 
-        public V1()
+        [ImportingConstructor]
+        public V1([Import]IV1LogFactory v1LogFactory)
         {
+            _log = v1LogFactory.Create<V1>();
             BuildConnectorFromConfig();
         }
 
@@ -232,7 +234,7 @@ namespace VersionOne.TeamSync.VersionOne.Domain
         {
             for (var i = 0; i < ConnectionAttempts; i++)
             {
-                Log.DebugFormat("Connection attempt {0}.", i + 1);
+                _log.DebugFormat("Connection attempt {0}.", i + 1);
 
                 try
                 {
@@ -245,8 +247,8 @@ namespace VersionOne.TeamSync.VersionOne.Domain
                 }
                 catch (Exception e)
                 {
-                    Log.Error("VersionOne connection failed.");
-                    Log.Error(e.Message);
+                    _log.Error("VersionOne connection failed.");
+                    _log.Error(e.Message);
                     return false;
                 }
             }
