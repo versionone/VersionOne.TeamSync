@@ -3,6 +3,7 @@ using System.Net;
 using log4net;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 
@@ -43,7 +44,7 @@ namespace VersionOne.TeamSync.Core.Tests.Jira
         protected const string IssueKey = "AKey-10";
 
         protected Mock<IJiraConnector> MockConnector = new Mock<IJiraConnector>();
-        protected Mock<ILog> MockLogger = new Mock<ILog>();
+        protected Mock<IV1Log> MockLogger = new Mock<IV1Log>();
         protected Transition ReturnTransition = new Transition();
 
         public virtual void Context()
@@ -58,7 +59,10 @@ namespace VersionOne.TeamSync.Core.Tests.Jira
 
         protected void RunIt()
         {
-            var jira = new JiraWorker.Domain.Jira(MockConnector.Object, null, MockLogger.Object);
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraWorker.Domain.Jira>()).Returns(MockLogger.Object);
+
+            var jira = new JiraWorker.Domain.Jira(MockConnector.Object, mockLoggerFactory.Object, null);
 
             jira.SetIssueToResolved(IssueKey, new[] { "Done" });
         }

@@ -9,6 +9,7 @@ using Moq;
 using RestSharp;
 using Should;
 using VersionOne.TeamSync.Core.Extensions;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
@@ -119,8 +120,12 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void should_request_an_update_correctly()
         {
-            var mockLogger = new Mock<ILog>();
+            var mockLogger = new Mock<IV1Log>();
             mockLogger.Setup(x => x.Info(It.IsAny<string>()));
+
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraWorker.Domain.Jira>()).Returns(mockLogger.Object);
+
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.Get<TransitionResponse>(It.IsAny<string>(), It.IsAny<KeyValuePair<string, string>>(), It.IsAny<Dictionary<string, string>>()))
                 .Returns(new TransitionResponse
@@ -134,7 +139,7 @@ namespace VersionOne.TeamSync.Core.Tests
             mockConnector.Setup(x => x.Post("api/latest/issue/{issueIdOrKey}/transitions", It.IsAny<object>(), HttpStatusCode.NoContent, new KeyValuePair<string, string>("issueIdOrKey", IssueKey)))
                 .Verifiable();
 
-            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, null, mockLogger.Object);
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, mockLoggerFactory.Object, null);
 
             jira.SetIssueToToDo(IssueKey, new[] { "Done" });
 
@@ -154,6 +159,11 @@ namespace VersionOne.TeamSync.Core.Tests
         public void when_doing_an_epic_search()
         {
             var mockConnector = new Mock<IJiraConnector>();
+            var mockLogger = new Mock<IV1Log>();
+            mockLogger.Setup(x => x.Info(It.IsAny<string>()));
+
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraWorker.Domain.Jira>()).Returns(mockLogger.Object);
 
             _jqOperators = new List<JqOperator>();
             _whereItems = new List<string>();
@@ -164,7 +174,7 @@ namespace VersionOne.TeamSync.Core.Tests
                     _whereItems.AddRange(enumerable);
                 });
 
-            var jira = new JiraWorker.Domain.Jira(mockConnector.Object);
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, mockLoggerFactory.Object);
 
             jira.GetEpicByKey(IssueKey);
         }
@@ -354,12 +364,12 @@ namespace VersionOne.TeamSync.Core.Tests
     [TestClass]
     public class dealing_with_a_property_that_isnt_visible
     {
-        private Mock<ILog> _mockLogger;
+        private Mock<IV1Log> _mockLogger;
 
         [TestInitialize]
         public void getting_jira_stories()
         {
-            _mockLogger = new Mock<ILog>();
+            _mockLogger = new Mock<IV1Log>();
             var dictionary = new Dictionary<string, string>
             {
                 {"Story Points", "value value"},
@@ -387,13 +397,13 @@ namespace VersionOne.TeamSync.Core.Tests
 
         private List<JqOperator> _jqOperators;
         private List<string> _whereItems;
-        private Mock<ILog> _mockLogger;
+        private Mock<IV1Log> _mockLogger;
 
         [TestInitialize]
         public void getting_jira_stories()
         {
             var mockConnector = new Mock<IJiraConnector>();
-
+            
             _jqOperators = new List<JqOperator>();
             _whereItems = new List<string>();
             mockConnector.Setup(x => x.GetSearchResults(It.IsAny<IList<JqOperator>>(), It.IsAny<IEnumerable<string>>(), It.IsAny<Action<string, Fields, Dictionary<string, object>>>()))
@@ -402,10 +412,12 @@ namespace VersionOne.TeamSync.Core.Tests
                     _jqOperators.AddRange(list);
                     _whereItems.AddRange(enumerable);
                 });
-            _mockLogger = new Mock<ILog>();
+            _mockLogger = new Mock<IV1Log>();
             _mockLogger.Setup(x => x.Warn(It.IsAny<string>()));
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraWorker.Domain.Jira>()).Returns(_mockLogger.Object);
 
-            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, new MetaProject
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, mockLoggerFactory.Object, new MetaProject
             {
                 IssueTypes = new List<MetaIssueType>
                 {
@@ -430,7 +442,7 @@ namespace VersionOne.TeamSync.Core.Tests
                         }
                     }
                 }
-            }, _mockLogger.Object);
+            });
 
             jira.GetStoriesWithNoEpicInProject(ProjectKey);
         }
@@ -494,15 +506,18 @@ namespace VersionOne.TeamSync.Core.Tests
         [TestMethod]
         public void Should_not_try_to_delete_it_again()
         {
-            var mockLogger = new Mock<ILog>();
+            var mockLogger = new Mock<IV1Log>();
             mockLogger.Setup(x => x.Error(It.IsAny<string>()));
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraWorker.Domain.Jira>()).Returns(mockLogger.Object);
+            
             var mockConnector = new Mock<IJiraConnector>();
             mockConnector.Setup(x => x.GetSearchResults(It.IsAny<List<JqOperator>>(), It.IsAny<IEnumerable<string>>())
                 ).Returns(new SearchResult
                 {
                     ErrorMessages = new List<string> { "An issue with key 'AS-25' does not exist for field 'key'." }
                 });
-            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, null, mockLogger.Object);
+            var jira = new JiraWorker.Domain.Jira(mockConnector.Object, mockLoggerFactory.Object, null);
 
             jira.DeleteEpicIfExists(IssueKey);
 

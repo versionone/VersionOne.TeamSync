@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Should;
 using VersionOne.TeamSync.Core.Tests.Workers;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Interfaces;
 using VersionOne.TeamSync.JiraWorker;
@@ -48,7 +49,10 @@ namespace VersionOne.TeamSync.Core.Tests
                 }
             };
 
-            Jira = new JiraWorker.Domain.Jira(MockJiraConnector.Object, ProjectMeta, null);
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraWorker.Domain.Jira>()).Returns(MockV1Log.Object);
+
+            Jira = new JiraWorker.Domain.Jira(MockJiraConnector.Object, mockLoggerFactory.Object, ProjectMeta);
         }
     }
 
