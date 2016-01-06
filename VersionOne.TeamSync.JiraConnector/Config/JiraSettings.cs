@@ -43,7 +43,7 @@ namespace VersionOne.TeamSync.JiraConnector.Config
 
         public static void ValidateRunFromThisDateOn(object value)
         {
-            var validator = new RegexStringValidator(@"^\d{2}/\d{2}/\d{4}$");
+            var validator = new RegexStringValidator(@"^([0]?[1-9]|[1][0-2])[./-]([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0-9]{4})$");
             try
             {
                 validator.Validate(value);

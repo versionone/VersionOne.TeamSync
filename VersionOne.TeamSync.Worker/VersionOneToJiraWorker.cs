@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -57,7 +58,7 @@ namespace VersionOne.TeamSync.Worker
                 parsedRunFromDate = new DateTime(1980, 1, 1);
                 Log.Info("No date found, defaulting to " + parsedRunFromDate.ToString("yyyy-MM-dd"));
             }
-            else if (!DateTime.TryParse(runDate, out parsedRunFromDate))
+            else if (!DateTime.TryParseExact(runDate, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedRunFromDate))
             {
                 Log.Error("Invalid date : " + runDate);
                 throw new ConfigurationErrorsException("RunFromThisDateOn contains an invalid entry");
