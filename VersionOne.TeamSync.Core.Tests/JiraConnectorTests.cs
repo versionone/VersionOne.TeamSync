@@ -13,7 +13,7 @@ using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
-using VersionOne.TeamSync.JiraConnector.Interfaces;
+using VersionOne.TeamSync.TfsConnector.Interfaces;
 using VersionOne.TeamSync.JiraWorker.Extensions;
 
 namespace VersionOne.TeamSync.Core.Tests

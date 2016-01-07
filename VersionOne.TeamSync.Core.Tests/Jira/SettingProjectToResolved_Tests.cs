@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.JiraConnector.Interfaces;
+using VersionOne.TeamSync.TfsConnector.Interfaces;
 
 namespace VersionOne.TeamSync.Core.Tests.Jira
 {

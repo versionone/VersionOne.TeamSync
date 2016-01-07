@@ -7,7 +7,7 @@ using Should;
 using VersionOne.TeamSync.Core.Tests.Workers;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Entities;
-using VersionOne.TeamSync.JiraConnector.Interfaces;
+using VersionOne.TeamSync.TfsConnector.Interfaces;
 using VersionOne.TeamSync.JiraWorker;
 using VersionOne.TeamSync.JiraWorker.Domain;
 using VersionOne.TeamSync.VersionOne.Domain;
