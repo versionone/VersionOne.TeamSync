@@ -7,13 +7,7 @@ namespace VersionOne.TeamSync.TfsConnector.Config
 {
     public interface ITfsSettings
     {
-        JiraServerCollection Servers { get; set; }
-        string RunFromThisDateOn { get; }
-        string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority);
-        string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority);
-
-        string GetJiraStatusFromMapping(string baseUrl, string jiraProject, string v1Status);
-        string GetV1StatusFromMapping(string baseUrl, string jiraProject, string jiraStatus);
+        TfsServerCollection Servers { get; set; }
     }
 
     public class TfsSettings : ConfigurationSection, ITfsSettings
@@ -28,23 +22,19 @@ namespace VersionOne.TeamSync.TfsConnector.Config
         public static ITfsSettings GetInstance()
         {
             if (_instance == null)
-                _instance = ConfigurationManager.GetSection("jiraSettings") as TfsSettings;
+                _instance = ConfigurationManager.GetSection("tfsSettings") as TfsSettings;
 
             return _instance;
         }
 
-        [ConfigurationProperty("runFromThisDateOn", IsRequired = false)]
-        public string RunFromThisDateOn
-        {
-            get { return (string)this["runFromThisDateOn"]; }
-        }
+    
 
         [ConfigurationProperty("servers", IsDefaultCollection = true)]
-        public JiraServerCollection Servers
+        public TfsServerCollection Servers
         {
             get
             {
-                return (JiraServerCollection)this["servers"];
+                return (TfsServerCollection)this["servers"];
             }
             set
             {
@@ -52,68 +42,13 @@ namespace VersionOne.TeamSync.TfsConnector.Config
             }
         }
 
-        public string GetJiraPriorityIdFromMapping(string baseUrl, string v1Priority)
-        {
-            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
-            var jiraPriorityIdFromMapping = jiraServer.PriorityMappings.DefaultJiraPriorityId;
-            if (!string.IsNullOrEmpty(v1Priority))
-            {
-                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>().FirstOrDefault(pm => pm.V1Priority.Equals(v1Priority));
-                if (mapping != null)
-                    jiraPriorityIdFromMapping = mapping.JiraIssuePriorityId;
-            }
+      
 
-            return jiraPriorityIdFromMapping;
-        }
-
-        public string GetV1PriorityIdFromMapping(string baseUrl, string jiraPriority)
-        {
-            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
-            var v1PriorityIdFromMapping = string.Empty;
-            if (!string.IsNullOrEmpty(jiraPriority))
-            {
-                var mapping = jiraServer.PriorityMappings.Cast<PriorityMapping>().FirstOrDefault(pm => pm.JiraPriority.Equals(jiraPriority));
-                if (mapping != null)
-                    v1PriorityIdFromMapping = mapping.V1WorkitemPriorityId;
-            }
-
-            return v1PriorityIdFromMapping;
-        }
-
-        public string GetJiraStatusFromMapping(string baseUrl, string jiraProject, string v1Status)
-        {
-            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
-            var projectMapping = jiraServer.ProjectMappings.Cast<ProjectMapping>().FirstOrDefault(pm => pm.JiraProject.Equals(jiraProject));
-            if (projectMapping != null)
-            {
-                var statusMapping =
-                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.Enabled && sm.V1Status.Equals(v1Status));
-
-                if (statusMapping != null)
-                    return statusMapping.JiraStatus;
-            }
-
-            return null;
-        }
-
-        public string GetV1StatusFromMapping(string baseUrl, string jiraProject, string jiraStatus)
-        {
-            var jiraServer = Servers.Cast<JiraServer>().Single(serverSettings => serverSettings.Url.Equals(baseUrl));
-            var projectMapping = jiraServer.ProjectMappings.Cast<ProjectMapping>().FirstOrDefault(pm => pm.JiraProject.Equals(jiraProject));
-            if (projectMapping != null)
-            {
-                var statusMapping =
-                    projectMapping.StatusMappings.Cast<StatusMapping>().FirstOrDefault(sm => sm.Enabled && sm.JiraStatus.Equals(jiraStatus));
-
-                if (statusMapping != null)
-                    return statusMapping.V1Status;
-            }
-
-            return null;
-        }
+      
+      
     }
 
-    public class JiraServer : ConfigurationElement
+    public class TfsServer : ConfigurationElement
     {
         [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
         public bool Enabled
@@ -191,8 +126,8 @@ namespace VersionOne.TeamSync.TfsConnector.Config
         }
     }
 
-    [ConfigurationCollection(typeof(JiraServer), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]
-    public class JiraServerCollection : ConfigurationElementCollection
+    [ConfigurationCollection(typeof(TfsServer), CollectionType = ConfigurationElementCollectionType.BasicMapAlternate)]
+    public class TfsServerCollection : ConfigurationElementCollection
     {
         internal const string PropertyName = "server";
 
@@ -211,12 +146,12 @@ namespace VersionOne.TeamSync.TfsConnector.Config
 
         protected override ConfigurationElement CreateNewElement()
         {
-            return new JiraServer();
+            return new TfsServer();
         }
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((JiraServer)(element)).Name;
+            return ((TfsServer)(element)).Name;
         }
 
         public override ConfigurationElementCollectionType CollectionType
@@ -232,11 +167,11 @@ namespace VersionOne.TeamSync.TfsConnector.Config
             return false;
         }
 
-        public JiraServer this[int idx]
+        public TfsServer this[int idx]
         {
             get
             {
-                return (JiraServer)BaseGet(idx);
+                return (TfsServer)BaseGet(idx);
             }
         }
     }
@@ -257,11 +192,11 @@ namespace VersionOne.TeamSync.TfsConnector.Config
             set { this["v1Project"] = value; }
         }
 
-        [ConfigurationProperty("jiraProject", IsRequired = true)]
-        public string JiraProject
+        [ConfigurationProperty("TfsProject", IsRequired = true)]
+        public string TfsProject
         {
-            get { return (string)this["jiraProject"]; }
-            set { this["jiraProject"] = value; }
+            get { return (string)this["TfsProject"]; }
+            set { this["TfsProject"] = value; }
         }
 
         [ConfigurationProperty("epicSyncType", IsRequired = true)]
@@ -310,7 +245,7 @@ namespace VersionOne.TeamSync.TfsConnector.Config
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((ProjectMapping)(element)).V1Project + "/" + ((ProjectMapping)(element)).JiraProject;
+            return ((ProjectMapping)(element)).V1Project + "/" + ((ProjectMapping)(element)).TfsProject;
         }
 
         public override ConfigurationElementCollectionType CollectionType
@@ -338,7 +273,7 @@ namespace VersionOne.TeamSync.TfsConnector.Config
     public class PriorityMapping : ConfigurationElement
     {
         public string V1WorkitemPriorityId { get; set; }
-        public string JiraIssuePriorityId { get; set; }
+        public string TfsIssuePriorityId { get; set; }
 
         [ConfigurationProperty("enabled", IsRequired = true, DefaultValue = true)]
         public bool Enabled
@@ -354,11 +289,11 @@ namespace VersionOne.TeamSync.TfsConnector.Config
             set { this["v1Priority"] = value; }
         }
 
-        [ConfigurationProperty("jiraPriority", IsRequired = true)]
-        public string JiraPriority
+        [ConfigurationProperty("TfsPriority", IsRequired = true)]
+        public string TfsPriority
         {
-            get { return (string)this["jiraPriority"]; }
-            set { this["jiraPriority"] = value; }
+            get { return (string)this["TfsPriority"]; }
+            set { this["TfsPriority"] = value; }
         }
     }
 
@@ -387,7 +322,7 @@ namespace VersionOne.TeamSync.TfsConnector.Config
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((PriorityMapping)(element)).V1Priority + "/" + ((PriorityMapping)(element)).JiraPriority;
+            return ((PriorityMapping)(element)).V1Priority + "/" + ((PriorityMapping)(element)).TfsPriority;
         }
 
         public override ConfigurationElementCollectionType CollectionType
@@ -408,13 +343,13 @@ namespace VersionOne.TeamSync.TfsConnector.Config
             get { return (PriorityMapping)BaseGet(idx); }
         }
 
-        public string DefaultJiraPriorityId { get; set; }
+        public string DefaultTfsPriorityId { get; set; }
 
-        [ConfigurationProperty("defaultJiraPriority", IsRequired = true)]
-        public string DefaultJiraPriority
+        [ConfigurationProperty("defaultTfsPriority", IsRequired = true)]
+        public string DefaultTfsPriority
         {
-            get { return (string)this["defaultJiraPriority"]; }
-            set { this["defaultJiraPriority"] = value; }
+            get { return (string)this["defaultTfsPriority"]; }
+            set { this["defaultTfsPriority"] = value; }
         }
     }
 
@@ -434,11 +369,11 @@ namespace VersionOne.TeamSync.TfsConnector.Config
             set { this["v1Status"] = value; }
         }
 
-        [ConfigurationProperty("jiraStatus", IsRequired = true)]
-        public string JiraStatus
+        [ConfigurationProperty("TfsStatus", IsRequired = true)]
+        public string TfsStatus
         {
-            get { return (string)this["jiraStatus"]; }
-            set { this["jiraStatus"] = value; }
+            get { return (string)this["TfsStatus"]; }
+            set { this["TfsStatus"] = value; }
         }
     }
 
@@ -468,7 +403,7 @@ namespace VersionOne.TeamSync.TfsConnector.Config
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((StatusMapping)(element)).V1Status + "/" + ((StatusMapping)(element)).JiraStatus;
+            return ((StatusMapping)(element)).V1Status + "/" + ((StatusMapping)(element)).TfsStatus;
         }
 
         public override ConfigurationElementCollectionType CollectionType
