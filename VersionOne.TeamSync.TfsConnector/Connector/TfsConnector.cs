@@ -32,48 +32,49 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
         //public const string JiraAgileApiUrl = "agile/latest";
         //public const string InQuery = "{0} in ({1})";
 
-        //private static ILog Log = LogManager.GetLogger(typeof(JiraConnector));
+        public const string TfsRestPath = "/tfs/DefaultCollection/_apis/wit";
 
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new TfsSerializer();
-       //public TfsConnector(TfsServer settings)
-        //{
-        //    if (settings == null)
-        //        throw new ArgumentNullException("settings");
+        
+        public TfsConnector(TfsServer settings)
+        {
+            if (settings == null)
+                throw new ArgumentNullException("settings");
 
-        //    WebProxy proxy = null;
-        //    if (settings.Proxy != null && settings.Proxy.Enabled)
-        //    {
-        //        NetworkCredential cred;
-        //        if (string.IsNullOrEmpty(settings.Proxy.Username))
-        //        {
-        //            cred = (NetworkCredential)CredentialCache.DefaultCredentials;
-        //        }
-        //        else
-        //        {
-        //            cred = new NetworkCredential(settings.Proxy.Username, settings.Proxy.Password);
-        //            if (!string.IsNullOrWhiteSpace(settings.Proxy.Domain))
-        //            {
-        //                cred.Domain = settings.Proxy.Domain;
-        //            }
-        //        }
+            WebProxy proxy = null;
+            if (settings.Proxy != null && settings.Proxy.Enabled)
+            {
+                NetworkCredential cred;
+                if (string.IsNullOrEmpty(settings.Proxy.Username))
+                {
+                    cred = (NetworkCredential)CredentialCache.DefaultCredentials;
+                }
+                else
+                {
+                    cred = new NetworkCredential(settings.Proxy.Username, settings.Proxy.Password);
+                    if (!string.IsNullOrWhiteSpace(settings.Proxy.Domain))
+                    {
+                        cred.Domain = settings.Proxy.Domain;
+                    }
+                }
 
-        //        proxy = new WebProxy(new Uri(settings.Proxy.Url), false, new string[] { }, cred);
-        //    }
+                proxy = new WebProxy(new Uri(settings.Proxy.Url), false, new string[] { }, cred);
+            }
 
-        //    _client = new RestClient(new Uri(new Uri(settings.Url), "/rest").ToString()) { Proxy = proxy };
-        //    BaseUrl = settings.Url;
+            _client = new RestClient(new Uri(new Uri(settings.Url), "/rest").ToString()) { Proxy = proxy };
+            BaseUrl = settings.Url;
 
-        //    if (!string.IsNullOrEmpty(settings.Username) && !string.IsNullOrEmpty(settings.Password))
-        //    {
-        //        _client.Authenticator = new HttpBasicAuthenticator(settings.Username, settings.Password);
-        //        Username = settings.Username;
-        //    }
+            if (!string.IsNullOrEmpty(settings.Username) && !string.IsNullOrEmpty(settings.Password))
+            {
+                _client.Authenticator = new HttpBasicAuthenticator(settings.Username, settings.Password);
+                Username = settings.Username;
+            }
 
-        //    if (settings.IgnoreCertificate)
-        //        ServicePointManager.ServerCertificateValidationCallback =
-        //            (sender, certificate, chain, errors) => true;
-        //}
+            if (settings.IgnoreCertificate)
+                ServicePointManager.ServerCertificateValidationCallback =
+                    (sender, certificate, chain, errors) => true;
+        }
 
      
 
