@@ -66,4 +66,16 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
+<!--create a production version variable based in the assembly info-->
+ <Target Name="BeforeBuild">
+    <!-- Get the programs assembly version from the .exe file -->
+    <GetAssemblyIdentity AssemblyFiles="..\VersionOne.TeamSync.Service\bin\$(Configuration)\VersionOne.TeamSync.Service.exe">
+      <Output TaskParameter="Assemblies" ItemName="AsmInfo" />
+    </GetAssemblyIdentity>
+    <!-- Store the assembly version number in ProductVersion preprocessor variable -->
+    <CreateProperty Value="$(DefineConstants);ProductVersion=%(AsmInfo.Version)">
+      <Output TaskParameter="Value" PropertyName="DefineConstants" />
+    </CreateProperty>
+  </Target>
+
 </Project>

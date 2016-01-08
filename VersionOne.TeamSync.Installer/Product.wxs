@@ -8,7 +8,7 @@
   <Product Id="*" 
            Name="$(var.AppName)" 
            Language="1033" 
-           Version="$(var.AppVersion)" 
+           Version="$(var.ProductVersion)" 
            Manufacturer="$(var.AppManufacturer)" 
            UpgradeCode="0E001EBE-8107-4E59-955F-6AAA6238ADE0" >
 
