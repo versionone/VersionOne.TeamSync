@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using RestSharp;
 using Should;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Entities;
 
 namespace VersionOne.TeamSync.JiraConnector.Tests
@@ -19,7 +20,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
     {
         private List<IRestRequest> _restRequest = new List<IRestRequest>();
         private Mock<IRestResponse>[] _restResponse;
-        private Mock<ILog> _mockLog;
+        private Mock<IV1Log> _mockLog;
         private Mock<IRestClient> _restClient;
         private int callNumber = 0;
 
@@ -47,10 +48,11 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
                 return returnObject;
             });
 
-            _mockLog = new Mock<ILog>();
-            _mockLog.SetupGet(x => x.Logger).Returns(new Mock<ILogger>().Object);
+            _mockLog = new Mock<IV1Log>();
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<Connector.JiraConnector>()).Returns(_mockLog.Object);
 
-            return new JiraConnector.Connector.JiraConnector(_restClient.Object, _mockLog.Object);
+            return new Connector.JiraConnector(_restClient.Object, mockLoggerFactory.Object);
         }
 
         private Mock<IRestResponse> MakeAResponse(HttpStatusCode expectedCode, string content)
@@ -152,7 +154,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
     public class SearchResult_1000_or_less_results_Tests
     {
         private Mock<IRestResponse> _restResponse;
-        private Mock<ILog> _mockLog;
+        private Mock<IV1Log> _mockLog;
         private Mock<IRestClient> _restClient;
 
         private string _overloadedResponse = "{\"startAt\":0,\"maxResults\":1000,\"total\":1000,\"issues\":[{\"id\":5 }]}";
@@ -172,10 +174,11 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
                 return _restResponse.Object;
             });
 
-            _mockLog = new Mock<ILog>();
-            _mockLog.SetupGet(x => x.Logger).Returns(new Mock<ILogger>().Object);
+            _mockLog = new Mock<IV1Log>();
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<Connector.JiraConnector>()).Returns(_mockLog.Object);
 
-            return new JiraConnector.Connector.JiraConnector(_restClient.Object, _mockLog.Object);
+            return new Connector.JiraConnector(_restClient.Object, mockLoggerFactory.Object);
         }
 
         private Mock<IRestResponse> MakeAResponse(HttpStatusCode expectedCode, string content)

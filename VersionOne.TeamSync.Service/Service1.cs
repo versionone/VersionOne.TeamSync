@@ -39,8 +39,6 @@ namespace VersionOne.TeamSync.Service
             try
             {
                 _serviceDuration = TimeSpan.FromMinutes(ServiceSettings.Settings.SyncIntervalInMinutes);
-                var firstStartupWorkerFactory = _startupWorkerFactories.FirstOrDefault();
-
                 StartMessage();
                 _worker.ValidateConnections();
                 _worker.ValidateProjectMappings();

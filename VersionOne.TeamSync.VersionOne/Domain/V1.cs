@@ -14,6 +14,7 @@ using VersionOne.TeamSync.VersionOne.Extensions;
 
 namespace VersionOne.TeamSync.VersionOne.Domain
 {
+    [InheritedExport]
     public interface IV1
     {
         string InstanceUrl { get; }

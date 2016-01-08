@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using RestSharp.Authenticators;
 using RestSharp.Serializers;
-using VersionOne.TeamSync.Core;
+using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.JiraConnector.Config;
 using VersionOne.TeamSync.JiraConnector.Entities;
 using VersionOne.TeamSync.JiraConnector.Exceptions;
@@ -23,8 +22,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         public const string JiraAgileApiUrl = "agile/latest";
         public const string InQuery = "{0} in ({1})";
 
-        private static ILog Log = LogManager.GetLogger(typeof(JiraConnector));
-
+        private IV1Log _log;
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new JiraSerializer();
 
@@ -32,10 +30,13 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         public string Username { get; private set; }
 
-        public JiraConnector(JiraServer settings)
+        public JiraConnector(JiraServer settings, IV1LogFactory v1LogFactory = null)
         {
             if (settings == null)
                 throw new ArgumentNullException("settings");
+            
+            if (v1LogFactory != null)
+                _log = v1LogFactory.Create<JiraConnector>();
 
             WebProxy proxy = null;
             if (settings.Proxy != null && settings.Proxy.Enabled)
@@ -76,10 +77,11 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
         {
         }
 
-        public JiraConnector(IRestClient restClient, ILog logger)
+        public JiraConnector(IRestClient restClient, IV1LogFactory v1LogFactory = null)
         {
             _client = restClient;
-            Log = logger;
+            if (v1LogFactory != null)
+                _log = v1LogFactory.Create<JiraConnector>();
         }
 
         #region EXECUTE
@@ -247,7 +249,8 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             if (result.total <= 1000)
                 return result;
 
-            Log.Info("More than 1000 results found ... gathering up all " + result.total);
+            if (_log != null)
+                _log.Info("More than 1000 results found ... gathering up all " + result.total);
 
             var timesToRun = Math.Abs(result.maxResults/1000);
 
@@ -446,42 +449,48 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         private void LogResponse(IRestResponse resp)
         {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine("RESPONSE");
-            stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);
-            stringBuilder.AppendLine("\tHeaders: ");
-            foreach (var header in resp.Headers)
+            if (_log != null)
             {
-                stringBuilder.AppendLine("\t\t" + header.Name + "=" + string.Join(", ", header.Value));
-            }
-            stringBuilder.AppendLine("\tBody: ");
-            stringBuilder.AppendLine("\t\t" + resp.Content);
+                var stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("RESPONSE");
+                stringBuilder.AppendLine("\tStatus code: " + resp.StatusCode);
+                stringBuilder.AppendLine("\tHeaders: ");
+                foreach (var header in resp.Headers)
+                {
+                    stringBuilder.AppendLine("\t\t" + header.Name + "=" + string.Join(", ", header.Value));
+                }
+                stringBuilder.AppendLine("\tBody: ");
+                stringBuilder.AppendLine("\t\t" + resp.Content);
 
-            Log.Trace(stringBuilder.ToString());
+                _log.Trace(stringBuilder.ToString());
+            }
         }
 
         private void LogRequest(IRestClient client, IRestRequest req)
         {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine("REQUEST");
-            stringBuilder.AppendLine("\tMethod: " + req.Method);
-            stringBuilder.AppendLine("\tRequest URL: " + client.BaseUrl + "/" + req.Resource);
-            stringBuilder.AppendLine("\tHeaders: ");
-            foreach (var parameter in req.Parameters.Where(param => param.Type == ParameterType.HttpHeader))
+            if (_log != null)
             {
-                stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
-            }
-            stringBuilder.AppendLine("\tQuery params: ");
-            foreach (var parameter in req.Parameters.Where(param => param.Type == ParameterType.QueryString))
-            {
-                stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
-            }
+                var stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("REQUEST");
+                stringBuilder.AppendLine("\tMethod: " + req.Method);
+                stringBuilder.AppendLine("\tRequest URL: " + client.BaseUrl + "/" + req.Resource);
+                stringBuilder.AppendLine("\tHeaders: ");
+                foreach (var parameter in req.Parameters.Where(param => param.Type == ParameterType.HttpHeader))
+                {
+                    stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
+                }
+                stringBuilder.AppendLine("\tQuery params: ");
+                foreach (var parameter in req.Parameters.Where(param => param.Type == ParameterType.QueryString))
+                {
+                    stringBuilder.AppendLine("\t\t" + parameter.Name + "=" + string.Join(", ", parameter.Value));
+                }
 
-            stringBuilder.AppendLine("\tBody: ");
-            var reqBody = req.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
-            stringBuilder.AppendLine("\t\t" + reqBody);
+                stringBuilder.AppendLine("\tBody: ");
+                var reqBody = req.Parameters.FirstOrDefault(p => p.Type == ParameterType.RequestBody);
+                stringBuilder.AppendLine("\t\t" + reqBody);
 
-            Log.Trace(stringBuilder.ToString());
+                _log.Trace(stringBuilder.ToString());
+            }
         }
 
         #endregion

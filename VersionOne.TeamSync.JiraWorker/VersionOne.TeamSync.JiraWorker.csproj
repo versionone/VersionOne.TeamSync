@@ -85,6 +85,10 @@
       <Project>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</Project>
       <Name>VersionOne.TeamSync.JiraConnector</Name>
     </ProjectReference>
+    <ProjectReference Include="..\VersionOne.TeamSync.Service\VersionOne.TeamSync.Service.csproj">
+      <Project>{29AE818B-33C5-4DC9-A5E8-F01D6404D94B}</Project>
+      <Name>VersionOne.TeamSync.Service</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.VersionOne\VersionOne.TeamSync.VersionOne.csproj">
       <Project>{C9992783-26DE-4D44-B29F-36B9CE0C8D81}</Project>
       <Name>VersionOne.TeamSync.VersionOne</Name>

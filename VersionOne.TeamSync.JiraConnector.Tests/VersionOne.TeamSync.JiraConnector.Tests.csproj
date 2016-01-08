@@ -75,9 +75,17 @@
     <Compile Include="SearchResultPagingTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\VersionOne.TeamSync.Interfaces\VersionOne.TeamSync.Interfaces.csproj">
+      <Project>{50C7AAF3-8374-490F-91EB-DD693FF423A6}</Project>
+      <Name>VersionOne.TeamSync.Interfaces</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.JiraConnector\VersionOne.TeamSync.JiraConnector.csproj">
       <Project>{57F712AE-9E25-4578-BB06-71AFE3121DEB}</Project>
       <Name>VersionOne.TeamSync.JiraConnector</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VersionOne.TeamSync.JiraWorker\VersionOne.TeamSync.JiraWorker.csproj">
+      <Project>{52681EF1-BAE1-4E7D-82A7-9BF3638CEFF9}</Project>
+      <Name>VersionOne.TeamSync.JiraWorker</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

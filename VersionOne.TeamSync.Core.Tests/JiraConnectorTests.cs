@@ -236,10 +236,11 @@ namespace VersionOne.TeamSync.Core.Tests
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
-            var logger = new Mock<ILog>();
-            logger.SetupGet(x => x.Logger).Returns(new Mock<ILogger>().Object);
+            var logger = new Mock<IV1Log>();
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraConnector.Connector.JiraConnector>()).Returns(logger.Object);
 
-            return new JiraConnector.Connector.JiraConnector(restClient.Object, logger.Object);
+            return new JiraConnector.Connector.JiraConnector(restClient.Object, mockLoggerFactory.Object);
         }
 
         [TestMethod]
@@ -318,10 +319,11 @@ namespace VersionOne.TeamSync.Core.Tests
             restClient.Setup(x => x.BaseUrl).Returns(new Uri("http://baseUrl"));
             restClient.Setup(x => x.Execute(_restRequest.Object)).Returns(_restResponse.Object);
 
-            var logger = new Mock<ILog>();
-            logger.SetupGet(x => x.Logger).Returns(new Mock<ILogger>().Object);
+            var logger = new Mock<IV1Log>();
+            var mockLoggerFactory = new Mock<IV1LogFactory>();
+            mockLoggerFactory.Setup(x => x.Create<JiraConnector.Connector.JiraConnector>()).Returns(logger.Object);
 
-            return new JiraConnector.Connector.JiraConnector(restClient.Object, logger.Object);
+            return new JiraConnector.Connector.JiraConnector(restClient.Object, mockLoggerFactory.Object);
         }
 
         [TestMethod]

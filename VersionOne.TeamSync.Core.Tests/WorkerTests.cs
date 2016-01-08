@@ -99,7 +99,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
     public class Worker_when_there_is_a_new_epic_in_v1 : worker_bits
     {
-        protected Epic Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1", Status = "" };
+        protected Epic Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1", Status = "", CreateDateUTC = "01-01-2015", ChangeDateUTC = "01-03-2015"};
         protected ItemBase ItemBase;
 
         private EpicWorker _worker;
@@ -109,10 +109,6 @@ namespace VersionOne.TeamSync.Core.Tests
             BuildContext();
             ItemBase = new ItemBase { Key = JiraKey };
 
-            //MockV1.Setup(x => x.GetEpicsWithoutReference(ProjectId, EpicCategory)).ReturnsAsync(new List<Epic>
-            //{
-            //    Epic
-            //});
             MockV1.Setup(x => x.GetEpicsWithoutReferenceUpdatedSince(ProjectId, EpicCategory, It.IsAny<DateTime>())).ReturnsAsync(new List<Epic>
             {
                 Epic

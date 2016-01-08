@@ -117,7 +117,7 @@ namespace VersionOne.TeamSync.JiraWorker.Domain
             _log = v1LogFactory.Create<Jira>();
         }
 
-        public Jira(IJiraConnector connector, IV1LogFactory v1LogFactory, ProjectMapping projectMapping, string runFromThisDateOn)
+        public Jira(IJiraConnector connector, IV1LogFactory v1LogFactory, ProjectMapping projectMapping, DateTime runFromThisDateOn)
             : this(connector, v1LogFactory)
         {
             JiraProject = projectMapping.JiraProject;

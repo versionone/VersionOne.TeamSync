@@ -16,15 +16,15 @@ namespace VersionOne.TeamSync.JiraWorker
 {
     public class VersionOneToJiraWorker : IV1StartupWorker
     {
-        [Import]
         private readonly IV1 _v1;
         private readonly IList<IJira> _jiraInstances;
         private readonly List<IAsyncWorker> _asyncWorkers;
         private readonly IV1Log _v1Log;
 
         [ImportingConstructor]
-        public VersionOneToJiraWorker([Import]IV1LogFactory v1LogFactory)
+        public VersionOneToJiraWorker([Import]IV1LogFactory v1LogFactory, [Import]IV1 v1)
         {
+            _v1 = v1;
             _v1Log = v1LogFactory.Create<VersionOneToJiraWorker>();
             _jiraInstances = new List<IJira>();
 
@@ -32,7 +32,7 @@ namespace VersionOne.TeamSync.JiraWorker
 
             foreach (var serverSettings in JiraSettings.GetInstance().Servers.Cast<JiraServer>().Where(s => s.Enabled))
             {
-                var connector = new JiraConnector.Connector.JiraConnector(serverSettings);
+                var connector = new JiraConnector.Connector.JiraConnector(serverSettings, v1LogFactory);
                 
                 var projectMappings = serverSettings.ProjectMappings.Cast<ProjectMapping>().Where(p => p.Enabled && !string.IsNullOrEmpty(p.JiraProject) && !string.IsNullOrEmpty(p.V1Project) && !string.IsNullOrEmpty(p.EpicSyncType)).ToList();
                 if (projectMappings.Any())
