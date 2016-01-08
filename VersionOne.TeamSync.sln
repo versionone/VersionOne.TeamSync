@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Service", "VersionOne.TeamSync.Service\VersionOne.TeamSync.Service.csproj", "{29AE818B-33C5-4DC9-A5E8-F01D6404D94B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -59,6 +59,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.Interfaces", "VersionOne.TeamSync.Interfaces\VersionOne.TeamSync.Interfaces.csproj", "{50C7AAF3-8374-490F-91EB-DD693FF423A6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.TfsWorker", "VersionOne.TeamSync.TfsWorker\VersionOne.TeamSync.TfsWorker.csproj", "{C358F722-8089-45AC-923D-53EDA823CDCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VersionOne.TeamSync.TfsConnector", "VersionOne.TeamSync.TfsConnector\VersionOne.TeamSync.TfsConnector.csproj", "{C218A2CC-8344-4974-86BF-EB84AD318E86}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -241,6 +243,18 @@ Global
 		{C358F722-8089-45AC-923D-53EDA823CDCD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C358F722-8089-45AC-923D-53EDA823CDCD}.Release|x64.ActiveCfg = Release|Any CPU
 		{C358F722-8089-45AC-923D-53EDA823CDCD}.Release|x86.ActiveCfg = Release|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Release|x64.ActiveCfg = Release|Any CPU
+		{C218A2CC-8344-4974-86BF-EB84AD318E86}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
