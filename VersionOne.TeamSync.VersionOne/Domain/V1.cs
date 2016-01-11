@@ -92,7 +92,7 @@ namespace VersionOne.TeamSync.VersionOne.Domain
         public V1([Import]IV1LogFactory v1LogFactory)
         {
             _log = v1LogFactory.Create<V1>();
-            BuildConnectorFromConfig();
+            BuildConnectorFromConfig(v1LogFactory);
         }
 
         public V1(IV1Connector v1Connector)
@@ -512,7 +512,7 @@ namespace VersionOne.TeamSync.VersionOne.Domain
             return result.FirstOrDefault();
         }
 
-        private void BuildConnectorFromConfig()
+        private void BuildConnectorFromConfig(IV1LogFactory v1LogFactory)
         {
             var anonymousConnector = V1Connector.V1Connector.WithInstanceUrl(V1Settings.Settings.Url)
                 .WithUserAgentHeader(Assembly.GetCallingAssembly().GetName().Name, Assembly.GetCallingAssembly().GetName().Version.ToString());
@@ -555,7 +555,7 @@ namespace VersionOne.TeamSync.VersionOne.Domain
                     V1Settings.Settings.Proxy.Domain));
             }
 
-            _connector = authConnector.Build();
+            _connector = authConnector.Build(v1LogFactory);
         }
     }
 }

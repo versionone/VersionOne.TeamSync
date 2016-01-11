@@ -8,8 +8,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using log4net;
-using VersionOne.TeamSync.Core;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.V1Connector.Extensions;
 
@@ -21,12 +19,12 @@ namespace VersionOne.TeamSync.V1Connector
         private const string DATA_API_ENDPOINT = "rest-1.v1/Data";
         private const string QUERY_STRING_OPERATION = "{0}/{1}?op={2}";
 
-        private static readonly ILog Log = LogManager.GetLogger(typeof(V1Connector));
         private readonly Uri _baseAddress;
         private ICredentials _networkCreds;
         private readonly IDictionary<string, string> _requestHeaders = new Dictionary<string, string>();
         private bool _useOAuthEndpoints;
         private IWebProxy _proxy;
+        private IV1Log _log;
 
         public V1Connector(string instanceUrl)
         {
@@ -284,7 +282,7 @@ namespace VersionOne.TeamSync.V1Connector
             stringBuilder.AppendLine("\tBody: ");
             stringBuilder.AppendLine("\t\t" + (resp.Content != null ? resp.Content.ReadAsStringAsync().Result : string.Empty));
 
-            Log.Trace(stringBuilder.ToString());
+            _log.Trace(stringBuilder.ToString());
         }
 
         private void LogRequest(HttpRequestMessage rm, string rc)
@@ -301,7 +299,7 @@ namespace VersionOne.TeamSync.V1Connector
             stringBuilder.AppendLine("\tBody: ");
             stringBuilder.AppendLine("\t\t" + rc);
 
-            Log.Trace(stringBuilder.ToString());
+            _log.Trace(stringBuilder.ToString());
         }
 
         private string GetEndpoint()
@@ -316,6 +314,7 @@ namespace VersionOne.TeamSync.V1Connector
             public Builder(string versionOneInstanceUrl)
             {
                 _instance = new V1Connector(versionOneInstanceUrl);
+                
             }
 
             public ICanSetAuthMethod WithUserAgentHeader(string name, string version)
@@ -396,8 +395,9 @@ namespace VersionOne.TeamSync.V1Connector
                 return this;
             }
 
-            public IV1Connector Build()
+            public IV1Connector Build(IV1LogFactory v1LogFactory)
             {
+                _instance._log = v1LogFactory.Create<V1Connector>();
                 return _instance;
             }
 

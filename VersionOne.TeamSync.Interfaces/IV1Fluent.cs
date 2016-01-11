@@ -57,7 +57,7 @@
         /// Required terminating method that returns the V1Connector object.
         /// </summary>
         /// <returns>V1Connector</returns>
-        IV1Connector Build();
+        IV1Connector Build(IV1LogFactory v1LogFactory);
     }
 
     public interface ICanSetProxyOrEndpointOrGetConnector : ICanSetEndpoint, ICanGetConnector
