@@ -274,7 +274,6 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             return result;
         }
 
-
         public SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties) //not entirely convinced this belongs here
         {
             var path = string.Format("{0}/search", JiraRestApiUrl);

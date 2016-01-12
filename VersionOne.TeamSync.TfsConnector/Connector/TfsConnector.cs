@@ -18,6 +18,9 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 {
     public class TfsConnector : ITfsConnector
     {
+        public const string TfsRestApiUrl = "/tfs/DefaultCollection/_apis";
+        public const string TfsApiVersion = "api-version=1.0";
+        public const string TfsRestPath = "/tfs/DefaultCollection/_apis/wit";
 
         private readonly IV1Log _v1Log;
 
@@ -32,13 +35,13 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
         //public const string JiraAgileApiUrl = "agile/latest";
         //public const string InQuery = "{0} in ({1})";
 
-        public const string TfsRestPath = "/tfs/DefaultCollection/_apis/wit";
-
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new TfsSerializer();
         
-        public TfsConnector(TfsServer settings)
+        public TfsConnector(TfsServer settings, IV1LogFactory v1LogFactory)
         {
+            _v1Log = v1LogFactory.Create<TfsConnector>();
+
             if (settings == null)
                 throw new ArgumentNullException("settings");
 
@@ -62,7 +65,7 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
                 proxy = new WebProxy(new Uri(settings.Proxy.Url), false, new string[] { }, cred);
             }
 
-            _client = new RestClient(new Uri(new Uri(settings.Url), "/rest").ToString()) { Proxy = proxy };
+            _client = new RestClient(new Uri(settings.Url).ToString()) { Proxy = proxy };
             BaseUrl = settings.Url;
 
             if (!string.IsNullOrEmpty(settings.Username) && !string.IsNullOrEmpty(settings.Password))
@@ -76,14 +79,11 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
                     (sender, certificate, chain, errors) => true;
         }
 
-     
-
         //public TfsConnector(IRestClient restClient, ILog logger)
         //{
         //    _client = restClient;
         //    Log = logger;
         //}
-
 
         #region EXECUTE
 
@@ -103,15 +103,9 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 
     
 
-        public string BaseUrl
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public string BaseUrl { get; set; }
 
-        public string Username
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public string Username { get; set; }
 
         public string Password
         {
@@ -243,7 +237,21 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 
         public bool IsConnectionValid()
         {
-            throw new NotImplementedException();
+            var path = string.Format("{0}/projects?{1}&$top=1", TfsRestApiUrl, TfsApiVersion);
+
+            var request = BuildGetRequest(path, default(KeyValuePair<string, string>), default(IDictionary<string, string>));
+            LogRequest(_client, request);
+
+            var response = _client.Execute(request);
+            LogResponse(response);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                throw new TfsLoginException("Could not connect to TFS. Bad credentials.");
+
+            if (!string.IsNullOrWhiteSpace(response.ErrorMessage))
+                throw new TfsException("Could not connect to TFS. Bad url.");
+
+            return response.StatusCode.Equals(HttpStatusCode.OK);
         }
 
         public bool ProjectExists(string projectIdOrKey)
