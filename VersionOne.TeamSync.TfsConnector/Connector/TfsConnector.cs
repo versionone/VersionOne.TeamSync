@@ -256,7 +256,21 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 
         public bool ProjectExists(string projectIdOrKey)
         {
-            throw new NotImplementedException();
+            var path = string.Format("{0}/projects/{1}?{2}", TfsRestApiUrl, projectIdOrKey, TfsApiVersion);
+            var request = BuildGetRequest(path, default(KeyValuePair<string, string>), default(IDictionary<string, string>));
+
+            try
+            {
+                Execute(request, HttpStatusCode.OK);
+                return true;
+            }
+            catch (TfsException e)
+            {
+                if (e.StatusCode.Equals(HttpStatusCode.NotFound))
+                    return false;
+
+                throw new TfsException("TFS project not found."); ;
+            }
         }
 
         #endregion
