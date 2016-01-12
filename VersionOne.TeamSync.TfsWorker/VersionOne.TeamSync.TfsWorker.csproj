@@ -33,8 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="RestSharp">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net451\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -52,14 +56,22 @@
       <Project>{50c7aaf3-8374-490f-91eb-dd693ff423a6}</Project>
       <Name>VersionOne.TeamSync.Interfaces</Name>
     </ProjectReference>
+    <ProjectReference Include="..\VersionOne.TeamSync.TfsConnector\VersionOne.TeamSync.TfsConnector.csproj">
+      <Project>{C218A2CC-8344-4974-86BF-EB84AD318E86}</Project>
+      <Name>VersionOne.TeamSync.TfsConnector</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VersionOne.TeamSync.VersionOne\VersionOne.TeamSync.VersionOne.csproj">
       <Project>{C9992783-26DE-4D44-B29F-36B9CE0C8D81}</Project>
       <Name>VersionOne.TeamSync.VersionOne</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y "$(TargetDir)*.dll" "$(SolutionDir)\VersionOne.TeamSync.Service\bin\$(ConfigurationName)\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y "$(TargetDir)*.dll" "$(SolutionDir)\VersionOne.TeamSync.Service\bin\Debug\"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -4,6 +4,9 @@ using System.Threading;
 using VersionOne.TeamSync.Interfaces;
 using VersionOne.TeamSync.VersionOne.Domain;
 using System.ComponentModel.Composition;
+using System.Linq;
+using VersionOne.TeamSync.TfsConnector.Config;
+using VersionOne.TeamSync.TfsConnector.Interfaces;
 
 namespace VersionOne.TeamSync.TfsWorker
 {
@@ -12,11 +15,19 @@ namespace VersionOne.TeamSync.TfsWorker
         private readonly IV1 _v1;
         private readonly List<IAsyncWorker> _asyncWorkers;
 		private readonly IV1Log _v1Log;
+        private List<ITfsConnector> _connectors = new List<ITfsConnector>();
 
         [ImportingConstructor]
-        public VersionOneToTfsWorker([Import]IV1LogFactory v1LogFactory)
+        public VersionOneToTfsWorker([Import]IV1LogFactory v1LogFactory, [Import]IV1 v1)
         {
             _v1Log = v1LogFactory.Create<VersionOneToTfsWorker>();
+            _v1 = v1;
+            var settings = TfsSettings.GetInstance();
+
+            foreach (var server in settings.Servers.Cast<TfsServer>())
+            {
+                _connectors.Add(new TfsConnector.Connector.TfsConnector(server, v1LogFactory));
+            }
         }
 
         public void DoFirstRun()
@@ -44,25 +55,10 @@ namespace VersionOne.TeamSync.TfsWorker
 
         public void ValidateConnections()
         {
-            if (_v1Log == null)
+            foreach (var tfsConnector in _connectors)
             {
-                System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", new List<string>() {"_v1log is null"});
-			}
-			else
-			{
-				System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", new List<string>() { "_v1log exists and is NOT null" });
-			}
-
-          
-            _v1Log.Info("<DUMMY> Verifying VersionOne connection...");
-            _v1Log.DebugFormat("<DUMMY> URL: {0}", "http://localhost/VersionOne");
-            Thread.Sleep(2500);
-            _v1Log.Info("<DUMMY> VersionOne connection successful!");
-            
-            _v1Log.InfoFormat("<DUMMY> Verifying TFS connection...");
-            _v1Log.DebugFormat("<DUMMY> URL: {0}", "http://dummy.tfs.url");
-            Thread.Sleep(2500);
-            _v1Log.Info("<DUMMY> TFS connection successful!");
+                tfsConnector.IsConnectionValid();
+            }
         }
 
         public void ValidateProjectMappings()
