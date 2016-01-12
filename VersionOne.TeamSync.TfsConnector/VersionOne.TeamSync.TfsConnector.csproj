@@ -54,12 +54,14 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Config\TfsSettings.cs" />
+    <Compile Include="Connector\TfsConnectorFactory.cs" />
     <Compile Include="Connector\TfsSerializer.cs" />
     <Compile Include="Connector\TfsConnector.cs" />
     <Compile Include="Entities\TfsBase.cs" />
     <Compile Include="Exceptions\TfsException.cs" />
     <Compile Include="Exceptions\TfsLoginException.cs" />
     <Compile Include="Interfaces\ITfsConnector.cs" />
+    <Compile Include="Interfaces\ITfsConnectorFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
