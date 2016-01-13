@@ -60,11 +60,6 @@ namespace VersionOne.TeamSync.TfsConnector.Config
                 this["servers"] = value;
             }
         }
-
-      
-
-      
-      
     }
 
     public class TfsServer : ConfigurationElement
