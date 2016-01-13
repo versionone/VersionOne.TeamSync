@@ -31,10 +31,6 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
             _client = restClient;
         }
 
-        //public const string JiraRestApiUrl = "api/latest";
-        //public const string JiraAgileApiUrl = "agile/latest";
-        //public const string InQuery = "{0} in ({1})";
-
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new TfsSerializer();
         
