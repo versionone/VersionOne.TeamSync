@@ -47,6 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Domain\ITfs.cs" />
+    <Compile Include="Domain\ITfsFactory.cs" />
+    <Compile Include="Domain\Tfs.cs" />
+    <Compile Include="Domain\TfsFactory.cs" />
+    <Compile Include="Domain\TfsProjectMapping.cs" />
     <Compile Include="IAsyncWorker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VersionOneToTfsWorker.cs" />

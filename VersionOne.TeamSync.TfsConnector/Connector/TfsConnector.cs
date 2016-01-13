@@ -23,6 +23,8 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
         public const string TfsRestPath = "/tfs/DefaultCollection/_apis/wit";
 
         private readonly IV1Log _v1Log;
+        private readonly IRestClient _client;
+        private readonly ISerializer _serializer = new TfsSerializer();
 
         [ImportingConstructor]
         public TfsConnector(IRestClient restClient, [Import] IV1LogFactory v1LogFactory)
@@ -30,10 +32,7 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
             _v1Log = v1LogFactory.Create<TfsConnector>();
             _client = restClient;
         }
-
-        private readonly IRestClient _client;
-        private readonly ISerializer _serializer = new TfsSerializer();
-        
+       
         public TfsConnector(TfsServer settings, IV1LogFactory v1LogFactory)
         {
             _v1Log = v1LogFactory.Create<TfsConnector>();
@@ -96,8 +95,6 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 
             throw ProcessResponseError(response);
         }
-
-    
 
         public string BaseUrl { get; set; }
 
@@ -265,7 +262,7 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
                 if (e.StatusCode.Equals(HttpStatusCode.NotFound))
                     return false;
 
-                throw new TfsException("TFS project not found."); ;
+                throw;
             }
         }
 
