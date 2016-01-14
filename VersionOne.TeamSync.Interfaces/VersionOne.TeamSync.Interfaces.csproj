@@ -59,11 +59,15 @@
     <Compile Include="IV1ConnectorFactory.cs" />
     <Compile Include="IV1Fluent.cs" />
     <Compile Include="IV1LogFactory.cs" />
+    <Compile Include="RestClient\ITeamSyncRestClient.cs" />
     <Compile Include="IV1StartupWorker.cs" />
     <Compile Include="IV1StartupWorkerFactory.cs" />
     <Compile Include="LevelFilter.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RestClient\ITeamSyncRestClientFactory.cs" />
+    <Compile Include="RestClient\ITeamSyncRestResponse.cs" />
+    <Compile Include="RestClient\TeamSyncRestClientSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

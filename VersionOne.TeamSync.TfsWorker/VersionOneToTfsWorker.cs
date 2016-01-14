@@ -18,7 +18,7 @@ namespace VersionOne.TeamSync.TfsWorker
         private List<ITfsConnector> _connectors = new List<ITfsConnector>();
 
         [ImportingConstructor]
-        public VersionOneToTfsWorker([Import]IV1LogFactory v1LogFactory, [Import]IV1 v1, [Import] ITfsConnectorFactory tfsConnectorFactory)
+        public VersionOneToTfsWorker([Import]IV1LogFactory v1LogFactory, [Import]IV1 v1, [Import]ITfsConnectorFactory tfsConnectorFactory)
         {
             _v1Log = v1LogFactory.Create<VersionOneToTfsWorker>();
             _v1 = v1;
