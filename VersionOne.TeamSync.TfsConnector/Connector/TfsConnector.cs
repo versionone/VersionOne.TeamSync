@@ -26,19 +26,27 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
         private readonly IRestClient _client;
         private readonly ISerializer _serializer = new TfsSerializer();
 
+        public string BaseUrl { get; set; }
+
+        public string Username { get; set; }
+
+        public string Password  { get; set; }
+      
         [ImportingConstructor]
         public TfsConnector(IRestClient restClient, [Import] IV1LogFactory v1LogFactory)
         {
+            if (v1LogFactory != null)
             _v1Log = v1LogFactory.Create<TfsConnector>();
             _client = restClient;
         }
-       
-        public TfsConnector(TfsServer settings, IV1LogFactory v1LogFactory)
-        {
-            _v1Log = v1LogFactory.Create<TfsConnector>();
 
+        public TfsConnector(TfsServer settings, IV1LogFactory v1LogFactory = null)
+        {
             if (settings == null)
                 throw new ArgumentNullException("settings");
+
+            if (v1LogFactory != null)
+                _v1Log = v1LogFactory.Create<TfsConnector>();
 
             WebProxy proxy = null;
             if (settings.Proxy != null && settings.Proxy.Enabled)
@@ -74,11 +82,10 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
                     (sender, certificate, chain, errors) => true;
         }
 
-        //public TfsConnector(IRestClient restClient, ILog logger)
-        //{
-        //    _client = restClient;
-        //    Log = logger;
-        //}
+        public TfsConnector(string baseUrl, string username, string password)
+            : this(new TfsServer { Url = baseUrl, Username = username, Password = password })
+        {
+        }
 
         #region EXECUTE
 
@@ -94,15 +101,6 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
                 return response.Content;
 
             throw ProcessResponseError(response);
-        }
-
-        public string BaseUrl { get; set; }
-
-        public string Username { get; set; }
-
-        public string Password
-        {
-            get { throw new NotImplementedException(); }
         }
 
         public T Execute<T>(IRestRequest request, HttpStatusCode responseStatusCode) where T : new()
@@ -228,6 +226,9 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
             return Execute(request, responseStatusCode);
         }
 
+        #endregion
+
+        
         public bool IsConnectionValid()
         {
             var path = string.Format("{0}/projects?{1}&$top=1", TfsRestApiUrl, TfsApiVersion);
@@ -265,8 +266,6 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
                 throw;
             }
         }
-
-        #endregion
 
         #region HELPER METHODS
 
