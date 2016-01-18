@@ -60,7 +60,7 @@ namespace VersionOne.TeamSync.TfsConnector.Tests
 		public class TFS_allows_connection_but_returns_an_error : TFS_connection_base_test
 		{
 			private readonly string ErrorMessage = "This is some crazy error!";
-			private TfsException ExpectedException;
+			private TfsException ThrownException;
 
 			[TestInitialize]
 			public void Context()
@@ -72,38 +72,67 @@ namespace VersionOne.TeamSync.TfsConnector.Tests
 				}
 				catch (TfsException exception)
 				{
-					ExpectedException = exception;
+					ThrownException = exception;
 				}
 			}
 
 			[TestMethod]
-			public void TfsException_is_raised()
+            public void ThrownException_is_of_type_TfsException()
 			{
-				ExpectedException.ShouldNotBeNull();
+                ThrownException.ShouldBeType<TfsException>();
 			}
 
 			[TestMethod]
 			public void TfsException_Message_should_be_generic()
 			{
-				ExpectedException.Message.ShouldEqual("Could not connect to TFS.");
+				ThrownException.Message.ShouldEqual("Could not connect to TFS.");
 			}
 
 			[TestMethod]
 			public void TfsException_contains_an_InnerException()
 			{
-				ExpectedException.InnerException.ShouldNotBeNull();
+				ThrownException.InnerException.ShouldNotBeNull();
 			}
 
 			[TestMethod]
 			public void TfsException_InnerException_Message_should_be_TFS_response_ErrorMessage()
 			{
-				ExpectedException.InnerException.Message.ShouldEqual(ErrorMessage);
+				ThrownException.InnerException.Message.ShouldEqual(ErrorMessage);
 			}
 		}
 		
 		[TestClass]
-		public class TFS_rejects_connection
+        public class TFS_rejects_connection : TFS_connection_base_test
 		{
+
+            private TfsException ThrownException;
+
+            [TestInitialize]
+            public void Context()
+            {
+                SetupRestResponse(HttpStatusCode.Unauthorized);
+
+                try
+                {
+                    SUT.IsConnectionValid();
+                }
+                catch (TfsException exception)
+                {
+                    ThrownException = exception;
+                }
+            }
+
+            [TestMethod]
+            public void ThrownException_is_of_type_TfsLoginException()
+            {
+                ThrownException.ShouldBeType<TfsLoginException>();
+            }
+
+            [TestMethod]
+            public void ThrownException_Message_should_be_specific()
+            {
+                ThrownException.Message.ShouldEqual("Could not connect to TFS. Bad credentials.");
+            }
 
 		}
 	}
