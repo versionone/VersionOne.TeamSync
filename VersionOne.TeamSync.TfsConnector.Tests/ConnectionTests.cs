@@ -116,7 +116,7 @@ namespace VersionOne.TeamSync.TfsConnector.Tests
                 {
                     SUT.IsConnectionValid();
                 }
-                catch (TfsException exception)
+                catch (TfsLoginException exception)
                 {
                     ThrownException = exception;
                 }
