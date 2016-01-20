@@ -97,6 +97,7 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 		public bool ProjectExists(string projectIdOrKey)
 		{
 			var path = string.Format("{0}/projects/{1}?{2}", TfsRestApiUrl, projectIdOrKey, TfsApiVersion);
+            
 			try
 			{
 				var response = _client.Execute(path);
@@ -106,7 +107,8 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 			{
 				if (e.StatusCode.Equals(HttpStatusCode.NotFound))
 					return false;
-                throw;
+
+			    throw;
 			}
 		}
 	}
