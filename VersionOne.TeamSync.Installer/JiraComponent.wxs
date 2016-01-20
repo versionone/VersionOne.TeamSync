@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+ 
+  <?include $(sys.CURRENTDIR)\Config.wxi ?>
+	
+  <Fragment>
+    <!-- Jira installation Component. -->
+    <Component Id="VersionOne.TeamSync.JiraConnector.dll" Directory="INSTALLFOLDER">
+      <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraConnector.dll" />
+    </Component>
+  </Fragment>
+</Wix>

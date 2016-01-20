@@ -20,77 +20,20 @@
              InstallPrivileges="elevated" 
              Platform="$(var.Platform)" />
 
-    <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service. -->
-    <Condition Message="You must be an administrator to install VersionOne TeamSync.">Privileged</Condition>
-    
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-
     <!-- Cabinet files should be embedded in the installer. -->
     <MediaTemplate EmbedCab="yes"/>
+    <!-- WixUI_InstallDir shows a dialog where the user can change the installation path. . -->
+    <UIRef Id="WixUI_InstallDir"/>
 
-    <!-- Installs to C:\Program Files...\VersionOne TeamSync\ directory. -->
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="$(var.PlatformProgramFilesFolder)">
-        <Directory Id="INSTALLFOLDER" Name="$(var.AppName)" />
-      </Directory>
-    </Directory>
+    <!-- Require installer to run as admin account, needed for launching system tray app with access to TeamSync service. -->
+    <Condition Message="You must be an administrator to install VersionOne TeamSync.">Privileged</Condition>
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
-    <!-- Components included in the installation. -->
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <Component Id="HtmlAgilityPack.dll">
-        <File Source="$(var.SourceDir)\HtmlAgilityPack.dll" />
-      </Component>
-      <Component Id="InstallUtil.exe">
-        <File Source="$(var.SourceDir)\InstallUtil.exe" />
-      </Component>
-      <Component Id="log4net.dll">
-        <File Source="$(var.SourceDir)\log4net.dll" />
-      </Component>
-      <Component Id="Newtonsoft.Json.dll">
-        <File Source="$(var.SourceDir)\Newtonsoft.Json.dll" />
-      </Component>
-      <Component Id="RestSharp.dll">
-        <File Source="$(var.SourceDir)\RestSharp.dll" />
-      </Component>
-      <Component Id="VersionOne.TeamSync.Core.dll">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Core.dll" />
-      </Component>
-      <Component Id="VersionOne.TeamSync.JiraConnector.dll">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraConnector.dll" />
-      </Component>
-      <Component Id="VersionOne.TeamSync.Service.exe">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Service.exe" />
-
-        <!-- Installs the TeamSync service. -->
-        <ServiceInstall Id="ServiceInstaller"
-                            Type="ownProcess"
-                            Name="VersionOne.TeamSync.Service"
-                            DisplayName="[ProductName] Service"
-                            Description="Manages VersionOne integrations with external team tools."
-                            Start="demand"
-                            ErrorControl="normal" />
-        <ServiceControl Id="StartService" Stop="both" Remove="uninstall" Name="VersionOne.TeamSync.Service" Wait="no" />
-
-      </Component>
-      <Component Id="VersionOne.TeamSync.Service.exe.config">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Service.exe.config" />
-      </Component>
-      <Component Id="VersionOne.TeamSync.SystemTray.exe">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.SystemTray.exe" />
-      </Component>
-      <Component Id="VersionOne.TeamSync.SystemTray.exe.config">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.SystemTray.exe.config" />
-      </Component>
-      <Component Id="VersionOne.TeamSync.V1Connector.dll">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.V1Connector.dll" />
-      </Component>
-      <Component Id="VersionOne.TeamSync.Worker.dll">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Worker.dll" />
-      </Component>
-      <Component Id="versionone_logo_noTagline.png">
-        <File Source="$(var.SourceDir)\versionone-logo-noTagline.png" />
-      </Component>
-    </ComponentGroup>
+    <!-- Verify the .NET Framework version. -->
+    <PropertyRef Id="NETFRAMEWORK45"/>
+    <Condition Message="[ProductName] requires .NET Framework 4.5.1. Please install the correct .NET Framework version then run this installer again.">
+      <![CDATA[Installed OR NETFRAMEWORK45 >= "#378675"]]>
+    </Condition>
 
     <!-- Create registry entry to auto-launch system tray. -->
     <Component Id="RegistryEntries" Directory="INSTALLFOLDER">
@@ -102,35 +45,54 @@
     <!-- Single feature application. -->
     <Feature Id="ProductFeature" Title="VersionOne.TeamSync.Installer" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="VersionOne.TeamSync.JiraConnector.dll" />
       <ComponentRef Id="RegistryEntries" />
     </Feature>
 
-    <!-- Displays installation path in WiX installer UI. -->
+    <!--  WIXUI_INSTALLDIR to the Id you gave your install directory. -->
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
-    <UIRef Id="WixUI_InstallDir"/>
-
+    
     <!-- Overrides the default WiX license file. -->
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
     <!-- Overrides the default WiX UI graphics. -->
     <WixVariable Id="WixUIDialogBmp" Value="dialogBMP.bmp" />
     <WixVariable Id="WixUIBannerBmp" Value="uibanner-transparent.bmp" />
-
     <!-- Icon used in Control Panel's Add/Remove Programs list. -->
     <Icon Id="icon.ico" SourceFile="$(var.SourceDir)\v1-icon-48x48.ico" />
+
     <Property Id="ARPPRODUCTICON" Value="icon.ico" />
 
-    <!-- Verify the .NET Framework version. -->
-    <PropertyRef Id="NETFRAMEWORK45"/>
-    <Condition Message="[ProductName] requires .NET Framework 4.5.1. Please install the correct .NET Framework version then run this installer again.">
-      <![CDATA[Installed OR NETFRAMEWORK45 >= "#378675"]]>
-    </Condition>
 
     <!-- Auto-launch the system tray application. -->
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WixShellExecTarget" Value="[#VersionOne.TeamSync.SystemTray.exe]"/>
     <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes"/>
+
+    <Property Id="CONFIGURE_JIRA_OR_TFS" Secure="yes" Value="0" />
+
+    <!-- Adding the new dialog box. -->
+    <UIRef Id="InstallDlg_UI"/>
+
+    <InstallUISequence>
+      <Show Dialog="RbDlg"
+            Before="ExecuteAction" />
+    </InstallUISequence>
+    
+    
+    <!-- UI actions. -->
     <UI>
+      <!-- Defining the dialog window. 
+      <Publish Dialog="RbDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="RbDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>-->
+    
+
+      <!-- define the workflow. -->
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="RbDlg">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="RbDlg">1</Publish>
+      
+      
+      
       <Publish
         Dialog="ExitDialog"
         Control="Finish"

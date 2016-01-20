@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Fragment>
+    <UI Id="InstallDlg_UI">
+      <Dialog Id="RbDlg" Width="370" Height="270" Title="[ProductName] Setup" NoMinimize="yes">
+        <Control Id="ConfigureIISRadioButtonGroup" Type="RadioButtonGroup" X="30" Y="94" Width="305" Height="100" Property="CONFIGURE_JIRA_OR_TFS" Text="?">
+          <RadioButtonGroup Property="CONFIGURE_JIRA_OR_TFS">
+            <RadioButton Value="1" X="0" Y="0" Width="200" Height="10" Text="Configure Jira Integration." />
+            <RadioButton Value="0" X="0" Y="20" Width="200" Height="10" Text="Configure Tfs Integration." />
+          </RadioButtonGroup>
+        </Control>
+      
+        <Control Id="Next"
+          Type="PushButton"
+          X="245"
+          Y="243"
+          Width="50"
+          Height="17" Text="Next">
+          <Publish Event="NewDialog"
+                   Value="LicenseAgreementDlg" />
+        </Control>
+
+        <Control Id="Back"
+         Type="PushButton"
+         X="180"
+         Y="243"
+         Width="50"
+         Height="17" Text="Back">
+          <Publish Event="NewDialog"
+                   Value="WelcomeDlg" />
+        </Control>
+
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Text="Cancel" />
+        
+      </Dialog>
+    </UI>
+	</Fragment>
+</Wix>

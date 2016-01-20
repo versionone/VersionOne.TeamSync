@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+ 
+  <?include $(sys.CURRENTDIR)\Config.wxi ?>
+	
+  <Fragment>
+    <!-- TFS installation Component.  -->
+    <Component Id="VersionOne.TeamSync.TfsConnector.dll" Directory="INSTALLFOLDER">
+      <File Source="$(var.SourceDir)\VersionOne.TeamSync.TfsConnector.dll" />
+    </Component>
+ </Fragment>
+</Wix>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include $(sys.CURRENTDIR)\Config.wxi ?>
+	<Fragment>
+    <!-- Installs to C:\Program Files...\VersionOne TeamSync\ directory. -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="$(var.PlatformProgramFilesFolder)">
+        <Directory Id="INSTALLFOLDER" Name="$(var.AppName)" />
+      </Directory>
+    </Directory>
+	</Fragment>
+</Wix>
