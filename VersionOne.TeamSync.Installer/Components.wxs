@@ -50,9 +50,10 @@
       <Component Id="VersionOne.TeamSync.V1Connector.dll">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.V1Connector.dll" />
       </Component>
-      <Component Id="VersionOne.TeamSync.Worker.dll">
+    <Component Id="VersionOne.TeamSync.Worker.dll">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.Worker.dll" />
       </Component>
+  
       <Component Id="versionone_logo_noTagline.png">
         <File Source="$(var.SourceDir)\versionone-logo-noTagline.png" />
       </Component>

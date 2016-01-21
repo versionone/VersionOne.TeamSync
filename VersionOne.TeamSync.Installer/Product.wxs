@@ -41,13 +41,33 @@
         <RegistryValue Type="string" Name="[ProductName] System Tray" Value="[INSTALLFOLDER]VersionOne.TeamSync.SystemTray.exe"/>
       </RegistryKey>
     </Component>
+
+    <!-- Define property used to selct wich option should use. -->
+    <Property Id="CONFIGURE_JIRA_OR_TFS" Secure="yes" Value="0" />
     
-    <!-- Single feature application. -->
-    <Feature Id="ProductFeature" Title="VersionOne.TeamSync.Installer" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />
-      <ComponentRef Id="VersionOne.TeamSync.JiraConnector.dll" />
-      <ComponentRef Id="RegistryEntries" />
+    <!-- Application Features. -->
+    <Feature Id="TeamSyncFeatures" Level="1" Title="VersionOne.TeamSync.Installer"  AllowAdvertise='no'>
+
+      <Feature Id="ProductFeature" Title="VersionOne.TeamSync.Installer" Level="1">
+        <ComponentGroupRef Id="ProductComponents" />
+        <ComponentRef Id="RegistryEntries" />
+      </Feature>
+      
+      <Feature Id="JiraServiceProductFeature" Title="VersionOne.TeamSync.JiraService.Installer" Level="0">
+        <ComponentRef Id="VersionOne.TeamSync.JiraConnector.dll" />
+        <Condition Level="1">
+          <![CDATA[CONFIGURE_JIRA_OR_TFS="0"]]>
+        </Condition>
+      </Feature>
+
+      <Feature Id="TfsServiceProductFeature" Title="VersionOne.TeamSync.TfsService.Installer" Level="0">
+        <ComponentRef Id="VersionOne.TeamSync.TfsConnector.dll" />
+        <Condition Level="1">
+          <![CDATA[CONFIGURE_JIRA_OR_TFS="1"]]>
+        </Condition>
+      </Feature>
     </Feature>
+
 
     <!--  WIXUI_INSTALLDIR to the Id you gave your install directory. -->
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
@@ -69,8 +89,6 @@
     <Property Id="WixShellExecTarget" Value="[#VersionOne.TeamSync.SystemTray.exe]"/>
     <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes"/>
 
-    <Property Id="CONFIGURE_JIRA_OR_TFS" Secure="yes" Value="0" />
-
     <!-- Adding the new dialog box. -->
     <UIRef Id="InstallDlg_UI"/>
 
@@ -86,18 +104,13 @@
       <Publish Dialog="RbDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
       <Publish Dialog="RbDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>-->
     
-
       <!-- define the workflow. -->
       <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="RbDlg">1</Publish>
       <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="RbDlg">1</Publish>
-      
-      
-      
-      <Publish
-        Dialog="ExitDialog"
-        Control="Finish"
-        Event="DoAction"
-        Value="LaunchApplication">NOT Installed</Publish>
+      <Publish Dialog="RbDlg" Control="Cancel" Event="NewDialog" Value="CancelDlg">1</Publish>
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication">NOT Installed</Publish>
+  
     </UI>
 
   </Product>

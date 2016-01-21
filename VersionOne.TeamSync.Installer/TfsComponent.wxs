@@ -6,7 +6,7 @@
   <Fragment>
     <!-- TFS installation Component.  -->
     <Component Id="VersionOne.TeamSync.TfsConnector.dll" Directory="INSTALLFOLDER">
-      <File Source="$(var.SourceDir)\VersionOne.TeamSync.TfsConnector.dll" />
+      <File Source="$(var.SourceDir)\stop.png" />
     </Component>
  </Fragment>
 </Wix>
