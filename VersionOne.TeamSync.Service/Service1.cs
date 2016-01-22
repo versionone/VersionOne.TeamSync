@@ -22,7 +22,7 @@ namespace VersionOne.TeamSync.Service
 
         public Service1()
         {
-            LogAppend("Initialize constructor..");
+            LogAppend("Initialize constructor.." + DateTime.Now.ToLongDateString());
             InitializeComponent();
             try
             {
@@ -31,6 +31,7 @@ namespace VersionOne.TeamSync.Service
 				LogAppend(dirCatalog.FullPath);
                 _container = new CompositionContainer(dirCatalog);
                 _container.ComposeParts(this);
+                LogAppend("Compose parts Done " + DateTime.Now.ToLongDateString());
             }
             catch (Exception e)
             {
