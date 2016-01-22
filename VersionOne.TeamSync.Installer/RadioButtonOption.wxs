@@ -9,16 +9,17 @@
       <TextStyle Id="TahomaHeader" FaceName="Tahoma" Size="18" Bold="yes" />
       
       <Dialog Id="RbDlg" Width="370" Height="270" Title=" Setup" NoMinimize="yes">
-        
-        <Control Id="introText"  Type="Text" X="45" Y="50" Width="350" Height="22"  
-                 Transparent="yes" Text="Setup Service." />
+       
+        <Control Id="introText"  Type="Text" X="25" Y="15" Width="350" Height="22"  
+                 Transparent="yes" Text="{\TahomaHeader}Configure Service to Install." />
 
         <Control Id="Bitmap" Type="Bitmap" X="0" Y="0"
                           Width="370"
                           Height="44"
                           TabSkip="no"
-                          Text="MainImage"  />
-        
+                          Text="MainImage" >
+        </Control>
+
         <Control  Id="Back"
                  Type="PushButton"
                  X="180" Y="243"
@@ -47,10 +48,12 @@
           <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
         </Control>
 
-        <Control Id="ConfigureRadioButtonGroup" Type="RadioButtonGroup" X="30" Y="94" Width="305" Height="100" Property="CONFIGURE_JIRA_OR_TFS" Text="Configure Jira or Tfs Integration?">
+        <Control Id="ConfigureRadioButtonGroup" Type="RadioButtonGroup" X="30" Y="94" Width="305" Height="100" Property="CONFIGURE_JIRA_OR_TFS" Text="Configure Jira or Tfs Integration?" >
+         
           <RadioButtonGroup Property="CONFIGURE_JIRA_OR_TFS" >
             <RadioButton Value="0" X="0" Y="0" Width="200" Height="10" Text="Configure Jira Integration." />
             <RadioButton Value="1" X="0" Y="20" Width="200" Height="10" Text="Configure Tfs Integration." />
+            
           </RadioButtonGroup>
           
           

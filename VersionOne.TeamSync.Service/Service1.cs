@@ -22,6 +22,7 @@ namespace VersionOne.TeamSync.Service
 
         public Service1()
         {
+            LogAppend("Initialize constructor..");
             InitializeComponent();
             try
             {
