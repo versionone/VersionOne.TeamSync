@@ -46,8 +46,13 @@ namespace VersionOne.TeamSync.TfsWorker
         {
             if (_v1Log == null)
             {
-                System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", "_v1log is null");
-            }
+                System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", new List<string>() {"_v1log is null"});
+			}
+			else
+			{
+				System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", new List<string>() { "_v1log exists and is NOT null" });
+			}
+
           
             _v1Log.Info("<DUMMY> Verifying VersionOne connection...");
             _v1Log.DebugFormat("<DUMMY> URL: {0}", "http://localhost/VersionOne");
