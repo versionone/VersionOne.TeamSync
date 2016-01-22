@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("VersionOne")]
-[assembly: AssemblyProduct("VersionOne.TeamSync.Worker")]
+[assembly: AssemblyProduct("VersionOne.TeamSync.JiraWorker")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

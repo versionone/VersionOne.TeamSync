@@ -23,10 +23,18 @@ namespace VersionOne.TeamSync.Service
         public Service1()
         {
             InitializeComponent();
+            try
+            {
 
-            var dirCatalog = new DirectoryCatalog(@".\");
-            _container = new CompositionContainer(dirCatalog);
-            _container.ComposeParts(this);
+                var dirCatalog = new DirectoryCatalog(@".\");
+                System.IO.File.WriteAllText(@"C:\TEAMSYNCLOG.txt", dirCatalog.FullPath);
+                _container = new CompositionContainer(dirCatalog);
+                _container.ComposeParts(this);
+            }
+            catch (Exception e)
+            {
+                System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", e.GetBaseException().StackTrace + " constructor method");
+            }
         }
 
         public void OnDebugStart()
@@ -40,12 +48,26 @@ namespace VersionOne.TeamSync.Service
             {
                 _serviceDuration = TimeSpan.FromMinutes(ServiceSettings.Settings.SyncIntervalInMinutes);
                 StartMessage();
+                if (_worker == null)
+                {
+                    System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", "worker is null");
+                }
+                else
+                {
+                    System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", "worker not null");
+                    
+                }
                 _worker.ValidateConnections();
+                System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", "validation connection pass");
                 _worker.ValidateProjectMappings();
+                System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", "validate project mapping pass");
                 _worker.ValidateMemberAccountPermissions();
+                System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", "validate member account pass");
                 //_worker.ValidateVersionOneSchedules(); D-09877
                 _worker.ValidatePriorityMappings();
+                System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", "validate priority mapping pass");
                 _worker.ValidateStatusMappings();
+                System.IO.File.AppendAllText(@"C:\TEAMSYNCLOG.txt", "validate status mapping pass");
 
                 _worker.DoFirstRun();
 
@@ -53,6 +75,7 @@ namespace VersionOne.TeamSync.Service
             }
             catch (Exception e)
             {
+                System.IO.File.WriteAllText(@"C:\TEAMSYNCLOG.txt", e.GetBaseException().StackTrace + " on start method");
                 Log.Error(e);
                 Log.Error("Errors occurred during service start up. Service will be stopped.");
                 Stop();

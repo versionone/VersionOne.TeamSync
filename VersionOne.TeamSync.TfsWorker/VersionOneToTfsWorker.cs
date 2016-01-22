@@ -44,6 +44,11 @@ namespace VersionOne.TeamSync.TfsWorker
 
         public void ValidateConnections()
         {
+            if (_v1Log == null)
+            {
+                System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", "_v1log is null");
+            }
+          
             _v1Log.Info("<DUMMY> Verifying VersionOne connection...");
             _v1Log.DebugFormat("<DUMMY> URL: {0}", "http://localhost/VersionOne");
             Thread.Sleep(2500);

@@ -5,8 +5,13 @@
 	
   <Fragment>
     <!-- Jira installation Component. -->
-    <Component Id="VersionOne.TeamSync.JiraConnector.dll" Directory="INSTALLFOLDER">
-      <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraConnector.dll" />
-    </Component>
+    <ComponentGroup Id="JiraComponents" Directory="INSTALLFOLDER">
+      <Component Id="VersionOne.TeamSync.JiraConnector.dll" >
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraConnector.dll" />
+      </Component>
+      <Component Id="VersionOne.TeamSync.JiraWorker.dll">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraWorker.dll" />
+      </Component>
+    </ComponentGroup>
   </Fragment>
 </Wix>

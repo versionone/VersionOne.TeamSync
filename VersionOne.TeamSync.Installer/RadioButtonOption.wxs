@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Fragment>
-    <UI Id="InstallDlg_UI">
-      <Dialog Id="RbDlg" Width="370" Height="270" Title="[ProductName] Setup" NoMinimize="yes">
-        <Control Id="ConfigureRadioButtonGroup" Type="RadioButtonGroup" X="30" Y="94" Width="305" Height="100" Property="CONFIGURE_JIRA_OR_TFS" Text="Configure Jira or Tfs Integration?">
-          <RadioButtonGroup Property="CONFIGURE_JIRA_OR_TFS">
-            <RadioButton Value="0" X="0" Y="0" Width="200" Height="10" Text="Configure Jira Integration." />
-            <RadioButton Value="1" X="0" Y="20" Width="200" Height="10" Text="Configure Tfs Integration." />
-          </RadioButtonGroup>
-        </Control>
+  <Fragment>
+    <UI Id="InstallDlg_UI"  >
 
+      <Property Id="CONFIGURE_JIRA_OR_TFS" Secure="yes" Value="0" />
+      
+      <Binary Id="MainImage" SourceFile="uibanner-transparent.bmp" />
+      <TextStyle Id="TahomaHeader" FaceName="Tahoma" Size="18" Bold="yes" />
+      
+      <Dialog Id="RbDlg" Width="370" Height="270" Title=" Setup" NoMinimize="yes">
+        
+        <Control Id="introText"  Type="Text" X="45" Y="50" Width="350" Height="22"  
+                 Transparent="yes" Text="Setup Service." />
+
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0"
+                          Width="370"
+                          Height="44"
+                          TabSkip="no"
+                          Text="MainImage"  />
+        
         <Control  Id="Back"
                  Type="PushButton"
                  X="180" Y="243"
@@ -22,20 +31,32 @@
                  X="236" Y="243"
                  Width="56"
                  Height="17" Text="Next">
-                <Publish Event="NewDialog" Value="LicenseAgreementDlg" />
+                <Publish Event="AddLocal" Value="ALL">1</Publish>
+                <Publish Event="Remove" Value="TfsFeature"><![CDATA[CONFIGURE_JIRA_OR_TFS = 0]]></Publish>
+                <Publish Event="Remove" Value="JiraFeature"><![CDATA[CONFIGURE_JIRA_OR_TFS = 1]]></Publish>
+                <Publish Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
         </Control>
 
-        <Control Id="Cancel" 
-                 Type="PushButton" 
-                 X="304" Y="243" 
-                 Width="56" 
-                 Height="17" 
-                 Text="Cancel" 
+        <Control Id="Cancel"
+                 Type="PushButton"
+                 X="304" Y="243"
+                 Width="56"
+                 Height="17"
+                 Text="Cancel"
                  Cancel="yes">
           <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
         </Control>
 
+        <Control Id="ConfigureRadioButtonGroup" Type="RadioButtonGroup" X="30" Y="94" Width="305" Height="100" Property="CONFIGURE_JIRA_OR_TFS" Text="Configure Jira or Tfs Integration?">
+          <RadioButtonGroup Property="CONFIGURE_JIRA_OR_TFS" >
+            <RadioButton Value="0" X="0" Y="0" Width="200" Height="10" Text="Configure Jira Integration." />
+            <RadioButton Value="1" X="0" Y="20" Width="200" Height="10" Text="Configure Tfs Integration." />
+          </RadioButtonGroup>
+          
+          
+        </Control>
       </Dialog>
+     
     </UI>
   </Fragment>
 </Wix>

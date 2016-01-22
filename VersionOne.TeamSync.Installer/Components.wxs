@@ -21,6 +21,9 @@
       <Component Id="RestSharp.dll">
         <File Source="$(var.SourceDir)\RestSharp.dll" />
       </Component>
+      <Component Id="VersionOne.TeamSync.Interfaces.dll">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Interfaces.dll" />
+      </Component>
       <Component Id="VersionOne.TeamSync.Core.dll">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.Core.dll" />
       </Component>
@@ -50,10 +53,9 @@
       <Component Id="VersionOne.TeamSync.V1Connector.dll">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.V1Connector.dll" />
       </Component>
-    <Component Id="VersionOne.TeamSync.Worker.dll">
-        <File Source="$(var.SourceDir)\VersionOne.TeamSync.Worker.dll" />
+      <Component Id="VersionOne.TeamSync.VersionOne.dll">
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.VersionOne.dll" />
       </Component>
-  
       <Component Id="versionone_logo_noTagline.png">
         <File Source="$(var.SourceDir)\versionone-logo-noTagline.png" />
       </Component>
