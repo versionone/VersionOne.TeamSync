@@ -18,31 +18,15 @@ namespace VersionOne.TeamSync.Service
         [Import]
         private IV1StartupWorker _worker;
         private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
-		private CompositionContainer _container;
+        private CompositionContainer _container;
 
         public Service1()
         {
-            LogAppend("Initialize constructor.." + DateTime.Now.ToLongDateString());
             InitializeComponent();
-            try
-            {
-
-                var dirCatalog = new DirectoryCatalog(@".\", "*.TeamSync.*.dll");
-				LogAppend(dirCatalog.FullPath);
-                _container = new CompositionContainer(dirCatalog);
-                _container.ComposeParts(this);
-                LogAppend("Compose parts Done " + DateTime.Now.ToLongDateString());
-            }
-            catch (Exception e)
-            {
-                LogAppend(e.GetBaseException().StackTrace + " constructor method");
-            }
+            var dirCatalog = new DirectoryCatalog(@".\", "*.TeamSync.*.dll");
+            _container = new CompositionContainer(dirCatalog);
+            _container.ComposeParts(this);
         }
-
-		private static void LogAppend(string line)
-		{
-			System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", new List<string>() { line });
-		}
 
         public void OnDebugStart()
         {
@@ -55,26 +39,12 @@ namespace VersionOne.TeamSync.Service
             {
                 _serviceDuration = TimeSpan.FromMinutes(ServiceSettings.Settings.SyncIntervalInMinutes);
                 StartMessage();
-                if (_worker == null)
-                {
-                    LogAppend("worker is null");
-                }
-                else
-                {
-                    LogAppend("worker not null");
-                    
-                }
                 _worker.ValidateConnections();
-                LogAppend("validation connection pass");
                 _worker.ValidateProjectMappings();
-                LogAppend("validate project mapping pass");
                 _worker.ValidateMemberAccountPermissions();
-                LogAppend("validate member account pass");
                 //_worker.ValidateVersionOneSchedules(); D-09877
                 _worker.ValidatePriorityMappings();
-                LogAppend("validate priority mapping pass");
                 _worker.ValidateStatusMappings();
-                LogAppend("validate status mapping pass");
 
                 _worker.DoFirstRun();
 
@@ -82,7 +52,6 @@ namespace VersionOne.TeamSync.Service
             }
             catch (Exception e)
             {
-                LogAppend(e.GetBaseException().StackTrace + " on start method");
                 Log.Error(e);
                 Log.Error("Errors occurred during service start up. Service will be stopped.");
                 Stop();

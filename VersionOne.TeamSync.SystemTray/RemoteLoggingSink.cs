@@ -11,23 +11,15 @@ namespace VersionOne.TeamSync.SystemTray
     {
         public void LogEvents(LoggingEvent[] events)
         {
-            LogAppend("LOGGING EVENTS!!!");
-
             ViewActivityForm form = (ViewActivityForm)Application.OpenForms["ViewActivityForm"];
             if (form == null)
                 return;
 
             foreach (var loggingEvent in events)
             {
-                LogAppend("LOGGING EVENT: " + loggingEvent.RenderedMessage);
                 form.AppendText(loggingEvent.RenderedMessage + Environment.NewLine,
                     (LogLevel)Enum.Parse(typeof(LogLevel), loggingEvent.Level.Name));
             }
-        }
-
-        private static void LogAppend(string line)
-        {
-            System.IO.File.AppendAllLines(@"C:\TEAMSYNCLOG.txt", new List<string>() { line });
         }
     }
 }
