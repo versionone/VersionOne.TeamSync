@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
-using log4net;
 using VersionOne.TeamSync.Core.Config;
 using VersionOne.TeamSync.Interfaces;
 
@@ -17,7 +14,9 @@ namespace VersionOne.TeamSync.Service
         private static TimeSpan _serviceDuration;
         [Import]
         private IV1StartupWorker _worker;
-        private static readonly ILog Log = LogManager.GetLogger(typeof(Service1));
+        [Import] 
+        private IV1LogFactory _v1LogFactory;
+        private readonly IV1Log _v1Log;
         private CompositionContainer _container;
 
         public Service1()
@@ -26,6 +25,7 @@ namespace VersionOne.TeamSync.Service
             var dirCatalog = new DirectoryCatalog(@".\", "*.TeamSync.*.dll");
             _container = new CompositionContainer(dirCatalog);
             _container.ComposeParts(this);
+            _v1Log = _v1LogFactory.Create<Service1>();
         }
 
         public void OnDebugStart()
@@ -52,8 +52,8 @@ namespace VersionOne.TeamSync.Service
             }
             catch (Exception e)
             {
-                Log.Error(e);
-                Log.Error("Errors occurred during service start up. Service will be stopped.");
+                _v1Log.Error(e);
+                _v1Log.Error("Errors occurred during service start up. Service will be stopped.");
                 Stop();
             }
         }
@@ -68,30 +68,30 @@ namespace VersionOne.TeamSync.Service
 
         private void OnTimedEvent(object stateInfo)
         {
-            Log.DebugFormat("The service event was raised at {0}", DateTime.Now);
+            _v1Log.DebugFormat("The service event was raised at {0}", DateTime.Now);
             _worker.DoWork();
-            Log.DebugFormat("The service event was completed at {0}", DateTime.Now);
+            _v1Log.DebugFormat("The service event was completed at {0}", DateTime.Now);
         }
 
         protected override void OnContinue()
         {
-            Log.Info("*** VersionOne starting again ***");
+            _v1Log.Info("*** VersionOne starting again ***");
             base.OnContinue();
-            Log.Info("*** VersionOne after oncontinue ***");
+            _v1Log.Info("*** VersionOne after oncontinue ***");
         }
 
-        private static void StartMessage()
+        private void StartMessage()
         {
-            Log.Info("*** VersionOne TeamSync ***");
-            Log.Info("Starting service...");
-            Log.DebugFormat("Started at {0}", DateTime.Now);
+            _v1Log.Info("*** VersionOne TeamSync ***");
+            _v1Log.Info("Starting service...");
+            _v1Log.DebugFormat("Started at {0}", DateTime.Now);
         }
 
-        private static void StopMessage()
+        private void StopMessage()
         {
-            Log.Info("Stopping service...");
-            Log.DebugFormat("Stopped at {0}", DateTime.Now);
-            Log.Info("");
+            _v1Log.Info("Stopping service...");
+            _v1Log.DebugFormat("Stopped at {0}", DateTime.Now);
+            _v1Log.Info("");
         }
     }
 }
