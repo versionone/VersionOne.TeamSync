@@ -22,7 +22,8 @@ namespace VersionOne.TeamSync.TfsConnector.Connector
 
         private readonly IV1Log _v1Log;
 		private readonly ITeamSyncRestClient _client;
-		public TfsConnector(TfsServer settings, IV1LogFactory v1LogFactory, ITeamSyncRestClientFactory restClientFactory)
+		
+        public TfsConnector(TfsServer settings, IV1LogFactory v1LogFactory, ITeamSyncRestClientFactory restClientFactory)
 		{
 			_v1Log = v1LogFactory.Create<TfsConnector>();
 
