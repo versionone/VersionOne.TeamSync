@@ -1,18 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
  
   <?include $(sys.CURRENTDIR)\Config.wxi ?>
 	
   <Fragment>
     <!-- TFS installation Component.  -->
     <ComponentGroup Id="TfsComponents" Directory="INSTALLFOLDER">
-      <!--    <Component Id="VersionOne.TeamSync.TfsConnector.dll" >
-        <File Source="$(var.SourceDir)\stop.png" />
-      </Component>-->
+      <Component Id="VersionOne.TeamSync.TfsConnector.dll" >
+        <File Source="$(var.SourceDir)\VersionOne.TeamSync.TfsConnector.dll" />
+      </Component>
 
       <Component Id="VersionOne.TeamSync.TfsWorker.dll">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.TfsWorker.dll" />
       </Component>
+
+      <Component Id="tfs.app.config" Guid="{b5f3a303-dd99-4dd0-825b-19d473d2bb9f}">
+
+        <util:XmlConfig Id="tfsSettingsSection" Action="create" ElementPath="configuration/configSections"
+                        File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config"
+                        Node="element" On="install" Name="section" Sequence="1">
+          
+          <util:XmlConfig Id="tfsSettingsSection1" ElementId="tfsSettingsSection" Name="name" Value="tfsSettings" File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config" />
+          
+          <util:XmlConfig Id="tfsSettingsSection2" ElementId="tfsSettingsSection" Name="type"
+                          Value="VersionOne.TeamSync.TfsConnector.Config.TfsSettings, VersionOne.TeamSync.TfsConnector"
+                          File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config" />
+        </util:XmlConfig>
+
+        <util:XmlConfig Id="tfsSettingsConfig" Action="create" ElementPath="configuration"
+                        File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config"
+                        Node="element" On="install" Name="tfsSettings" Sequence="2">
+         
+          <util:XmlConfig Id="tfsSettingsConfig1" ElementId="tfsSettingsConfig" Name="configSource" Value="Tfs.config"
+                          File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config" />
+        </util:XmlConfig>
+
+      </Component>
+
+      <Component Id="Tfs.config">
+        <File Source="$(var.SourceDir)\Tfs.config" />
+      </Component>
+
     </ComponentGroup>
     
   </Fragment>

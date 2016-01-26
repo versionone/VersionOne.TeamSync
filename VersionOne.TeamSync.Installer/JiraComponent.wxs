@@ -1,17 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
- 
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
   <?include $(sys.CURRENTDIR)\Config.wxi ?>
-	
+
   <Fragment>
     <!-- Jira installation Component. -->
     <ComponentGroup Id="JiraComponents" Directory="INSTALLFOLDER">
       <Component Id="VersionOne.TeamSync.JiraConnector.dll" >
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraConnector.dll" />
       </Component>
+
       <Component Id="VersionOne.TeamSync.JiraWorker.dll">
         <File Source="$(var.SourceDir)\VersionOne.TeamSync.JiraWorker.dll" />
       </Component>
+
+      <Component Id="jira.app.config" Guid="{4bb3b6fb-83d9-48c1-ab80-90e75c2a278b}">
+
+        <util:XmlConfig Id="jiraSettingsSection" Action="create" ElementPath="configuration/configSections"
+                        File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config"
+                        Node="element" On="install" Name="section" Sequence="1">
+          <util:XmlConfig Id="jiraSettingsSection1" ElementId="jiraSettingsSection" Name="name" Value="jiraSettings" File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config" />
+          
+          <util:XmlConfig Id="jiraSettingsSection2" ElementId="jiraSettingsSection" Name="type"
+                          Value="VersionOne.TeamSync.JiraConnector.Config.JiraSettings, VersionOne.TeamSync.JiraConnector"
+                          File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config" />
+        </util:XmlConfig>
+
+        <util:XmlConfig Id="jiraSettingsConfig" Action="create" ElementPath="configuration"
+                        File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config"
+                        Node="element" On="install" Name="jiraSettings" Sequence="2">
+          
+          <util:XmlConfig Id="jiraSettingsConfig1" ElementId="jiraSettingsConfig" Name="configSource" Value="Jira.config"
+                          File="[INSTALLFOLDER]\VersionOne.TeamSync.Service.exe.config" />
+        </util:XmlConfig>
+      </Component>
+
+      <Component Id="Jira.config">
+        <File Source="$(var.SourceDir)\Jira.config" />
+      </Component>
+
     </ComponentGroup>
   </Fragment>
 </Wix>

@@ -15,7 +15,7 @@ namespace VersionOne.TeamSync.SystemTray
             "TeamSync service is taking too long to respond. Timeout value is set to {0} secs";
 
         private static readonly ILog Log = LogManager.GetLogger(typeof(TeamSyncServiceController));
-        private static readonly TimeSpan TimeOutTimeSpan = TimeSpan.FromSeconds(1500);
+        private static readonly TimeSpan TimeOutTimeSpan = TimeSpan.FromSeconds(15);
         private static bool? _isServiceInstalled = null;
 
         public static bool IsServiceInstalled()
