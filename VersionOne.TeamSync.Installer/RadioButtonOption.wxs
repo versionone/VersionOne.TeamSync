@@ -6,13 +6,15 @@
       <Property Id="CONFIGURE_JIRA_OR_TFS" Secure="yes" Value="0" />
       
       <Binary Id="MainImage" SourceFile="uibanner-transparent.bmp" />
-      <TextStyle Id="TahomaHeader" FaceName="Tahoma" Size="18" Bold="yes" />
+      <TextStyle Id="TahomaHeader" FaceName="Tahoma" Size="18" Bold="no" />
       
       <Dialog Id="RbDlg" Width="370" Height="270" Title=" Setup" NoMinimize="yes">
        
-        <Control Id="introText"  Type="Text" X="25" Y="15" Width="350" Height="22"  
+        <Control Id="introText"  Type="Text" X="20" Y="10" Width="350" Height="22"  
                  Transparent="yes" Text="{\TahomaHeader}Configure Service to Install." />
-
+        
+        <Control Id="separator" Type="Line"   X="0" Y="44" Width="370" Height="2" />
+        
         <Control Id="Bitmap" Type="Bitmap" X="0" Y="0"
                           Width="370"
                           Height="44"
