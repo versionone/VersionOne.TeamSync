@@ -223,21 +223,14 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         #endregion
 
-        public SearchResult GetAllSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties)
+		public SearchResult GetAllSearchResults(IList<JqOperator> query, IEnumerable<string> properties)
         {
             var path = string.Format("{0}/search", JiraRestApiUrl);
-            
-            var queryString = string.Join(" AND ", query.Select(item =>
-            {
-                if (item.Value.Count() == 1)
-                    return item.Key + "=" + item.Value.First().QuoteReservedWord();
-                return string.Format(InQuery, item.Key, string.Join(", ", item.Value));
-            }));
 
             var content = Get(path, default(KeyValuePair<string, string>),
                 new Dictionary<string, string>
                 {
-                    {"jql", queryString},
+                    {"jql", string.Join(" AND ", query.Select(item => item.ToString()))},
                     {"fields", string.Join(",", properties)},
                     {"maxResults", "1000"}
                 });
@@ -253,7 +246,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
             for (var i = 1; i < timesToRun + 1; i++)
             {
-                var pagedQuery = queryString;
+				var pagedQuery = string.Join(" AND ", query.Select(item => item.ToString()));
                 var pagedContent = Get(path, default(KeyValuePair<string, string>),
                 new Dictionary<string, string>
                 {

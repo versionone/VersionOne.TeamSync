@@ -283,7 +283,7 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         public SearchResult GetEpicsInProject(string projectKey)
         {
-            return _connector.GetSearchResults(new List<JqOperator>
+            return _connector.GetAllSearchResults(new List<JqOperator>
             {
                 JqOperator.Equals("project", projectKey.QuoteReservedWord()),
                 JqOperator.Equals("issuetype", "Epic")

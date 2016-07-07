@@ -21,6 +21,7 @@ namespace VersionOne.TeamSync.JiraConnector.Interfaces
         string Put(string path, object data, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
         string Delete(string path, HttpStatusCode responseStatusCode, KeyValuePair<string, string> urlSegment = default(KeyValuePair<string, string>));
 
+	    SearchResult GetAllSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IDictionary<string, IEnumerable<string>> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties);
         SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customProperties);
