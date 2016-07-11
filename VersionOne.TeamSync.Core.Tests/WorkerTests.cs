@@ -96,7 +96,7 @@ namespace VersionOne.TeamSync.Core.Tests
 
     public class Worker_when_there_is_a_new_epic_in_v1 : worker_bits
     {
-        protected Epic Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1", Status = "" };
+		protected Epic Epic = new Epic { Number = "5", Description = "descript", Name = "Johnny", ScopeName = "v1", Status = "", CreateDateUTC = "2016-06-14T18:04:06.567", ChangeDateUTC = "2016-06-18T18:04:06.567" };
         protected ItemBase ItemBase;
 
         private EpicWorker _worker;
