@@ -4,15 +4,25 @@ namespace VersionOne.TeamSync.JiraConnector
 {
     public class JqOperator
     {
-        public static JqOperator Equals(string property, string value)
+        public static JqOperator In(string property, string[] values)
         {
             return new JqOperator
             {
                 Property = property,
-                Value = value,
-                Operator = "="
+                Value = string.Format("({0})", string.Join(",", values)),
+                Operator = " in "
             };
         }
+
+		public static JqOperator Equals(string property, string value)
+		{
+			return new JqOperator
+			{
+				Property = property,
+				Value = value,
+				Operator = "="
+			};
+		}
 
         public static JqOperator NotEquals(string property, string value)
         {

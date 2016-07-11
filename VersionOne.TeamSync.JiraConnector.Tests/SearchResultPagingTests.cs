@@ -67,10 +67,10 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         {
             var connector = CreateConnect();
 
-            _result = connector.GetAllSearchResults(new Dictionary<string, IEnumerable<string>>
+            _result = connector.GetAllSearchResults(new List<JqOperator>
             {
-                {"project",new[]{"WAT", "HUH"}},
-                {"stuff",new[]{"whos-there"}}
+                JqOperator.In("project", new []{ "WAT", "HUH" }),
+                JqOperator.Equals("stuff", "whos-there")
             }, 
                 new[] { "lulz" }
             );
@@ -107,7 +107,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         [TestMethod]
         public void first_request_should_have_jql_with_a_project_of_WAT()
         {
-            _firstRequest.Parameters.Single(x => x.Name == "jql").Value.ShouldEqual("project in (WAT, HUH) AND stuff=whos-there");
+            _firstRequest.Parameters.Single(x => x.Name == "jql").Value.ShouldEqual("project in (WAT,HUH) AND stuff=whos-there");
         }
 
         [TestMethod]
@@ -125,7 +125,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         [TestMethod]
         public void second_request_should_have_jql_with_a_project_of_WAT()
         {
-            _secondRequest.Parameters.Single(x => x.Name == "jql").Value.ShouldEqual("project in (WAT, HUH) AND stuff=whos-there");
+            _secondRequest.Parameters.Single(x => x.Name == "jql").Value.ShouldEqual("project in (WAT,HUH) AND stuff=whos-there");
         }
 
         [TestMethod]
@@ -192,10 +192,10 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         {
             var connector = CreateConnect();
 
-            _result = connector.GetAllSearchResults(new Dictionary<string, IEnumerable<string>>
+            _result = connector.GetAllSearchResults(new List<JqOperator>
             {
-                {"project",new[]{"WAT", "HUH"}},
-                {"stuff",new[]{"whos-there"}}
+                JqOperator.In("project", new []{ "WAT", "HUH" }),
+                JqOperator.Equals("stuff", "whos-there")
             },
                 new[] { "lulz" }
             );
@@ -228,7 +228,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
         [TestMethod]
         public void request_should_have_jql_with_a_project_of_WAT()
         {
-            _request.Parameters.Single(x => x.Name == "jql").Value.ShouldEqual("project in (WAT, HUH) AND stuff=whos-there");
+            _request.Parameters.Single(x => x.Name == "jql").Value.ShouldEqual("project in (WAT,HUH) AND stuff=whos-there");
         }
 
         [TestMethod]
