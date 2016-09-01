@@ -1,7 +1,8 @@
 # VersionOne.TeamSync
 
-For a video overview watch the following on V1's network share (internal use only):
 ***REMOVED***
+
+\\***REMOVED***
 
 # System requirements to open the solution
 1. VisualStudio 2013
