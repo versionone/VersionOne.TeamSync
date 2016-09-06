@@ -9,9 +9,9 @@ namespace VersionOne.TeamSync.Service
 		static void Main()
 		{
 #if DEBUG
-            Service1 service = new Service1();
-            service.OnDebugStart();
-            System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+			Service1 service = new Service1();
+			service.OnDebugStart();
+			System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
 #else
 			var service = new Service1();
 			if (Environment.UserInteractive)
