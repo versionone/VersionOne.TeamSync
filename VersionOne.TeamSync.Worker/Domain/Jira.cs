@@ -42,7 +42,6 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         SearchResult GetEpicByKey(string epicKey);
         SearchResult GetEpicsInProject(string projectKey);
-        SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys);
         ItemBase CreateEpic(Epic epic, string projectKey);
         void DeleteEpicIfExists(string issueKey);
 
@@ -292,17 +291,6 @@ namespace VersionOne.TeamSync.Worker.Domain
             );
         }
 
-        public SearchResult GetEpicsInProjects(IEnumerable<string> projectKeys)
-        {
-            return _connector.GetSearchResults(new Dictionary<string, IEnumerable<string>>
-            {
-                {"project", projectKeys},
-                {"issuetype", new[] {"Epic"}}
-            },
-                new[] { "issuetype", "summary", "timeoriginalestimate", "description", "status", "key", "self" }
-            );
-        }
-
         public ItemBase CreateEpic(Epic epic, string projectKey) // TODO: async
         {
             var path = string.Format("{0}/issue", Connector.JiraConnector.JiraRestApiUrl);
@@ -480,20 +468,34 @@ namespace VersionOne.TeamSync.Worker.Domain
 
         private SearchResult GetIssuesInProject(IList<JqOperator> operators)
         {
-            return _connector.GetSearchResults(operators,
-                new[]
-                {
-                    "issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee",
-                    GetProjectMeta().StoryPoints.Key, GetProjectMeta().EpicLink.Key//, GetProjectMeta().Sprint != null ? GetProjectMeta().Sprint.Key : null D-09877
-                },
-                (issueKey, fields, properties) =>
-                {
-                    properties.EvalLateBinding(issueKey, GetProjectMeta().StoryPoints, value => fields.StoryPoints = value, _log);
-                    properties.EvalLateBinding(issueKey, GetProjectMeta().EpicLink, value => fields.EpicLink = value, _log);
-                    // D-09877
-                    //if (GetProjectMeta().Sprint != null)
-                    //    properties.EvalLateBinding(issueKey, GetProjectMeta().Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
-                });
+			return _connector.GetAllSearchResults(operators, new[]
+				{
+					"issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee",
+					GetProjectMeta().StoryPoints.Key, GetProjectMeta().EpicLink.Key//, GetProjectMeta().Sprint != null ? GetProjectMeta().Sprint.Key : null D-09877
+				},
+				(issueKey, fields, properties) =>
+				{
+					properties.EvalLateBinding(issueKey, GetProjectMeta().StoryPoints, value => fields.StoryPoints = value, _log);
+					properties.EvalLateBinding(issueKey, GetProjectMeta().EpicLink, value => fields.EpicLink = value, _log);
+					// D-09877
+					//if (GetProjectMeta().Sprint != null)
+					//    properties.EvalLateBinding(issueKey, GetProjectMeta().Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
+				});
+
+			return _connector.GetSearchResults(operators,
+				new[]
+				{
+					"issuetype", "summary", "description", "priority", "status", "key", "self", "labels", "timetracking", "assignee",
+					GetProjectMeta().StoryPoints.Key, GetProjectMeta().EpicLink.Key//, GetProjectMeta().Sprint != null ? GetProjectMeta().Sprint.Key : null D-09877
+				},
+				(issueKey, fields, properties) =>
+				{
+					properties.EvalLateBinding(issueKey, GetProjectMeta().StoryPoints, value => fields.StoryPoints = value, _log);
+					properties.EvalLateBinding(issueKey, GetProjectMeta().EpicLink, value => fields.EpicLink = value, _log);
+					// D-09877
+					//if (GetProjectMeta().Sprint != null)
+					//    properties.EvalLateBinding(issueKey, GetProjectMeta().Sprint, value => fields.Sprints = GetSprintsFromSearchResult(value), _log);
+				});
         }
 
         private SearchResult GetAllIssuesInProjectUpdatedSince(string jiraProject, string issueType, int minutes)

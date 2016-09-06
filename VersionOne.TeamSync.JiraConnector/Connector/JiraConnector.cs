@@ -223,9 +223,9 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
 
         #endregion
 
-		public SearchResult GetAllSearchResults(IList<JqOperator> query, IEnumerable<string> properties)
+		public SearchResult GetAllSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customizeProperties = null)
         {
-            var path = string.Format("{0}/search", JiraRestApiUrl);
+			var path = string.Format("{0}/search?expand=renderedFields", JiraRestApiUrl);
 
             var content = Get(path, default(KeyValuePair<string, string>),
                 new Dictionary<string, string>
@@ -235,7 +235,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                     {"maxResults", "1000"}
                 });
 
-            var result = JsonConvert.DeserializeObject<SearchResult>(content);
+			var result = CreateSearchResult(content, customizeProperties);
 
             if (result.total <= 1000)
                 return result;
@@ -256,7 +256,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                     {"startAt", ((i*1000) + 1).ToString()}
                 });
 
-                var pagedResult = JsonConvert.DeserializeObject<SearchResult>(pagedContent);
+				var pagedResult = CreateSearchResult(pagedContent, customizeProperties);
 
                 result.issues.AddRange(pagedResult.issues);
             }
@@ -297,7 +297,7 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
             return JsonConvert.DeserializeObject<SearchResult>(content);
         }
 
-        public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customProperties) //not entirely convinced this belongs here
+        public SearchResult GetSearchResults(IList<JqOperator> query, IEnumerable<string> properties, Action<string, Fields, Dictionary<string, object>> customizeProperties) //not entirely convinced this belongs here
         {
             var path = string.Format("{0}/search?expand=renderedFields", JiraRestApiUrl);
             var content = Get(path, default(KeyValuePair<string, string>), new Dictionary<string, string>
@@ -305,18 +305,29 @@ namespace VersionOne.TeamSync.JiraConnector.Connector
                     {"jql", string.Join(" AND ", query.Select(item => item.ToString()))},
                     {"fields", string.Join(",", properties)}
                 });
-            var result = JObject.Parse(content);
-            var issues = result.Property("issues").Value;
-            var searchResult = JsonConvert.DeserializeObject<SearchResult>(result.ToString());
-            foreach (var issue in issues)
-            {
-                var fields = issue["fields"].ToObject<Dictionary<string, object>>();
-                var key = issue["key"].ToString();
-                customProperties(key, searchResult.issues.Single(i => i.Key == key).Fields, fields);
-            }
 
-            return searchResult;
+			var result = CreateSearchResult(content, customizeProperties);
+
+			return result;
         }
+
+		private SearchResult CreateSearchResult(string content, Action<string, Fields, Dictionary<string, object>> customizeProperties = null)
+		{
+			var tempResult = JObject.Parse(content);
+			var issues = tempResult.Property("issues").Value;
+			var result = JsonConvert.DeserializeObject<SearchResult>(tempResult.ToString());
+			if (customizeProperties != null)
+			{
+				foreach (var issue in issues)
+				{
+					var fields = issue["fields"].ToObject<Dictionary<string, object>>();
+					var key = issue["key"].ToString();
+					customizeProperties(key, result.issues.Single(iz => iz.Key == key).Fields, fields);
+				}
+			}
+
+			return result;
+		}
 
         public JiraVersionInfo GetVersionInfo()
         {
