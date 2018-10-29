@@ -8,7 +8,7 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
     [TestClass]
     public class JiraConnectorTests
     {
-        private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", ***REMOVED***);
+        private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", "USER", "PASSWORD");
 
         [Ignore]
         [TestMethod]

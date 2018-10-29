@@ -1,4 +1,4 @@
-﻿/*(c) Copyright 2012, VersionOne, Inc. All rights reserved. (c)*/
+﻿/*(c) Copyright 2018, CollabNet VersionOne, Inc. All rights reserved. (c)*/
 
 using System;
 using System.Net;
