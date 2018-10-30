@@ -8,7 +8,9 @@ namespace VersionOne.TeamSync.JiraConnector.Tests
     [TestClass]
     public class JiraConnectorTests
     {
-        private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", "USER", "PASSWORD");
+        private const string TestUser = "USER";
+        private const string TestPassword = "PASSWORD";
+        private readonly Connector.JiraConnector _connector = new Connector.JiraConnector("http://jira-6.cloudapp.net:8080/rest/api/latest", TestUser, TestPassword);
 
         [Ignore]
         [TestMethod]
